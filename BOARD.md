@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-Sitting 7. F31 issued: the packet already orders static bytes first for a provider prefix cache, and nothing fails if that order changes. A local DashScope writer seat holds factory/tools/packet.mjs and docs/log/f31.md; a fresh Claude reviewer follows. D-45 is being paid: a writer seat with an independent reviewer. D-49 still needs the owner word. References Otto and Virbos remain read-only. Overlay still shelf. Path dashscope.
+Sitting 8. F31 landed: the packet self-test now checks the envelope part is last and the bytes before it are byte-stable across lane ids, guarded so the check cannot pass vacuously. D-45 paid: a DashScope writer seat, an independent fresh-Claude review. D-49 still needs the owner word. References Otto and Virbos remain read-only. Overlay still shelf. Nothing is running and no experiment is open.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -55,7 +55,7 @@ No envelope opens a gate.
 | F28 | landed | factory/tools/ghaWriter.mjs, factory/tools/seat.mjs, docs/log/f28.md | The seat is launched with the packet |
 | F29 | landed | factory/tools/seatReturn.mjs, factory/returns.json, docs/log/f29.md | Spend and cache hits survive as rows |
 | F30 | landed | factory/tools/experiment.mjs, factory/experiments.json, factory/tools/landingGate.mjs, docs/log/f30.md | A rule can be suspended on purpose, with an expiry |
-| F31 | issued | factory/tools/packet.mjs, docs/log/f31.md | The packet prefix is byte-stable, and a check proves it |
+| F31 | landed | factory/tools/packet.mjs, docs/log/f31.md | The packet prefix is byte-stable, and a check proves it |
 
 ## Holds
 
@@ -105,3 +105,6 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 D-49 deferred to the owner word: AGENTS section 5 mixes owner boundaries with engineering guesses, so a session cites a preference as physics. Proposed replacement text is in docs/log/f30.md. The session that proposed it was refused twice by the desktop tool policy for editing its own instruction file, which is the right refusal.
 - 2026-09-20 Sitting 6 closed. Two open items carried to the next control plane: D-49 needs the owner word, D-45 needs a writer seat. Nothing is running and no experiment is open.
 - 2026-09-20 F31 issued. A handoff naming four pillars was re-assessed against live main: cloud orchestration is already built and green, the prompt-cache prefix is built by construction but unguarded, the spend meter has zero rows so no cap can be set from data yet, and the memory feedback loop has no machine-readable record of a correction to count. F31 takes the one gap with no data dependency. Records issuance skips Actions so the GHA writer does not race the local seat.
+- 2026-09-20 F31 landed from writer/F31 (pc-dashscope), commit 1da51b2. Two independent writer returns existed for this envelope; a fresh review ran both and their negative proofs. writer/F31 checks envelope-last for an issued lane and an unissued lane and guards the prefix-equality assertion against an empty string, so it cannot pass vacuously; writer/F31-ds checked envelope-last for the issued lane only and had no empty-prefix guard. writer/F31-ds was not landed. Fast-forward preserved the writer's commit; this is the first lane where D-45's writer-seat-plus-independent-reviewer loop actually ran, rather than a control-plane self-authored records sitting. D-45 paid.
+- 2026-09-20 kitCheck rule B was red on the F31 issuance commit: factory/packages.json carried no row for board lane F31. Control-plane oversight from issuance, not the writer's — F31 was not in the lane's holds, so the writer correctly left it alone and named it in docs/log/f31.md. Fixed in the landing commit.
+- 2026-09-20 Sitting 7 closed. F31 was the only lane and it landed; D-45 is paid. D-49 still needs the owner word — carried again. Nothing is running and no experiment is open.
