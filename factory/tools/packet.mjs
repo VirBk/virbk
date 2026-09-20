@@ -19,19 +19,38 @@
 // assertions cannot be suspended more narrowly than its own hypothesis (T66).
 //
 // Either command takes `--root <tree>`, which points it at a tree other than
-// this one; that is how a fixture tree drives a proof.
+// this one; that is how a fixture tree drives a proof. The flag is parsed out
+// before the command is dispatched, so either order works: a caller that gets
+// the usage branch instead of a verdict cannot tell a typo from a failure.
 //
 // Why: a lane that changed one line of YAML was billed 195138 input
 // tokens because the seat browsed the repository instead of reading a
 // packet. The ledger, the landed lanes and the archived history are
 // memory; git holds them. They are not the reading path.
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const kitRoot = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const NL = String.fromCharCode(10);
+
+// The gate's second packet step. kitCheck rule G is satisfied by the
+// --self-test step alone, so nothing else in the kit would notice if this step
+// were deleted from the gate; the claim is asserted here instead, from the
+// file that owns it (T04), and the self-test proves the assertion can fail.
+const PACKET_CHECK_STEP = "node factory/tools/packet.mjs --check";
 
 // The CLI runs only when this file is the process entry point. sizeBudget.mjs
 // imports the measurements below, and a dispatch that ran on import would end
@@ -40,9 +59,22 @@ const NL = String.fromCharCode(10);
 // argv[1] to the file it was told to run.
 const isEntry = /packet\.mjs$/.test(process.argv[1] || "");
 
-function rootFrom(argv) {
-  const i = argv.indexOf("--root");
-  return i >= 0 && argv[i + 1] ? resolve(argv[i + 1]) : kitRoot;
+// `--root <tree>` is a property of the invocation, not of one command, so it
+// is stripped before anything is dispatched. Leaving it in argv made
+// `--root X --check` dispatch on the string "--root" and print usage with
+// exit 1 — the same exit code a failed check gives (D-54 lane F33).
+function parseArgs(argv) {
+  const rest = [];
+  let root = kitRoot;
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--root" && argv[i + 1]) {
+      root = resolve(argv[i + 1]);
+      i++;
+      continue;
+    }
+    rest.push(argv[i]);
+  }
+  return { root, rest };
 }
 
 function read(root, rel) {
@@ -262,6 +294,74 @@ export function checkErrors(root) {
   return errors;
 }
 
+// The gate has to hold a step that runs the budget claim, or the two claims
+// collapse back into one. This reads factory/landing-checks.json in the tree
+// being tested, in the same act as the check (T04).
+export function landingStepErrors(root) {
+  const rel = "factory/landing-checks.json";
+  if (!existsSync(join(root, rel))) return [rel + " is not in the tree"];
+  let steps = [];
+  try {
+    steps = JSON.parse(read(root, rel)).steps || [];
+  } catch (err) {
+    return [rel + " does not parse: " + String(err.message || err).split(NL)[0]];
+  }
+  if (steps.some((s) => String(s.run || "").trim() === PACKET_CHECK_STEP)) return [];
+  return [
+    rel +
+      " names no step whose run is `" +
+      PACKET_CHECK_STEP +
+      "` — rule G is satisfied by the --self-test step alone, so this hole reopens silently",
+  ];
+}
+
+// A tree this test wrote, so the two assertions about `--root` are about the
+// dispatch and not about this repository's own numbers drifting.
+function fixture() {
+  const dir = mkdtempSync(join(tmpdir(), "grok-packet-"));
+  mkdirSync(join(dir, "factory/envelopes"), { recursive: true });
+  writeFileSync(
+    join(dir, "AGENTS.md"),
+    "# AGENTS.md" + NL + "The reading path is factory/tools/packet.mjs." + NL,
+  );
+  writeFileSync(
+    join(dir, "factory/board.json"),
+    JSON.stringify({
+      now: "a fixture board",
+      remote: "none",
+      references: [],
+      gates: [],
+      lanes: [],
+      holds: [],
+      keystones: [],
+      shelf: [],
+    }) + NL,
+  );
+  writeFileSync(
+    join(dir, "factory/traps.yaml"),
+    "- id: T01" + NL + "  title: fixture" + NL + "  rule: a fixture rule." + NL,
+  );
+  writeFileSync(join(dir, "factory/CONTROL_PLANE.md"), "# Control plane" + NL);
+  writeFileSync(
+    join(dir, "factory/sparks.json"),
+    JSON.stringify({ sitting: 0, note: "look, not law", items: [] }) + NL,
+  );
+  writeFileSync(join(dir, "factory/envelopes/F00.md"), "e".repeat(200));
+  writeFileSync(
+    join(dir, "factory/budgets.json"),
+    JSON.stringify({
+      files: [],
+      globs: [],
+      context: { seatPacketKb: 100, cpPacketKb: 100, envelopeKb: 1 },
+    }) + NL,
+  );
+  writeFileSync(
+    join(dir, "factory/landing-checks.json"),
+    JSON.stringify({ steps: [{ name: "Reading path under its context budget", run: PACKET_CHECK_STEP }] }) + NL,
+  );
+  return dir;
+}
+
 // The shape of the packet, and nothing about its size. A tree over its caps
 // fails --check and passes this; a packet whose envelope is not last fails
 // this and passes --check. Two claims, two steps, so an experiment can
@@ -323,6 +423,43 @@ function selfTest(root) {
     );
   }
 
+  // The gate must hold a step that runs the budget claim, and the fixture below
+  // must be able to fail that. Without the second half the claim would pass on
+  // an empty file, which is exactly how the hole reopens.
+  for (const e of landingStepErrors(root)) errors.push(e);
+
+  const dir = fixture();
+  try {
+    const cli = fileURLToPath(import.meta.url);
+    // `--root <tree>` before and after the command, both against a tree this
+    // test wrote. The check passes on it, so a non-zero exit is the dispatch
+    // and not the budget.
+    for (const args of [
+      ["--root", dir, "--check"],
+      ["--check", "--root", dir],
+    ]) {
+      const r = spawnSync(process.execPath, [cli, ...args], { encoding: "utf8" });
+      const out = (r.stdout || "") + (r.stderr || "");
+      if (r.status !== 0 || !out.includes("packet check ok")) {
+        errors.push(
+          args.join(" ") + " did not reach the check: exit " + r.status + " " + out.trim().split(NL)[0],
+        );
+      }
+    }
+
+    // The same tree with that one step removed must fail the claim above.
+    const cut = JSON.parse(read(dir, "factory/landing-checks.json")).steps || [];
+    writeFileSync(
+      join(dir, "factory/landing-checks.json"),
+      JSON.stringify({ steps: cut.filter((s) => String(s.run || "").trim() !== PACKET_CHECK_STEP) }) + NL,
+    );
+    if (!landingStepErrors(dir).length) {
+      errors.push("the landing-step claim passes with the --check step removed — it cannot fail");
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+
   if (errors.length) {
     console.error("packet self-test failed");
     for (const e of errors) console.error("  " + e);
@@ -333,8 +470,8 @@ function selfTest(root) {
 }
 
 if (isEntry) {
-  const root = rootFrom(process.argv);
-  const cmd = process.argv[2] || "cost";
+  const { root, rest } = parseArgs(process.argv.slice(2));
+  const cmd = rest[0] || "cost";
 
   if (cmd === "--self-test") selfTest(root);
 
@@ -355,7 +492,7 @@ if (isEntry) {
   }
 
   if (cmd === "seat" || cmd === "cp") {
-    const lane = process.argv[3] || "";
+    const lane = rest[1] || "";
     const parts = cmd === "seat" ? seatPacket(root, lane) : cpPacket(root, lane);
     process.stdout.write(render(parts));
     // stdout is the packet. The meter goes to stderr so a pipe stays clean.

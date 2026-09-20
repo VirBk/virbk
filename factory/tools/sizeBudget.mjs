@@ -99,17 +99,26 @@ function overCap(row) {
   return !(row.bytes <= row.capKb * 1024);
 }
 
+// A row whose cap is missing is a defect in the file being measured, not a
+// crash in the tool that measures it: overCap already routes it to the failure
+// column, so this line has to print it. It used to call capKb.toFixed(1) on an
+// undefined cap and throw before either half of that could happen — the run
+// exited non-zero with a TypeError, which a caller reads as the message.
+function capText(row) {
+  return Number.isFinite(row.capKb) ? row.capKb.toFixed(1).padStart(6) + " KB" : "  no cap";
+}
+
 function line(row) {
   const mark = banded(row) ? "BAND " : "     ";
   return (
     "  " +
     mark +
-    (pct(row).toFixed(1) + "%").padStart(7) +
+    (Number.isFinite(row.capKb) ? (pct(row).toFixed(1) + "%").padStart(7) : "    n/a") +
     "  " +
     (row.bytes / 1024).toFixed(1).padStart(8) +
     " / " +
-    row.capKb.toFixed(1).padStart(6) +
-    " KB  " +
+    capText(row) +
+    "  " +
     row.label
   );
 }
@@ -124,7 +133,14 @@ function run(root) {
     console.error("");
     console.error("size budget failed:");
     for (const r of over) {
-      console.error("  " + r.label + " " + (r.bytes / 1024).toFixed(1) + " KB > " + r.capKb + " KB");
+      console.error(
+        "  " +
+          r.label +
+          " " +
+          (r.bytes / 1024).toFixed(1) +
+          " KB > " +
+          (Number.isFinite(r.capKb) ? r.capKb + " KB" : "no capKb in the file being measured"),
+      );
     }
     return 1;
   }
@@ -214,6 +230,37 @@ function selfTest() {
     }
     const cap = rows.find((r) => r.label === "seat packet");
     if (!(cap.capKb === 100)) errors.push("the context caps are not read from the tree being measured");
+
+    // A row whose cap is missing in the file being measured: the tool must
+    // print it and fail with the named message. It used to call capKb.toFixed(1)
+    // in the report line, before overCap could route the row, so the run exited
+    // on a TypeError and the promised failure never printed.
+    writeFileSync(join(dir, "probes/nocap.md"), Buffer.alloc(64, 97));
+    writeFileSync(join(dir, "probes/band.md"), Buffer.alloc(8090, 97)); // back under its cap
+    writeFileSync(
+      join(dir, "factory/budgets.json"),
+      JSON.stringify({
+        files: [{ path: "probes/band.md", capKb: 10 }, { path: "probes/nocap.md" }],
+        globs: [],
+        context: { seatPacketKb: 100, cpPacketKb: 100, envelopeKb: 1 },
+      }) + NL,
+    );
+    const nocap = spawnSync(process.execPath, [cli, "--root", dir], { encoding: "utf8" });
+    const nocapOut = (nocap.stdout || "") + (nocap.stderr || "");
+    if (nocap.status === 0) errors.push("a row with no capKb exited 0");
+    if (!nocapOut.includes("no capKb in the file being measured")) {
+      errors.push("a row with no capKb did not fail with the named message: " + nocapOut.trim());
+    }
+    // Once in the table, once in the failure: two mentions pin the report line
+    // as the part that used to throw.
+    if (nocapOut.split("probes/nocap.md").length - 1 < 2) {
+      errors.push(
+        "the no-capKb row was not printed in the table and again in the failure: " + nocapOut.trim(),
+      );
+    }
+    if (/TypeError|Cannot read propert/.test(nocapOut)) {
+      errors.push("a row with no capKb threw instead of printing the message: " + nocapOut.trim());
+    }
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

@@ -316,8 +316,12 @@ function cmdClose(root) {
 
 // A closed spark is history and leaves the file every control-plane packet
 // reads. Oldest first is the order the file held them in, which is the order
-// they were opened in. Read the archive before appending to it: a spark whose
-// row is already there is not written twice (T65). The month is the host
+// they were opened in. Each row leaves carrying `at`, the slot it held in the
+// list it left, so the archive read back into the live rows' slots rebuilds
+// that list in its own order — a partition that dropped position could only
+// rebuild a file whose closed rows all precede its open ones, which is not a
+// property of this file. Read the archive before appending to it: a spark
+// whose row is already there is not written twice (T65). The month is the host
 // clock, read in the same act as the write (T04).
 function rotate(root, { write = true, now = new Date() } = {}) {
   const data = loadSparks(root);
@@ -335,7 +339,8 @@ function rotate(root, { write = true, now = new Date() } = {}) {
     key +
     NL +
     NL +
-    "Archived from factory/sparks.json. History, not the reading path. One JSON line per spark, in the order the file held them." +
+    "Archived from factory/sparks.json. History, not the reading path. One JSON line per spark, " +
+    "in the order the file held them, plus `at`, the slot the row held in the file it left." +
     NL +
     NL;
   const prev = existsSync(abs) ? readFileSync(abs, "utf8") : head;
@@ -349,10 +354,13 @@ function rotate(root, { write = true, now = new Date() } = {}) {
       // Not a row this file wrote. Leave it where it is.
     }
   }
-  const fresh = closed.filter((it) => !seen.has(it.id));
+  const fresh = [];
+  items.forEach((it, at) => {
+    if (CLOSED.has(it.status) && !seen.has(it.id)) fresh.push({ at, it });
+  });
   if (fresh.length) {
     const body = prev.endsWith(NL) ? prev : prev + NL;
-    writeFileSync(abs, body + fresh.map((it) => JSON.stringify(it)).join(NL) + NL);
+    writeFileSync(abs, body + fresh.map((e) => JSON.stringify({ ...e.it, at: e.at })).join(NL) + NL);
   }
   data.items = open;
   saveSparks(root, data);
@@ -437,13 +445,17 @@ function selfTest() {
   }
 
   // Rotate: the window is the status. Absorbed and dropped leave the file the
-  // packet reads, open stays, a second run moves nothing, and the archive plus
-  // the live file rebuild the item list as it was, in the order it was in.
+  // packet reads, open stays, a second run moves nothing, and the archive read
+  // back into the live rows' slots rebuilds the item list as it was, in the
+  // order it was in.
   const dir3 = mkdtempSync(join(tmpdir(), "grok-spark3-"));
   try {
-    // The file is append-only, so the order it holds is opening order — which
-    // is why the ids below are not in ascending order. A rotate that sorted
-    // its rows would pass a set comparison and fail this one.
+    // Two things about the order below are on purpose. The ids are not in
+    // ascending order — the file is append-only, so the order it holds is
+    // opening order, and a rotate that sorted its rows would pass a set
+    // comparison and fail this one. And S01, open, sits between S04 and S02,
+    // both closed: a rotate that partitioned without carrying position would
+    // rebuild this list wrongly, so the assertion below can fail.
     const items = [
       {
         id: "S04",
@@ -454,6 +466,15 @@ function selfTest() {
         status: "absorbed",
         openedOn: 1,
         absorbedAs: "T99",
+      },
+      {
+        id: "S01",
+        kind: "lesson",
+        claim: "An open spark must stay where a seat reads it.",
+        object: "factory/sparks.json",
+        whyNotLaw: "fixture, no check yet",
+        status: "open",
+        openedOn: 4,
       },
       {
         id: "S02",
@@ -474,15 +495,6 @@ function selfTest() {
         status: "dropped",
         openedOn: 3,
         because: "fixture",
-      },
-      {
-        id: "S01",
-        kind: "lesson",
-        claim: "An open spark must stay where a seat reads it.",
-        object: "factory/sparks.json",
-        whyNotLaw: "fixture, no check yet",
-        status: "open",
-        openedOn: 4,
       },
     ];
     const before = items.map((it) => JSON.stringify(it));
@@ -512,20 +524,43 @@ function selfTest() {
     if (check(dir3).length) {
       errors.push("rotate left the live file failing its own check: " + check(dir3).join("; "));
     }
-    // Byte-exact, and in the order the file held them: the archive is the
-    // closed rows, the live file is the open ones, and the two read one after
-    // the other are the list as it was.
+    // The archive is the closed rows byte-exact and in file order; the live
+    // file is the open rows byte-exact. Each archived row also carries `at`,
+    // so reading the archive back into the live rows' slots rebuilds the list
+    // this rotation read. That is the whole claim — `at` is the position, not
+    // part of the row — and it is why the fixture interleaves.
     const closed = items.filter((it) => CLOSED.has(it.status));
     const open = items.filter((it) => it.status === "open");
     const asRows = (list) => JSON.stringify(list.map((it) => JSON.stringify(it)));
-    if (asRows(archived()) !== asRows(closed)) {
-      errors.push("the archive does not hold the closed rows in file order: " + asRows(archived()));
+    const withoutAt = ({ at, ...rest }) => rest;
+    const archivedRows = archived();
+    if (archivedRows.some((r) => !Number.isInteger(r.at))) {
+      errors.push("a rotated row left without `at`, the slot it held: " + asRows(archivedRows));
+    }
+    if (asRows(archivedRows.map(withoutAt)) !== asRows(closed)) {
+      errors.push(
+        "the archive does not hold the closed rows in file order: " + asRows(archivedRows.map(withoutAt)),
+      );
     }
     if (asRows(live.items) !== asRows(open)) {
       errors.push("the live file does not hold the open rows byte-exact");
     }
-    if (asRows(archived().concat(live.items)) !== JSON.stringify(before)) {
+    const slots = new Map(archivedRows.map((r) => [r.at, withoutAt(r)]));
+    const spilled = open.slice();
+    const rebuilt = [];
+    for (let i = 0; i < items.length; i++) {
+      rebuilt.push(slots.has(i) ? slots.get(i) : spilled.shift());
+    }
+    if (asRows(rebuilt) !== JSON.stringify(before)) {
       errors.push("archive plus live file do not rebuild the item list in its original order");
+    }
+    // And the fixture has to be able to fail that. With every closed row
+    // before every open one the slots are a prefix, so a rotate that dropped
+    // position rebuilds correctly and this whole block asserts nothing.
+    if (asRows(archivedRows.map(withoutAt).concat(live.items)) === JSON.stringify(before)) {
+      errors.push(
+        "the fixture holds every closed row before every open one — it cannot fail a rotate that drops position",
+      );
     }
 
     const again = rotate(dir3, { now: new Date("2026-09-20T00:00:00Z") });
