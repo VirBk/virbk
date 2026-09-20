@@ -32,6 +32,7 @@
 // block names the meter its numbers were pasted from; a zero there would
 // be a durable false measurement in the store (F32).
 
+import { spawnSync } from "node:child_process";
 import {
   copyFileSync,
   existsSync,
@@ -295,6 +296,13 @@ export function returnErrors(root, row) {
   return errors;
 }
 
+// Every field a return must carry, pinned by name. The two conditional ones
+// (spendUsd, tokens) live in anyOf, and meterModel is optional because a seat
+// cannot know it (T69). Two of these eight used to hold this check and the
+// other six could leave `required` with both commands still green (D-59): a
+// contract that stopped requiring `model` would accept a return naming none.
+const RETURN_REQUIRED = ["lane", "runtime", "model", "base", "branch", "changed", "verify", "measured"];
+
 function schemaErrors(root) {
   const errors = [];
   const schema = json(root, "contracts/seat-return.v1.json");
@@ -308,8 +316,15 @@ function schemaErrors(root) {
       errors.push("contracts/seat-return.v1.json has no " + field);
     }
   }
-  if (!(schema.required || []).includes("measured")) {
-    errors.push("contracts/seat-return.v1.json does not require measured");
+  const required = schema.required || [];
+  for (const field of RETURN_REQUIRED) {
+    if (!required.includes(field)) {
+      errors.push("contracts/seat-return.v1.json does not require " + field);
+    }
+  }
+  const unexpected = required.filter((f) => !RETURN_REQUIRED.includes(f));
+  if (unexpected.length) {
+    errors.push("contracts/seat-return.v1.json requires fields outside the set: " + unexpected.join(", "));
   }
   // A seat cannot see its own model: the id is written by the recorder from
   // the meter, so requiring it would make every seat's return invalid.
@@ -825,6 +840,60 @@ function selfTest() {
     rmSync(dir4, { recursive: true, force: true });
   }
 
+  // The CLI is the only production caller of record(), and it is the command a
+  // control plane types. A fixture that calls record() directly with an explicit
+  // meterFile the CLI never passes describes the function; it does not test the
+  // invocation that ships (D-59). These three drives go through the entry point
+  // in a child process, with the two environment variables it reads, so a CLI
+  // that stopped calling record() cannot pass.
+  const cliDir = mkdtempSync(join(tmpdir(), "seat-return-cli-"));
+  try {
+    const returnPath = join(cliDir, "return.json");
+    const wrongPath = join(cliDir, "wrong.json");
+    writeFileSync(returnPath, JSON.stringify({ ...good, lane: "F38" }, null, 2) + NL);
+    writeFileSync(
+      wrongPath,
+      JSON.stringify({ ...good, lane: "F38", model: "qwen3.7-flash" }, null, 2) + NL,
+    );
+    const drive = (file) =>
+      spawnSync(
+        process.execPath,
+        [fileURLToPath(import.meta.url), file, "--record", "--project", project],
+        { encoding: "utf8", env: { ...process.env, SEAT_RETURN_ROOT: cliDir, SEAT_USAGE_RECORD: meterFile } },
+      );
+
+    const agreed = drive(returnPath);
+    if (agreed.status !== 0) {
+      errors.push("the CLI refused a return that agrees with the meter: " + (agreed.stderr || agreed.stdout).trim());
+    }
+    const after = loadStore(cliDir).rows;
+    if (after.length !== 1) {
+      errors.push("the CLI recorded " + after.length + " rows, expected 1");
+    } else if (after[0].meterModel !== "deepseek-flash") {
+      errors.push("the CLI stored " + after[0].meterModel + ", not the id the meter recorded");
+    }
+
+    const twice = drive(returnPath);
+    if (twice.status === 0) errors.push("the CLI recorded the same return twice");
+    else if (!/already recorded/.test(twice.stderr)) {
+      errors.push("the CLI's second record did not say already recorded: " + twice.stderr.trim());
+    }
+    if (loadStore(cliDir).rows.length !== 1) {
+      errors.push("the CLI's re-record changed the row count: " + loadStore(cliDir).rows.length);
+    }
+
+    const refused = drive(wrongPath);
+    if (refused.status === 0) errors.push("the CLI recorded a return whose model disagrees with the meter");
+    else if (!/disagreement/.test(refused.stderr)) {
+      errors.push("the CLI's refusal did not name the disagreement: " + refused.stderr.trim());
+    }
+    if (loadStore(cliDir).rows.length !== 1) {
+      errors.push("the CLI's refusal changed the row count: " + loadStore(cliDir).rows.length);
+    }
+  } finally {
+    rmSync(cliDir, { recursive: true, force: true });
+  }
+
   // The store that ships. Its rows are the only real measurement this factory
   // has, so its shape is checked here: the gate step that runs this file is
   // then the check that catches a rewrite (D-59, T65).
@@ -884,10 +953,17 @@ function selfTest() {
       errors.push("a faithful copy of the contract failed: " + schemaErrors(dir6).join("; "));
     }
     const straight = json(dir6, "contracts/seat-return.v1.json");
-    const bent = JSON.parse(JSON.stringify(straight));
-    bent.required = (bent.required || []).filter((f) => f !== "measured");
-    writeFileSync(contract, JSON.stringify(bent, null, 2) + NL);
-    if (!schemaErrors(dir6).length) errors.push("a contract that stopped requiring measured passed");
+    // Each of the eight, dropped in turn. The shipped contract carried six of
+    // them unlooked-at, so this loop is the only thing that makes dropping one
+    // red where the landings look.
+    for (const field of RETURN_REQUIRED) {
+      const bent = JSON.parse(JSON.stringify(straight));
+      bent.required = bent.required.filter((f) => f !== field);
+      writeFileSync(contract, JSON.stringify(bent, null, 2) + NL);
+      if (!schemaErrors(dir6).length) {
+        errors.push("a contract that stopped requiring " + field + " passed");
+      }
+    }
     const bent2 = JSON.parse(JSON.stringify(straight));
     bent2.required = [...(bent2.required || []), "meterModel"];
     writeFileSync(contract, JSON.stringify(bent2, null, 2) + NL);
