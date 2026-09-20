@@ -359,10 +359,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "X01 opened and reverted the same day: it suspended a whole gate step to excuse one cap, switching off F31's prefix guard landed that morning. A suspension must not be wider than its hypothesis. The cap was cleared by compaction, and board.now now carries routing facts only, with the handoff in D-55, because the slice is in every seat's packet."
-    },
-    {
-      "at": "2026-09-20",
       "event": "Seat-packet cap raised 26 to 27 KB by D-56 after compaction failed to close a 0.5 KB gap, held at one KB headroom so the pressure stays. X01 was reverted first: a suspension must not be wider than its hypothesis. F36 brings the packet back under 26 by scoping a seat's traps to its Holds; the cap is not nudged again."
     },
     {
@@ -404,6 +400,10 @@
     {
       "at": "2026-09-20",
       "event": "F33 correction 1 reviewed at 156f40b: CORRECTIONS NEEDED again, and the correction cap is spent, so the lane splits off this seat. All five items do go red on revert, coverage did not regress and the rebase is proven, but rotate's `at` is an index into the list as it stood at that rotation, so a second productive rotation collides: archiving the live store, absorbing S14, rotating again writes S14 at slot 1 against S02 at slot 1, duplicate slots {1: 2}, and the reconstruction the comment and the archive header both promise is impossible. The control plane's own verification missed it by driving one rotation where the reviewer drove two. The same disease appears in item 2, where the --root order assertion passes even when the flag's value is ignored, because the fixture and the live tree both print packet check ok. Both are the original defect's shape: a property true only in the degenerate case. The issuance is at fault too — the correction envelope offered a choice between carrying position and narrowing the claim, and a sweep-tier envelope should not hand a cheap seat that judgement. The split envelope dictates the narrow claim instead of offering it."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F33 split to a fresh seat at base 805be61, same cheap tier, with an envelope that dictates rather than offers. Six items, mostly deletion: rotate stops writing `at` and nothing promises the archive can rebuild the live file, because position indexes the list as it stood at that rotation and collides on the second; the comment and archive header say what is true, that rotation is not a reversible transform; four replacement assertions each with a named mutation that makes them fail, including the two-productive-rotations case both prior passes skipped; the --root fixture becomes over-cap so a flag whose value is ignored cannot pass green; a non-number cap takes the missing-cap path; and two false sentences leave the lane log. The issuance lesson is recorded in the envelope itself: a sweep-tier envelope that offers a cheap seat a choice between a hard correct option and an easy correct one will get the hard one done wrong, which is how both of this lane's defects entered."
     }
   ]
 }
