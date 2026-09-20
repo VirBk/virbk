@@ -59,6 +59,15 @@
       "whyNotLaw": "The underlying claim was true and derivable from route.mjs, so a reviewer reading for plausibility passes it. T02 covers a copied number and T56 a missing command; neither covers an invented reference, and nothing checks that a ref or path a log cites resolves.",
       "status": "open",
       "openedOn": 10
+    },
+    {
+      "id": "S19",
+      "kind": "trap",
+      "claim": "Half a fix can ship untested when one mutation reds for the other half's reason: splitCheck is case-sensitive AND last-wins, and only case-sensitivity has a fixture.",
+      "object": "factory/tools/alumni.mjs",
+      "whyNotLaw": "Restoring first-match while keeping case-sensitivity leaves alumni --self-test green, because no fixture row carries two capital-C directives. The envelope named one mutation combining both halves, and it reds on the first half alone.",
+      "status": "open",
+      "openedOn": 10
     }
   ]
 }
