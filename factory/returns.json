@@ -1,0 +1,4 @@
+{
+  "rule": "Rows appended by node factory/tools/seatReturn.mjs <return.json> --record, read by node factory/tools/seatReturn.mjs spend. One row per accepted return, keyed by its content so the same return is not counted twice. The lane log keeps the prose. Not the reading path: no seat reads this file.",
+  "rows": []
+}

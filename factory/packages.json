@@ -28,6 +28,7 @@
     {"id": "F25", "title": "Board ledger is a window, not a novel", "status": "landed"},
     {"id": "F26", "title": "Alumni contribute by measurement", "status": "landed"},
     {"id": "F27", "title": "A return pastes the command", "status": "landed"},
-    {"id": "F28", "title": "The seat is launched with the packet", "status": "landed"}
+    {"id": "F28", "title": "The seat is launched with the packet", "status": "landed"},
+    {"id": "F29", "title": "Spend and cache hits survive as rows", "status": "landed"}
   ]
 }

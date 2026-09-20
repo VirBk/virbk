@@ -1,5 +1,5 @@
 {
-  "now": "Sitting 4 closed. F22-F28 landed: the kit checks its own shape, the gate runs where the control plane sits, the reading path is a packet under a byte budget and is what a seat is launched with, the ledger is a window, alumni are measured, a return pastes the command. Nothing is running. References remain read-only. Overlay still shelf. Path dashscope.",
+  "now": "Sitting 5. F29 landed: a return records spendUsd and cachedTokens into factory/returns.json and node factory/tools/seatReturn.mjs spend sums them. Nothing is running. References remain read-only. Overlay still shelf. Path dashscope.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -206,6 +206,12 @@
       "title": "The seat is launched with the packet",
       "state": "landed",
       "hold": "factory/tools/ghaWriter.mjs, factory/tools/seat.mjs, docs/log/f28.md"
+    },
+    {
+      "id": "F29",
+      "title": "Spend and cache hits survive as rows",
+      "state": "landed",
+      "hold": "factory/tools/seatReturn.mjs, factory/returns.json, docs/log/f29.md"
     }
   ],
   "keystones": [
@@ -299,10 +305,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "F24 landed. factory/tools/packet.mjs is the seat reading path, ordered for a prefix cache, with a byte budget in factory/budgets.json that the gate fails. AGENTS names it and stayed under cap. T61. D-38."
-    },
-    {
-      "at": "2026-09-20",
       "event": "F25 landed. The board ledger is a window; older rows rotate to docs/ledger/. The render says so. T61. D-39."
     },
     {
@@ -344,6 +346,10 @@
     {
       "at": "2026-09-20",
       "event": "A feedback-loop handoff was assessed against live main and nothing was landed from it. The checks it would have turned red are named in D-46. The one gap it found is open as S07: no command sums spend or cache hits across returns."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F29 landed. A return that passes validation can be recorded; the row is keyed by its content so recording it twice is refused, and spend sums by lane and by model. The store is empty until the next metered return. S07 absorbed as T65. D-47."
     }
   ]
 }

@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-Sitting 4 closed. F22-F28 landed: the kit checks its own shape, the gate runs where the control plane sits, the reading path is a packet under a byte budget and is what a seat is launched with, the ledger is a window, alumni are measured, a return pastes the command. Nothing is running. References remain read-only. Overlay still shelf. Path dashscope.
+Sitting 5. F29 landed: a return records spendUsd and cachedTokens into factory/returns.json and node factory/tools/seatReturn.mjs spend sums them. Nothing is running. References remain read-only. Overlay still shelf. Path dashscope.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -53,6 +53,7 @@ No envelope opens a gate.
 | F26 | landed | factory/tools/alumni.mjs, factory/lineage.json, contracts/intake.v1.json, docs/log/f26.md | Alumni contribute by measurement |
 | F27 | landed | factory/tools/seatReturn.mjs, contracts/seat-return.v1.json, docs/log/f27.md | A return pastes the command |
 | F28 | landed | factory/tools/ghaWriter.mjs, factory/tools/seat.mjs, docs/log/f28.md | The seat is launched with the packet |
+| F29 | landed | factory/tools/seatReturn.mjs, factory/returns.json, docs/log/f29.md | Spend and cache hits survive as rows |
 
 ## Holds
 
@@ -89,7 +90,6 @@ No envelope opens a gate.
 
 Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.
 
-- 2026-09-20 F24 landed. factory/tools/packet.mjs is the seat reading path, ordered for a prefix cache, with a byte budget in factory/budgets.json that the gate fails. AGENTS names it and stayed under cap. T61. D-38.
 - 2026-09-20 F25 landed. The board ledger is a window; older rows rotate to docs/ledger/. The render says so. T61. D-39.
 - 2026-09-20 F26 landed. alumni.mjs scans a product read-only, maps each signal to the trap that paid for it, emits candidate intakes the intake gate accepts, and prints the check pack and the provenance chain. Every absorbed portable intake names the law it became. T62. D-43.
 - 2026-09-20 Measured, not assumed: alumni.mjs drop-status reports otto and virbos both not adopted, script absent and gate not naming it, three days after the drops were issued. Exit 2 for both.
@@ -101,3 +101,4 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 F28 landed. The writer Action and every seat recipe launch on the packet instead of an envelope plus a browse. ghaWriter self-test fails if the packet stops being the prompt. T61. D-38.
 - 2026-09-20 Sitting closed twice in one day: once after the records lanes, once after F28. Two closes are two sittings in the record, which is what happened.
 - 2026-09-20 A feedback-loop handoff was assessed against live main and nothing was landed from it. The checks it would have turned red are named in D-46. The one gap it found is open as S07: no command sums spend or cache hits across returns.
+- 2026-09-20 F29 landed. A return that passes validation can be recorded; the row is keyed by its content so recording it twice is refused, and spend sums by lane and by model. The store is empty until the next metered return. S07 absorbed as T65. D-47.

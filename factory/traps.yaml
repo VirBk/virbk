@@ -320,3 +320,8 @@
   kind: portable
   title: Contract enum typed once, catalog moved
   rule: A schema that lists ids by hand is checked against the catalog that owns them. seat-return named a runtime that no topology has and omitted the one the last two lanes ran on. Check is node factory/tools/seatReturn.mjs --check-contract.
+
+- id: T65
+  kind: portable
+  title: Number measured, validated, discarded
+  rule: A return's spendUsd and cachedTokens are appended to factory/returns.json by node factory/tools/seatReturn.mjs <return.json> --record and read by spend. The key is the row's content, checked read-first, so recording twice does not double the spend. The lane log keeps the prose; the rows outlive the twelve-row ledger window. Check is node factory/tools/seatReturn.mjs --self-test.

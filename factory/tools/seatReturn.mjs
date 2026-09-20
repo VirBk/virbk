@@ -3,14 +3,29 @@
 // printed. A session that says it understands still invents (S06 -> T56).
 //
 //   node factory/tools/seatReturn.mjs return.json
+//   node factory/tools/seatReturn.mjs return.json --record
+//   node factory/tools/seatReturn.mjs spend
 //   node factory/tools/seatReturn.mjs --template
 //   node factory/tools/seatReturn.mjs --self-test
 //
 // The runtime is checked against the live catalog, not against a list
 // typed into the schema once: factory/runtimes.json is the catalog and
 // contracts/seat-return.v1.json must agree with it.
+//
+// A number that is validated and then discarded is not a dataset. The
+// lane log keeps the prose; factory/returns.json keeps the rows, and the
+// rows outlive the twelve-row ledger window (S07 -> T65).
 
-import { existsSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { createHash } from "node:crypto";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -120,6 +135,114 @@ function schemaErrors(root) {
   return errors;
 }
 
+// The store. Rows outlive the ledger window, which is twelve rows wide.
+// Appended only here, only after the return passed the same validation,
+// and read only by `spend`. It is not in the packet: no seat reads it.
+
+const STORE = "factory/returns.json";
+const STORE_RULE =
+  "Rows appended by node factory/tools/seatReturn.mjs <return.json> --record, " +
+  "read by node factory/tools/seatReturn.mjs spend. One row per accepted return, " +
+  "keyed by its content so the same return is not counted twice. The lane log keeps " +
+  "the prose. Not the reading path: no seat reads this file.";
+
+function storeRoot() {
+  return process.env.SEAT_RETURN_ROOT || kitRoot;
+}
+
+// The key names the thing done and is checked read-first, so an
+// at-least-once record does not double the spend (AGENTS section 6).
+export function rowKey(row) {
+  const canonical = [
+    row.lane,
+    row.runtime,
+    row.model,
+    row.base,
+    row.branch,
+    (row.changed || []).join(","),
+    row.verify,
+    row.measured,
+    String(row.spendUsd),
+    String(row.cachedTokens || 0),
+  ].join(String.fromCharCode(31));
+  return createHash("sha256").update(canonical).digest("hex").slice(0, 16);
+}
+
+export function loadStore(root) {
+  const p = join(root, STORE);
+  if (!existsSync(p)) return { rule: STORE_RULE, rows: [] };
+  const data = JSON.parse(readFileSync(p, "utf8"));
+  if (!Array.isArray(data.rows)) throw new Error(STORE + " has no rows array");
+  return data;
+}
+
+function saveStore(root, data) {
+  mkdirSync(join(root, "factory"), { recursive: true });
+  writeFileSync(join(root, STORE), JSON.stringify(data, null, 2) + NL);
+}
+
+export function record(root, row) {
+  const data = loadStore(root);
+  const key = rowKey(row);
+  if (data.rows.some((r) => r.key === key)) {
+    return { ok: false, key, reason: "already recorded" };
+  }
+  data.rows.push({
+    at: new Date().toISOString(),
+    key,
+    lane: row.lane,
+    runtime: row.runtime,
+    model: row.model,
+    base: row.base,
+    branch: row.branch,
+    spendUsd: row.spendUsd,
+    cachedTokens: typeof row.cachedTokens === "number" ? row.cachedTokens : 0,
+  });
+  saveStore(root, data);
+  return { ok: true, key, rows: data.rows.length };
+}
+
+function usd(n) {
+  return "$" + n.toFixed(4);
+}
+
+export function spendReport(root) {
+  const rows = loadStore(root).rows;
+  if (!rows.length) {
+    return "no returns recorded" + NL +
+      "  node factory/tools/seatReturn.mjs <return.json> --record" + NL;
+  }
+  const byLane = new Map();
+  const byModel = new Map();
+  let spend = 0;
+  let cached = 0;
+  for (const r of rows) {
+    const s = Number(r.spendUsd) || 0;
+    const c = Number(r.cachedTokens) || 0;
+    spend += s;
+    cached += c;
+    for (const [map, k] of [[byLane, r.lane], [byModel, r.model]]) {
+      const cur = map.get(k) || { rows: 0, spendUsd: 0, cachedTokens: 0 };
+      cur.rows += 1;
+      cur.spendUsd += s;
+      cur.cachedTokens += c;
+      map.set(k, cur);
+    }
+  }
+  const lines = [
+    "returns " + rows.length + "  spend " + usd(spend) + "  cached tokens " + cached,
+    "",
+    "by lane",
+  ];
+  const row = (k, v, width) =>
+    "  " + String(k).padEnd(width) + String(v.rows).padStart(3) + "  " +
+    usd(v.spendUsd).padStart(11) + "  " + String(v.cachedTokens).padStart(9) + " cached";
+  for (const [k, v] of [...byLane].sort()) lines.push(row(k, v, 10));
+  lines.push("", "by model");
+  for (const [k, v] of [...byModel].sort()) lines.push(row(k, v, 24));
+  return lines.join(NL) + NL;
+}
+
 function fail(label, errors) {
   console.error(label);
   for (const e of errors) console.error("  " + e);
@@ -146,6 +269,36 @@ function selfTest() {
   }
   if (!models(kitRoot).includes(good.model)) errors.push("template model is not in the catalog");
 
+  // The store: a row survives, a re-record is refused, spend sums rows.
+  const dir = mkdtempSync(join(tmpdir(), "seat-return-"));
+  try {
+    if (!record(dir, good).ok) errors.push("first record refused");
+    if (record(dir, good).ok) errors.push("the same return was recorded twice");
+    const other = { ...good, lane: "F99", spendUsd: 0.25, cachedTokens: 1000 };
+    if (!record(dir, other).ok) errors.push("a different return was refused");
+    const rows = loadStore(dir).rows;
+    if (rows.length !== 2) errors.push("store has " + rows.length + " rows, expected 2");
+    if (rows.some((r) => !r.key || !r.at)) errors.push("a row is missing its key or its time");
+    if (rows.some((r) => "measured" in r || "changed" in r)) {
+      errors.push("the store keeps rows; prose belongs in the lane log");
+    }
+    const report = spendReport(dir);
+    if (!/returns 2/.test(report)) errors.push("spend did not count both rows");
+    if (!/F99/.test(report)) errors.push("spend lost a lane");
+    if (!/\$0\.2500/.test(report)) errors.push("spend lost the number");
+    if (!/1000 cached/.test(report)) errors.push("spend lost cached tokens");
+    const empty = mkdtempSync(join(tmpdir(), "seat-return-empty-"));
+    try {
+      if (!/no returns recorded/.test(spendReport(empty))) {
+        errors.push("an empty store must say so, not crash");
+      }
+    } finally {
+      rmSync(empty, { recursive: true, force: true });
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+
   if (errors.length) fail("seatReturn self-test failed", errors);
   console.log("seatReturn self-test ok");
   process.exit(0);
@@ -167,8 +320,15 @@ if (cmd === "--check-contract") {
   process.exit(0);
 }
 
+if (cmd === "spend") {
+  process.stdout.write(spendReport(storeRoot()));
+  process.exit(0);
+}
+
 if (!cmd || cmd.startsWith("-")) {
-  console.error("usage: node factory/tools/seatReturn.mjs <return.json> | --template | --check-contract | --self-test");
+  console.error(
+    "usage: node factory/tools/seatReturn.mjs <return.json> [--record] | spend | --template | --check-contract | --self-test",
+  );
   process.exit(1);
 }
 
@@ -182,3 +342,11 @@ try {
 const found = returnErrors(kitRoot, row);
 if (found.length) fail("return failed", found);
 console.log("return ok  " + row.lane + "  " + row.runtime + "  " + row.model);
+
+// A return that fails validation is never recorded: the check is above.
+if (process.argv.includes("--record")) {
+  const out = record(storeRoot(), row);
+  if (!out.ok) fail("record refused", [out.reason + ": " + out.key]);
+  console.log("recorded " + out.key + "  rows " + out.rows);
+}
+process.exit(0);

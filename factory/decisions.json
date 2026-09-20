@@ -327,6 +327,14 @@
       "charged": "A handoff proposed a feedback tool, a replacement writer Action, a prompt-prefix gate step, distilled lessons appended to the packet, a token cap in CI, and five sparks written straight into a new file.",
       "summary": "Assessed against live main and rejected part by part. Deleting .github/workflows/writer.yml exits the ghaWriter self-test 1 and reds gate step 13. A factory/tools file no gate step names reds kitCheck rule G. A prefix hash over BOARD.md guards bytes the packet does not send, and cachedTokens in a return already measures the hit. Distilled lessons appended to the packet are traps without checks, which traps.yaml behind spark.mjs already covers. A token cap in a workflow is an undated threshold and the envelope already names the spend cap. Sparks written outside spark.mjs skip shape, the open cap and the one-sitting TTL. One claim survived and is open as S07.",
       "reversible": true
+    },
+    {
+      "id": "D-47",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "S07. A return validated spendUsd and cachedTokens and then discarded the row, so the acceptance in AGENTS section 1 — spend pasted in the lane log — could not be summed. The ledger that carried the prose is a twelve-row window and rotates.",
+      "summary": "Spend and cache hits survive as rows in factory/returns.json. Appended only by node factory/tools/seatReturn.mjs <return.json> --record, after the return passes the same validation, and read only by node factory/tools/seatReturn.mjs spend. A row is keyed by its content and checked read-first, so an at-least-once record does not double the spend. The store is not in the packet and no seat reads it. No cap and no threshold is set: the store gains about one row per landed return, and enforcement stays where it already is, the envelope spend cap and a return. A cap would be a new dated row. Absorbed as T65.",
+      "reversible": true
     }
   ]
 }
