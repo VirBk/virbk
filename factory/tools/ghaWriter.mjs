@@ -96,6 +96,18 @@ if (cmd === "run") {
   assertNotMain(branch);
   const envPath = join(root, "factory/envelopes", lane + ".md");
   const envelope = readFileSync(envPath, "utf8");
+  // The prompt is the packet, not the envelope alone: AGENTS, the live
+  // board slice, the traps digest, then this envelope. A seat handed only
+  // an envelope goes and reads the repository, and bills for it (T61).
+  const packet = spawnSync(
+    process.execPath,
+    [join(root, "factory/tools/packet.mjs"), "seat", lane],
+    { cwd: root, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 },
+  );
+  const prompt = packet.status === 0 && (packet.stdout || "").includes("AGENTS")
+    ? packet.stdout
+    : envelope;
+  console.log("# prompt " + (prompt === envelope ? "envelope only (packet failed)" : "packet") + " " + prompt.length + " bytes");
   const model = hostedModel();
   const setup = git(["config", "user.email", "199931366+VirBk@users.noreply.github.com"]);
   git(["config", "user.name", "VirBk"]);
@@ -111,7 +123,7 @@ if (cmd === "run") {
   console.log("# branch " + branch);
   const write = spawnSync(
     "qwen",
-    ["--auth-type", "openai", "--model", model, "--yolo", "-p", envelope],
+    ["--auth-type", "openai", "--model", model, "--yolo", "-p", prompt],
     { cwd: root, encoding: "utf8", env, maxBuffer: 32 * 1024 * 1024 },
   );
   process.stdout.write(write.stdout || "");
@@ -151,6 +163,9 @@ if (cmd === "--self-test") {
   }
   if (!src.includes('const branch = "writer/" + lane')) {
     errors.push("ghaWriter.mjs must name writer/<lane>");
+  }
+  if (!src.includes("factory/tools/packet.mjs")) {
+    errors.push("ghaWriter.mjs must launch the writer with the packet");
   }
   if (writer.includes("git push")) {
     errors.push("writer.yml must not git push; ghaWriter.mjs owns the push");

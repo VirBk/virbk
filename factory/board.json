@@ -1,5 +1,5 @@
 {
-  "now": "Sitting 3. F22-F27 landed: the kit checks its own shape, the gate runs where the control plane sits, the reading path is a packet under a byte budget, the ledger is a window, alumni are measured, a return pastes the command. Writer idle; references remain read-only. Overlay still shelf. Path dashscope.",
+  "now": "Sitting 4 open. F22-F28 landed: the kit checks its own shape, the gate runs where the control plane sits, the reading path is a packet under a byte budget and is what a seat is launched with, the ledger is a window, alumni are measured, a return pastes the command. Writer idle; references remain read-only. Overlay still shelf. Path dashscope.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -200,6 +200,12 @@
       "title": "A return pastes the command",
       "state": "landed",
       "hold": "factory/tools/seatReturn.mjs, contracts/seat-return.v1.json, docs/log/f27.md"
+    },
+    {
+      "id": "F28",
+      "title": "The seat is launched with the packet",
+      "state": "landed",
+      "hold": "factory/tools/ghaWriter.mjs, factory/tools/seat.mjs, docs/log/f28.md"
     }
   ],
   "keystones": [
@@ -293,10 +299,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "F22 landed. Every tracked .json parses in the gate; factory/packages.json had been invalid since F19 and no step read it. Plan and board are checked against each other. T59 T63. D-41."
-    },
-    {
-      "at": "2026-09-20",
       "event": "Parent remote named in live law is VirBk/virbk; the help-target guard reads factory/lineage.json instead of a literal. Older rows keep the previous name as history. D-42."
     },
     {
@@ -338,6 +340,10 @@
     {
       "at": "2026-09-20",
       "event": "Newlines pinned with .gitattributes so the working tree, the gate archive and the runner measure one number. Each alumni drop now names the read-only command the parent uses to measure adoption."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F28 landed. The writer Action and every seat recipe launch on the packet instead of an envelope plus a browse. ghaWriter self-test fails if the packet stops being the prompt. T61. D-38."
     }
   ]
 }

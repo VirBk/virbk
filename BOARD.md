@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-Sitting 3. F22-F27 landed: the kit checks its own shape, the gate runs where the control plane sits, the reading path is a packet under a byte budget, the ledger is a window, alumni are measured, a return pastes the command. Writer idle; references remain read-only. Overlay still shelf. Path dashscope.
+Sitting 4 open. F22-F28 landed: the kit checks its own shape, the gate runs where the control plane sits, the reading path is a packet under a byte budget and is what a seat is launched with, the ledger is a window, alumni are measured, a return pastes the command. Writer idle; references remain read-only. Overlay still shelf. Path dashscope.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -52,6 +52,7 @@ No envelope opens a gate.
 | F25 | landed | factory/tools/ledger.mjs, factory/tools/renderBoard.mjs, docs/log/f25.md | Board ledger is a window, not a novel |
 | F26 | landed | factory/tools/alumni.mjs, factory/lineage.json, contracts/intake.v1.json, docs/log/f26.md | Alumni contribute by measurement |
 | F27 | landed | factory/tools/seatReturn.mjs, contracts/seat-return.v1.json, docs/log/f27.md | A return pastes the command |
+| F28 | landed | factory/tools/ghaWriter.mjs, factory/tools/seat.mjs, docs/log/f28.md | The seat is launched with the packet |
 
 ## Holds
 
@@ -88,7 +89,6 @@ No envelope opens a gate.
 
 Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.
 
-- 2026-09-20 F22 landed. Every tracked .json parses in the gate; factory/packages.json had been invalid since F19 and no step read it. Plan and board are checked against each other. T59 T63. D-41.
 - 2026-09-20 Parent remote named in live law is VirBk/virbk; the help-target guard reads factory/lineage.json instead of a literal. Older rows keep the previous name as history. D-42.
 - 2026-09-20 F23 landed. The landing gate unpacks its own archive in process, with autocrlf off, so it runs on the Windows control plane and measures the bytes the Ubuntu runner measures. Before this the local gate exited on archive failed. T60. D-40.
 - 2026-09-20 F24 landed. factory/tools/packet.mjs is the seat reading path, ordered for a prefix cache, with a byte budget in factory/budgets.json that the gate fails. AGENTS names it and stayed under cap. T61. D-38.
@@ -100,3 +100,4 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 Control plane ran as its own writer for this records sitting on the owner word; no independent reviewer session existed. The gate and the new self-tests are the evidence. D-45.
 - 2026-09-20 Landing gate ran on the control-plane machine for the first time: 19 steps, GATE PASSED, from a fresh archive of the commit under test. The Ubuntu Action runs the same 19.
 - 2026-09-20 Newlines pinned with .gitattributes so the working tree, the gate archive and the runner measure one number. Each alumni drop now names the read-only command the parent uses to measure adoption.
+- 2026-09-20 F28 landed. The writer Action and every seat recipe launch on the packet instead of an envelope plus a browse. ghaWriter self-test fails if the packet stops being the prompt. T61. D-38.

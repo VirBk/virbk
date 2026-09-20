@@ -62,7 +62,10 @@ export OPENAI_API_KEY="\${OPENAI_API_KEY:-local}"
 #   $env:OPENAI_API_KEY=$env:DASHSCOPE_API_KEY
 #   qwen --auth-type openai --model ${m}
 #
-# Print-mode. Envelope on stdin. Poll long jobs in the foreground.
+# Reading path is the packet, not the repository:
+#   node factory/tools/packet.mjs seat <LANE> > packet.txt
+#   qwen --auth-type openai --model <id> -p "$(cat packet.txt)"
+# Print-mode. Poll long jobs in the foreground.
 `,
   aider: `# Writer seat — Aider. Git-native. OpenAI-compat.
 # Control plane stays Grok. Do not remap the CP session.
@@ -77,13 +80,13 @@ export OPENAI_API_KEY="\${OPENAI_API_KEY:-local}"
 #   export OPENAI_API_KEY="\${DEEPSEEK_API_KEY}"
 #   aider --model deepseek/deepseek-chat
 #
-# Paste the envelope. Print-mode. Worktree only.
+# Feed the packet: node factory/tools/packet.mjs seat <LANE>. Print-mode. Worktree only.
 `,
   opencode: `# Writer seat — OpenCode. Multi-model local harness.
 # Point it at Qwen local or DeepSeek. Control plane stays Grok.
 
 #   opencode run --model <the project.json writerModel>
-# Envelope as stdin. Worktree only. Print-mode.
+# Packet as stdin: node factory/tools/packet.mjs seat <LANE>. Worktree only. Print-mode.
 `,
   goose: `# Writer seat — Goose recipes. Local.
 # Control plane stays Grok. Writer is the recipe, not the CP chat.
@@ -125,7 +128,7 @@ export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-flash"
 # 4. node factory/tools/hands.mjs recipe
 # 5. writer pushes the branch only
 # 6. Grok reviews in a fresh session, lands, restamps
-# Prefix: AGENTS, BOARD, envelope, tools first and byte-stable. Paste cache hits.
+# Prefix: the packet is the byte-stable prefix. node factory/tools/packet.mjs seat <ID>. Paste cache hits.
 `,
   "cloud-grok": `# Cloud path when the autobuild PC is off.
 # Grok issues and reviews. Writer is aider on a Codespace with DeepSeek/Qwen.
@@ -139,7 +142,7 @@ export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-flash"
 #
 # Do not remap this Grok session onto DeepSeek or Qwen.
 # Do not add a GitHub Action until the secret exists.
-# Prefix: AGENTS, BOARD, envelope, tools first. Set x-grok-conv-id only on Grok API. Paste cache hits.
+# Prefix: the packet. node factory/tools/packet.mjs seat <ID>. Set x-grok-conv-id only on Grok API. Paste cache hits.
 `,
   "cloud-git-bus": `# Cloud CP, local autobuild host still on.
 # Grok writes the envelope blob. This PC fetches and runs the same harness as local-hands.
@@ -148,6 +151,7 @@ export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-flash"
 #   node factory/tools/hands.mjs watch
 #   node factory/tools/hands.mjs isolate --lane <ID> --base <sha>
 #   node factory/tools/hands.mjs recipe
+# Prompt is the packet: node factory/tools/packet.mjs seat <LANE> > packet.txt
 # Writer pushes the branch only. Grok reviews and lands.
 `,
   "git-bus": `# See cloud-git-bus. isolate git-bus is the pick; this recipe is the PC side.
@@ -170,7 +174,7 @@ export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-flash"
 #    OPENAI_API_BASE=https://api.deepseek.com/v1
 #    aider --model deepseek/deepseek-chat
 # 7. Writer pushes the branch only. Grok reviews and lands.
-# Prefix first. Paste cache hits.
+# Prefix is the packet: node factory/tools/packet.mjs seat <ID>. Paste cache hits.
 `,
   "pc-dashscope": (m) => `# No Claude Code. Grok judges. This PC runs hands. Token is DashScope.
 
@@ -185,6 +189,7 @@ export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-flash"
 #    $env:OPENAI_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 #    $env:OPENAI_API_KEY=$env:DASHSCOPE_API_KEY
 #    qwen --auth-type openai --model ${m}
+# Prompt is the packet: node factory/tools/packet.mjs seat <LANE> > packet.txt
 # 5. Writer pushes the branch only. Grok reviews and lands.
 `,
   "cloud-dashscope": (m) => `# No Claude Code. Autobuild PC is off. Token is DashScope.
@@ -194,6 +199,7 @@ export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-flash"
 # 3. isolate prints gh codespace create. Recipe is qwen-code hosted.
 #    OPENAI_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
 #    qwen --auth-type openai --model ${m}
+# Prompt is the packet: node factory/tools/packet.mjs seat <LANE> > packet.txt
 # 4. Writer pushes the branch only. Grok reviews and lands.
 # Do not add a GitHub Action until the secret exists.
 `,
