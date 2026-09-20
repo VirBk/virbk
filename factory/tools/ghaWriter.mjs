@@ -6,11 +6,17 @@
 //   node factory/tools/ghaWriter.mjs watch
 //   node factory/tools/ghaWriter.mjs run
 //   node factory/tools/ghaWriter.mjs run --dry-run    # print the plan, launch nothing
+//   node factory/tools/ghaWriter.mjs run --spawner <module>   # replace the spawner (self-test)
 //   node factory/tools/ghaWriter.mjs --self-test
 //
 // The router (factory/tools/route.mjs) is the one answer: path, base URL, key
 // NAME, model id. This file obeys that answer and keeps no copy of it (T29,
 // T48). The prompt travels on stdin, never as an argv string (T72).
+//
+// The child's env and argv are built in one place, launchSeat, and the spawner
+// is a parameter of it (seat.mjs `census --lister` style). The self-test
+// replaces the spawner and reads what the child was actually handed, so the
+// code an assertion covers is the code that ships.
 
 import {
   copyFileSync,
@@ -24,8 +30,8 @@ import {
 } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { dirname, join, resolve as pathResolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolve, resolveNow } from "./route.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -88,6 +94,40 @@ function launchSpec(answer, prompt, lane) {
     argvBytes: Buffer.byteLength(args.join(" "), "utf8"),
     stdinBytes: Buffer.byteLength(prompt, "utf8"),
   };
+}
+
+// The child is handed the router's answer and the packet, and nothing else:
+// base URL, key VALUE and model id into the env, the prompt on stdin (T72).
+// The runner chooses nothing here (T29). One builder, so a fixture that
+// replaces the spawner observes the same env and argv the cloud job sends.
+function launchSeat(answer, spec, prompt, spawn = spawnSync) {
+  const env = {
+    ...process.env,
+    OPENAI_BASE_URL: spec.base,
+    OPENAI_API_KEY: writerKey(answer),
+    OPENAI_MODEL: spec.model,
+  };
+  return spawn("qwen", spec.args, {
+    cwd: root,
+    encoding: "utf8",
+    env,
+    input: prompt,
+    maxBuffer: 32 * 1024 * 1024,
+  });
+}
+
+// The launch seam: `run --spawner <module>` replaces spawnSync with the
+// module's default export. The cloud job passes no --spawner and gets the real
+// one; the self-test passes a recorder and sees what the child would get.
+async function spawnerFrom(argv) {
+  const i = argv.indexOf("--spawner");
+  if (i < 0) return spawnSync;
+  const file = argv[i + 1];
+  if (!file) fail("refused", ["--spawner needs a module path"]);
+  const mod = await import(pathToFileURL(pathResolve(file)).href);
+  const fn = mod.default || mod.spawn;
+  if (typeof fn !== "function") fail("refused", ["--spawner module exports no spawn function"]);
+  return fn;
 }
 
 // The cloud job's guard, read as a condition and evaluated rather than
@@ -166,32 +206,21 @@ if (cmd === "run") {
     console.log(JSON.stringify(spec));
     process.exit(0);
   }
+  const spawn = await spawnerFrom(process.argv);
   console.log("# prompt " + (prompt === envelope ? "envelope only (packet failed)" : "packet") + " " + spec.stdinBytes + " bytes");
   console.log("# lane " + lane);
   console.log(
     "# route " + spec.path + " (" + spec.reason + ") base " + spec.base + " key " + spec.keyName + " model " + spec.model,
   );
   console.log("# branch " + branch);
-  const qwen = spawnSync("qwen", ["--version"], { encoding: "utf8" });
+  const qwen = spawn("qwen", ["--version"], { encoding: "utf8" });
   if (qwen.status !== 0) {
     fail("qwen-code missing", ["npm install -g @qwen-code/qwen-code"]);
   }
   git(["config", "user.email", "199931366+VirBk@users.noreply.github.com"]);
   git(["config", "user.name", "VirBk"]);
   git(["checkout", "-B", branch]);
-  const env = {
-    ...process.env,
-    OPENAI_BASE_URL: spec.base,
-    OPENAI_API_KEY: writerKey(answer),
-    OPENAI_MODEL: spec.model,
-  };
-  const write = spawnSync("qwen", spec.args, {
-    cwd: root,
-    encoding: "utf8",
-    env,
-    input: prompt,
-    maxBuffer: 32 * 1024 * 1024,
-  });
+  const write = launchSeat(answer, spec, prompt, spawn);
   process.stdout.write(write.stdout || "");
   process.stderr.write(write.stderr || "");
   if (write.status !== 0) {
@@ -279,17 +308,12 @@ if (cmd === "--self-test") {
   if ((src.match(/assertNotMain/g) || []).length < 3) {
     errors.push("ghaWriter.mjs missing main refusal");
   }
-  if (lanes().length) errors.push("live envelopes present; watch would not be idle");
-  const w = spawnSync(process.execPath, [join(root, "factory/tools/ghaWriter.mjs"), "watch"], {
-    cwd: root,
-    encoding: "utf8",
-  });
-  if ((w.stdout || "").trim() !== "idle") errors.push("watch should print idle, got " + JSON.stringify(w.stdout));
 
   // The route below the router is driven through the CLI a runner runs, against
   // a fixture tree, with the clock and native health pinned so no probe and no
   // live envelope moves the answer under the test (T04, T13).
   const fixture = mkdtempSync(join(tmpdir(), "grok-gha-"));
+  const bare = mkdtempSync(join(tmpdir(), "grok-gha-bare-"));
   const fx = (...p) => join(fixture, ...p);
   try {
     mkdirSync(fx("factory", "envelopes"), { recursive: true });
@@ -303,6 +327,15 @@ if (cmd === "--self-test") {
     );
     const envelope = "# ENVELOPE: F99 — fixture lane\n\n" + "a fixture line for the stdin check\n".repeat(130) + "\n";
     writeFileSync(fx("factory", "envelopes", "F99.md"), envelope);
+
+    // watch's property, not the tree's state: idle when nothing is live, issued
+    // when something is. The gate runs this file from an archive taken before
+    // the lane's own envelope is deleted, so an assertion about the live tree
+    // could never pass (T13). Both directions are driven here.
+    mkdirSync(join(bare, "factory", "tools"), { recursive: true });
+    for (const rel of ["factory/tools/ghaWriter.mjs", "factory/tools/route.mjs"]) {
+      copyFileSync(join(root, rel), join(bare, rel));
+    }
     const secret = "sk-fixture-not-a-real-key";
     const cleanEnv = (extra) => {
       const e = { ...process.env, ROUTE_NOW: "2026-09-18T11:00:00Z" };
@@ -337,6 +370,20 @@ if (cmd === "--self-test") {
         return null;
       }
     };
+
+    // A live envelope: watch issues it. No envelope: watch idles. Both from the
+    // runner's own CLI, neither from the tree this file happens to sit in.
+    const issued = drive(["watch"]);
+    if ((issued.stdout || "").trim() !== "issued F99") {
+      errors.push("watch with a live envelope should print issued F99, got " + JSON.stringify(issued.stdout));
+    }
+    const idle = spawnSync(process.execPath, [join(bare, "factory", "tools", "ghaWriter.mjs"), "watch"], {
+      cwd: bare,
+      encoding: "utf8",
+    });
+    if ((idle.stdout || "").trim() !== "idle") {
+      errors.push("watch with no envelope should print idle, got " + JSON.stringify(idle.stdout));
+    }
 
     // The cloud seat takes the router's answer: off-peak healthy native stays
     // native, base, key name and id included.
@@ -396,11 +443,79 @@ if (cmd === "--self-test") {
     if (!(wrongKey.stdout || "").includes("DEEPSEEK_API_KEY")) {
       errors.push("the wrong-key skip did not name DEEPSEEK_API_KEY");
     }
-  } finally {
+
+    // The launch itself, through the entry point the Action runs, with the
+    // spawner replaced by a recorder. This asserts what the child is handed:
+    // base URL, key VALUE, model id, argv shape, and the packet on stdin rather
+    // than in argv (T72). The plan above is a plan; this is the send.
+    writeFileSync(
+      fx("spawner.mjs"),
+      [
+        'import { appendFileSync } from "node:fs";',
+        "export default function spawn(cmd, args, opts = {}) {",
+        '  if (args.includes("--version")) return { status: 0, stdout: "9.9.9", stderr: "" };',
+        "  appendFileSync(process.env.GHA_TEST_RECORD, JSON.stringify({",
+        "    cmd,",
+        "    args,",
+        "    inputIsString: typeof opts.input === \"string\",",
+        "    input: typeof opts.input === \"string\" ? opts.input : null,",
+        "    env: {",
+        "      OPENAI_BASE_URL: opts.env.OPENAI_BASE_URL,",
+        "      OPENAI_API_KEY: opts.env.OPENAI_API_KEY,",
+        "      OPENAI_MODEL: opts.env.OPENAI_MODEL,",
+        "    },",
+        '  }) + "\\n");',
+        '  return { status: 0, stdout: "", stderr: "" };',
+        "}",
+        "",
+      ].join("\n"),
+    );
+    const launch = drive(["run", "--spawner", fx("spawner.mjs")], {
+      ROUTE_NATIVE: "up",
+      DEEPSEEK_API_KEY: secret,
+      GHA_TEST_RECORD: fx("record.jsonl"),
+      // git() runs in the fixture's own root; this keeps a stray ancestor
+      // repository from turning the drive into a commit.
+      GIT_CEILING_DIRECTORIES: tmpdir(),
+    });
+    let rec = null;
     try {
-      rmSync(fixture, { recursive: true, force: true });
+      rec = JSON.parse(readFileSync(fx("record.jsonl"), "utf8").trim().split("\n").pop());
     } catch {
-      /* the fixture is in the temp dir; a lock is not a test failure */
+      /* reported below */
+    }
+    if (!rec) {
+      errors.push("run --spawner drove no child: the launch record is missing");
+    } else {
+      if (rec.cmd !== "qwen") errors.push("the child command is " + rec.cmd);
+      if (rec.env.OPENAI_BASE_URL !== spec.bases.native) {
+        errors.push("the child's OPENAI_BASE_URL is " + rec.env.OPENAI_BASE_URL + " want " + spec.bases.native);
+      }
+      if (rec.env.OPENAI_API_KEY !== secret) {
+        errors.push("the child's OPENAI_API_KEY is not the key value the router named");
+      }
+      if (rec.env.OPENAI_MODEL !== "deepseek-flash") {
+        errors.push("the child's OPENAI_MODEL is " + rec.env.OPENAI_MODEL + " want deepseek-flash");
+      }
+      if (rec.args[rec.args.indexOf("-p") + 1] !== "-") {
+        errors.push("the child's argv does not carry -p -: " + JSON.stringify(rec.args));
+      }
+      const carrier = (rec.args || []).find(
+        (x) => typeof x === "string" && (x.includes("envelope") || x.includes("fixture line") || x.includes("\n")),
+      );
+      if (carrier) errors.push("an argv element carries the packet: " + String(carrier).slice(0, 40));
+      if (rec.inputIsString !== true) errors.push("the packet does not arrive on stdin");
+      if (rec.input !== envelope) errors.push("the child's stdin is not the packet's bytes");
+      if ((launch.stdout || "").includes(secret)) errors.push("the launch printed the secret value");
+    }
+    if (launch.status !== 0) errors.push("the driven launch must exit 0, got rc " + launch.status);
+  } finally {
+    for (const dir of [fixture, bare]) {
+      try {
+        rmSync(dir, { recursive: true, force: true });
+      } catch {
+        /* the fixture is in the temp dir; a lock is not a test failure */
+      }
     }
   }
 
