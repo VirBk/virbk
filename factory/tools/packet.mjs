@@ -468,19 +468,41 @@ function selfTest(root) {
       errors.push("trap " + t.id + " object does not resolve: " + t.object);
     }
   }
+  // Every object set to `*` would leave the loop above with nothing to resolve
+  // and nothing to say, so the claim needs a row it can still fail on.
+  if (!traps.some((t) => t.object && t.object !== "*")) {
+    errors.push("no trap names a non-star object — the resolve check is untested");
+  }
 
   // A trap whose rule already names a check is enforced by the landing gate, so
   // the packet carries its id, its title and its first sentence and not the
-  // rest of the prose (D-52 remedy two). Reverting the compression fails here;
-  // a tree where no rule names a check would make the assertion vacuous, so
-  // that fails too.
-  const checked = traps.filter((t) => ruleNamesACheck(t.rule));
-  if (!checked.length) errors.push("no trap rule names a check — the digest compression is untested");
-  for (const t of checked) {
-    const want = t.id + " " + t.title + ": " + firstSentence(t.rule);
-    const got = digest.split(NL).find((l) => l.startsWith(t.id + " "));
-    if (got !== want) errors.push("digest did not compress " + t.id + ": " + JSON.stringify(got));
+  // rest of the prose (D-52 remedy two). This is a literal property of the
+  // digest, computed from the stored rule and string operations alone: the
+  // expected bytes come from `t.rule`, never from firstSentence() or
+  // ruleNamesACheck(), because a claim built from those two is satisfied by
+  // construction and both mutations below leave it green (T04).
+  const digestRows = new Map();
+  for (const line of digest.split(NL)) {
+    const id = /^(T\d+) /.exec(line);
+    if (id) digestRows.set(id[1], line);
   }
+  let compressed = 0;
+  for (const t of traps) {
+    const line = digestRows.get(t.id);
+    const whole = t.id + " " + t.title + ": " + t.rule;
+    if (t.rule.includes("Check is ")) {
+      compressed++;
+      if (line === undefined) errors.push("traps digest dropped " + t.id);
+      else if (line.length >= whole.length || line.includes("Check is")) {
+        errors.push("digest did not compress " + t.id + ": " + JSON.stringify(line));
+      }
+    } else if (line !== whole) {
+      // Acceptance said every other row is unchanged; without this branch
+      // fifty-six rows could lose their prose in silence.
+      errors.push("digest altered " + t.id + ": " + JSON.stringify(line));
+    }
+  }
+  if (!compressed) errors.push("no trap rule names a check — the digest compression is untested");
 
   const seat = seatPacket(root, null);
   if (seat.some((p) => p.bytes === 0)) errors.push("a packet part is empty");
