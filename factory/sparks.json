@@ -68,6 +68,15 @@
       "whyNotLaw": "Restoring first-match while keeping case-sensitivity leaves alumni --self-test green, because no fixture row carries two capital-C directives. The envelope named one mutation combining both halves, and it reds on the first half alone.",
       "status": "open",
       "openedOn": 10
+    },
+    {
+      "id": "S20",
+      "kind": "trap",
+      "claim": "seat.mjs disjoint is pairwise and silently drops every argument past the second: 'disjoint F40 F41 F42' prints a verdict about F40/F41 and exits 0, so a control plane proving three siblings gets a green that covers one pair of the three.",
+      "object": "factory/tools/seat.mjs",
+      "whyNotLaw": "Caught on the first act of sitting 11, by a control plane running the command the board's Now line cites for a mutual-disjointness claim about three lanes. The claim is true here - all three pairs were run by hand and each printed none shared - but the named command cannot mean what the sentence says. No check drives an extra argument, and the tool's own doc comment says 'disjoint <LANE> <LANE>' while the CLI accepts more without complaint.",
+      "status": "open",
+      "openedOn": 11
     }
   ]
 }
