@@ -148,6 +148,15 @@
       "whyNotLaw": "It also counts DEEPSEEK_API_KEY as having a writer secret but never passes it to the call, so a repo holding only that secret stops idling and then fails on an empty key, which is the loud skip T55 requires turned into a loud failure.",
       "status": "open",
       "openedOn": 10
+    },
+    {
+      "id": "S16",
+      "kind": "trap",
+      "claim": "A writer key read from a process environment is a value carried from an earlier act, not read from the store that owns it: after a rotation the User scope answers 200 and every already-open shell keeps answering 401.",
+      "object": "factory/tools/seat.mjs",
+      "whyNotLaw": "Cost this sitting two wrong diagnoses and nearly a handover command that could not work. T04 names the shape and no recipe reads the key from its store in the same act as the launch.",
+      "status": "open",
+      "openedOn": 10
     }
   ]
 }
