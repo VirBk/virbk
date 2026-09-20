@@ -29,6 +29,7 @@
     {"id": "F26", "title": "Alumni contribute by measurement", "status": "landed"},
     {"id": "F27", "title": "A return pastes the command", "status": "landed"},
     {"id": "F28", "title": "The seat is launched with the packet", "status": "landed"},
-    {"id": "F29", "title": "Spend and cache hits survive as rows", "status": "landed"}
+    {"id": "F29", "title": "Spend and cache hits survive as rows", "status": "landed"},
+    {"id": "F30", "title": "A rule can be suspended on purpose, with an expiry", "status": "landed"}
   ]
 }

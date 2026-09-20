@@ -335,6 +335,23 @@
       "charged": "S07. A return validated spendUsd and cachedTokens and then discarded the row, so the acceptance in AGENTS section 1 — spend pasted in the lane log — could not be summed. The ledger that carried the prose is a twelve-row window and rotates.",
       "summary": "Spend and cache hits survive as rows in factory/returns.json. Appended only by node factory/tools/seatReturn.mjs <return.json> --record, after the return passes the same validation, and read only by node factory/tools/seatReturn.mjs spend. A row is keyed by its content and checked read-first, so an at-least-once record does not double the spend. The store is not in the packet and no seat reads it. No cap and no threshold is set: the store gains about one row per landed return, and enforcement stays where it already is, the envelope spend cap and a return. A cap would be a new dated row. Absorbed as T65.",
       "reversible": true
+    },
+    {
+      "id": "D-48",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "The only way to break a rule here was factory/.waiver, which is deliberately untracked. An exception left no record, so a rule could only die by the owner saying so, never by evidence. For a repository whose purpose is innovation that is backwards.",
+      "summary": "factory/tools/experiment.mjs opens a row in factory/experiments.json that suspends a named landing step for a stated hypothesis, a stated measure and an expiry of at most 30 days. The gate still runs the step and still prints what it found; it does not fail the landing on it, and it says so in the verdict line. An expired open experiment fails the gate through step 20. A suspended step that passes anyway is reported as such. Landed inert: factory/experiments.json is empty, so nothing is suspended today. Owner boundaries are not suspendable. T66.",
+      "reversible": true
+    },
+    {
+      "id": "D-49",
+      "at": "2026-09-20",
+      "status": "deferred",
+      "trigger": "The owner word. Nothing else re-raises it.",
+      "charged": "AGENTS.md section 5 is titled Boundaries that never move and mixes two kinds: the owner acts (real people data, credentials, money, deploys, gates, API keys) and this factory engineering guesses (no third seat with a model, reviewer never weaker, a trap without a check is a diary). A session reading it cites a preference as if it were physics, and the owner then has to argue with its own notes.",
+      "summary": "Proposed: split section 5 into two labelled groups, The owner s and The factory s, and provisional, with one sentence saying the second kind holds until evidence replaces it and that experiment.mjs is how one comes down on purpose. The proposed replacement text is in docs/log/f30.md. Not adopted: editing AGENTS.md is the file that governs the session making the edit, and it was refused twice by the desktop tool policy in the sitting that proposed it. It needs the owner word and a session that is not the one arguing for it.",
+      "reversible": true
     }
   ]
 }

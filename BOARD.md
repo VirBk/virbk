@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-Sitting 5 closed. F29 landed: a return records spendUsd and cachedTokens into factory/returns.json and node factory/tools/seatReturn.mjs spend sums them. The store is empty until the first metered return. Nothing is running. References remain read-only. Overlay still shelf. Path dashscope.
+Sitting 6. F29 and F30 landed: a return records its spend and cache hits, and a landing step can be suspended on purpose by a dated experiment with an expiry. Both stores are empty: nothing is suspended and nothing metered has returned. Open question for the next control plane: D-49, splitting AGENTS section 5 into the owner boundaries and the provisional ones. It needs the owner word. Nothing is running. References Otto and Virbos remain read-only and untouched. Overlay still shelf. Path dashscope.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -54,6 +54,7 @@ No envelope opens a gate.
 | F27 | landed | factory/tools/seatReturn.mjs, contracts/seat-return.v1.json, docs/log/f27.md | A return pastes the command |
 | F28 | landed | factory/tools/ghaWriter.mjs, factory/tools/seat.mjs, docs/log/f28.md | The seat is launched with the packet |
 | F29 | landed | factory/tools/seatReturn.mjs, factory/returns.json, docs/log/f29.md | Spend and cache hits survive as rows |
+| F30 | landed | factory/tools/experiment.mjs, factory/experiments.json, factory/tools/landingGate.mjs, docs/log/f30.md | A rule can be suspended on purpose, with an expiry |
 
 ## Holds
 
@@ -90,8 +91,6 @@ No envelope opens a gate.
 
 Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.
 
-- 2026-09-20 F26 landed. alumni.mjs scans a product read-only, maps each signal to the trap that paid for it, emits candidate intakes the intake gate accepts, and prints the check pack and the provenance chain. Every absorbed portable intake names the law it became. T62. D-43.
-- 2026-09-20 Measured, not assumed: alumni.mjs drop-status reports otto and virbos both not adopted, script absent and gate not naming it, three days after the drops were issued. Exit 2 for both.
 - 2026-09-20 F27 landed. A seat return names the command and what it printed; the seat-return runtime enum is the live topology list, which had omitted pc-dashscope. T56 T64. D-44.
 - 2026-09-20 S03 absorbed as T57, S04 as T58, S06 as T56. S05 dropped: T50 already holds it.
 - 2026-09-20 Control plane ran as its own writer for this records sitting on the owner word; no independent reviewer session existed. The gate and the new self-tests are the evidence. D-45.
@@ -102,3 +101,5 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 A feedback-loop handoff was assessed against live main and nothing was landed from it. The checks it would have turned red are named in D-46. The one gap it found is open as S07: no command sums spend or cache hits across returns.
 - 2026-09-20 F29 landed. A return that passes validation can be recorded; the row is keyed by its content so recording it twice is refused, and spend sums by lane and by model. The store is empty until the next metered return. S07 absorbed as T65. D-47.
 - 2026-09-20 Sitting 5 closed with no open sparks. S07 was the only one minted and it was absorbed as T65 in the same sitting. The board is idle: no lanes, no envelopes, one gate open by design.
+- 2026-09-20 F30 landed. factory/tools/experiment.mjs suspends a named landing step for a hypothesis with an expiry, and the gate prints what a suspended step found instead of hiding it. Landed inert: no experiment is open. T66. D-48.
+- 2026-09-20 D-49 deferred to the owner word: AGENTS section 5 mixes owner boundaries with engineering guesses, so a session cites a preference as physics. Proposed replacement text is in docs/log/f30.md. The session that proposed it was refused twice by the desktop tool policy for editing its own instruction file, which is the right refusal.

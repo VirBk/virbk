@@ -1,0 +1,4 @@
+{
+  "rule": "An experiment suspends a named landing step for a stated hypothesis and a stated number of days. The gate still runs the step and still prints the result; it does not fail the landing on it. An expired open experiment fails the gate. Owner boundaries are not suspendable here: money, credentials, real people's data, and destructive acts stay the owner's.",
+  "experiments": []
+}

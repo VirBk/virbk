@@ -13,6 +13,11 @@
 // file. It does not shell out to tar: a Windows temp path interpolated
 // into a shell string is mangled, and a gate that only runs on the CI
 // runner is a badge, not a gate (T60).
+//
+// A step named by an open, unexpired row in factory/experiments.json
+// still RUNS and still prints what it found; it does not fail the
+// landing. The rows are read from the archive, like the manifest, so a
+// commit carries its own exceptions and they expire on a stated date.
 
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -20,6 +25,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { suspendedBy } from "./experiment.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -137,11 +143,26 @@ function synthTest(errors) {
 }
 
 
+// A suspended step that fails is a measurement, not a landing failure.
+export function failures(results) {
+  return results.filter((r) => r.status !== null && r.status !== 0 && !r.suspended);
+}
+
 function selfTest() {
   // The gate must unpack on the platform the control plane actually runs
   // on. Proof is bytes out of the archive equal to bytes out of git.
   const errors = [];
   synthTest(errors);
+  const sample = [
+    { name: "passes", status: 0, suspended: null },
+    { name: "fails", status: 1, suspended: null },
+    { name: "fails while suspended", status: 1, suspended: "X01" },
+    { name: "no run", status: null, suspended: null },
+  ];
+  const got = failures(sample).map((r) => r.name);
+  if (got.join(",") !== "fails") {
+    errors.push("suspension changed which steps fail the landing: " + got.join(","));
+  }
   const inRepo = spawnSync("git", ["-C", repoRoot, "rev-parse", "--git-dir"], { encoding: "utf8" }).status === 0;
   if (!inRepo) {
     if (errors.length) {
@@ -235,6 +256,7 @@ for (const [i, step] of steps.entries()) {
     results.push({ name: step.name, status: null });
     continue;
   }
+  const sus = suspendedBy(workDir, step.name);
   process.stdout.write("  ..  " + String(n).padStart(2, "0") + "  " + step.name + " ... ");
   const scriptPath = join(logDir, String(n).padStart(2, "0") + ".sh");
   writeFileSync(scriptPath, step.run.endsWith("\n") ? step.run : step.run + "\n");
@@ -244,17 +266,26 @@ for (const [i, step] of steps.entries()) {
     maxBuffer: 32 * 1024 * 1024,
   });
   const status = r.status === null ? 1 : r.status;
-  results.push({ name: step.name, status });
-  console.log(status === 0 ? "ok" : "FAILED");
+  results.push({ name: step.name, status, suspended: sus ? sus.id : null });
+  if (status === 0) {
+    console.log(sus ? "ok — " + sus.id + " suspends it and it passes anyway" : "ok");
+  } else {
+    console.log(sus ? "FAILED — suspended by " + sus.id + " until " + sus.expires : "FAILED");
+  }
   writeFileSync(join(logDir, String(n).padStart(2, "0") + ".txt"), (r.stdout || "") + (r.stderr || ""));
 }
 
-const failed = results.filter((r) => r.status !== null && r.status !== 0);
+const failed = failures(results);
+const suspended = results.filter((r) => r.suspended && r.status !== 0);
 console.log("");
+for (const s of suspended) {
+  console.log("  suspended  " + s.name + " failed under " + s.suspended + " — kept out of the verdict");
+}
+if (suspended.length) console.log("  logs       " + logDir);
 if (failed.length === 0) {
   rmSync(workDir, { recursive: true, force: true });
-  rmSync(logDir, { recursive: true, force: true });
-  console.log("GATE PASSED");
+  if (!suspended.length) rmSync(logDir, { recursive: true, force: true });
+  console.log(suspended.length ? "GATE PASSED with " + suspended.length + " suspended" : "GATE PASSED");
   process.exit(0);
 }
 console.log("GATE FAILED");

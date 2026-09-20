@@ -77,6 +77,10 @@
     {
       "name": "A return pastes the command",
       "run": "node factory/tools/seatReturn.mjs --self-test"
+    },
+    {
+      "name": "Experiments expire and are honest",
+      "run": "node factory/tools/experiment.mjs --self-test && node factory/tools/experiment.mjs check"
     }
   ]
 }

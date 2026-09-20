@@ -325,3 +325,8 @@
   kind: portable
   title: Number measured, validated, discarded
   rule: A return's spendUsd and cachedTokens are appended to factory/returns.json by node factory/tools/seatReturn.mjs <return.json> --record and read by spend. The key is the row's content, checked read-first, so recording twice does not double the spend. The lane log keeps the prose; the rows outlive the twelve-row ledger window. Check is node factory/tools/seatReturn.mjs --self-test.
+
+- id: T66
+  kind: portable
+  title: Rule that can only die by decree
+  rule: A check that encodes a guess needs a way to be suspended on purpose, with a hypothesis, a measure and an expiry, recorded in factory/experiments.json. The gate still runs a suspended step and still prints what it found; an expired open experiment fails the gate. An untracked waiver leaves no evidence and teaches nothing. Check is node factory/tools/experiment.mjs --self-test.
