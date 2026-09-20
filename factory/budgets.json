@@ -72,10 +72,10 @@
     }
   ],
   "context": {
-    "seatPacketKb": 27,
+    "seatPacketKb": 26,
     "cpPacketKb": 44,
     "envelopeKb": 6,
     "ledgerRows": 12,
-    "note": "seatPacketKb was raised from 26 to 27 on 2026-09-20 by D-56 and is held at one KB of headroom on purpose. F36 scopes a seat's traps to its Holds and brings it back under 26; if it lands and the packet is still over, the cap is re-derived by a new dated row, not nudged again."
+    "note": "seatPacketKb was raised 26 to 27 on 2026-09-20 by D-56 and returned to 26 the same day by D-57, once F34's compaction put the packet at 25.3 KB. The forcing function is the point: about 0.7 KB of headroom, deliberately less than the raise gave it. D-58 narrows F36 and defers per-lane trap scoping with a stated trigger."
   }
 }
