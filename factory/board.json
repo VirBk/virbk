@@ -1,6 +1,6 @@
 {
-  "now": "Sitting 2. Public landing Action and writer Action on VirBk/virbk. Overlay still shelf. Path dashscope.",
-  "remote": "VirBk/Grok",
+  "now": "Sitting 2. F21 issued: shallow checkout for the landing gate. Local DashScope writer; references remain read-only.",
+  "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
     "VirBk/virbos"
@@ -158,6 +158,12 @@
       "title": "GitHub Action writer runner",
       "state": "landed",
       "hold": ".github/workflows/writer.yml, factory/tools/ghaWriter.mjs"
+    },
+    {
+      "id": "F21",
+      "title": "Shallow checkout for the landing gate",
+      "state": "issued",
+      "hold": ".github/workflows/landing.yml, docs/log/f21.md"
     }
   ],
   "keystones": [
@@ -376,6 +382,10 @@
     {
       "at": "2026-09-18",
       "event": "F20 landed. Owner placed DASHSCOPE_API_KEY. Writer Action idles green; launches qwen-code on an envelope; never pushes main. D-37 T55."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F21 issued after owner review of PR #3. Local qwen-code writer on deepseek-v4.1-flash. Records issuance skips Actions to prevent a duplicate writer; final landing requires the full gate."
     }
   ]
 }
