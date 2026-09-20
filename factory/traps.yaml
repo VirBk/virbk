@@ -425,7 +425,7 @@
   kind: portable
   object: "factory/tools/alumni.mjs"
   title: Child's lesson invisible to the parent's scanner
-  rule: alumni.mjs scan measures structure and never opens a child's TRAPS.md, so a lesson written in prose reaches the parent only by a person reading it.
+  rule: A scanner that measures a child's structure and never opens its TRAPS file leaves every lesson written in prose reaching the parent only by a person reading it. scan parses those rows, emits one candidate intake per row that names a check, and counts and names by id every row that does not, because an intake without a check is refused (T24) and a refused intake is noise the owner learns to skip. Check is node factory/tools/alumni.mjs --self-test.
 
 - id: T72
   kind: machine

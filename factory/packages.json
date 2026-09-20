@@ -199,6 +199,21 @@
       "id": "F39",
       "title": "The cloud writer takes the router, and idles loudly instead of failing",
       "status": "landed"
+    },
+    {
+      "id": "F40",
+      "title": "The census names a running seat, not a mention of one (S17)",
+      "status": "queued"
+    },
+    {
+      "id": "F41",
+      "title": "A record cites only what resolves, and dates only what UTC has reached (S18)",
+      "status": "queued"
+    },
+    {
+      "id": "F42",
+      "title": "The TRAPS parser: last-wins proved, quoted scalars, an explicit refusal honoured (S19)",
+      "status": "queued"
     }
   ]
 }
