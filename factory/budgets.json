@@ -61,6 +61,10 @@
     {
       "pattern": "docs/ledger/*.md",
       "capKb": 48
+    },
+    {
+      "pattern": "docs/sparks/*.md",
+      "capKb": 48
     }
   ],
   "context": {
