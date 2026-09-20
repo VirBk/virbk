@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-CONTROL PLANE HELD — Claude Code desktop, sitting 10. Handoff, prior tenure and the first acts in order: D-55. Queue: the lanes below, in id order; F33 and F34 each run alone, F36 follows F33. Reading path sits at the D-56 cap with about a KB of headroom; F33 then F36 restore it. Ceilings do not move; compact instead (D-52, D-54). Orchestration model: D-53. Nothing is running, no envelope is issued, no experiment is open. Otto and Virbos stay read-only. Overlay still shelf.
+CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33 is ISSUED and runs ALONE; no sibling until it lands (D-54). Handoff and the first acts in order: D-55. Queue after F33: F34 alone, then F35 to F38, F36 after F33. Reading path sits at the D-56 cap with about a KB of headroom; F33 then F36 restore it. Ceilings do not move; compact instead (D-52, D-54). Orchestration model: D-53. No experiment is open. Otto and Virbos stay read-only. Overlay still shelf.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -57,7 +57,7 @@ No envelope opens a gate.
 | F30 | landed | factory/tools/experiment.mjs, factory/experiments.json, factory/tools/landingGate.mjs, docs/log/f30.md | A rule can be suspended on purpose, with an expiry |
 | F31 | landed | factory/tools/packet.mjs, docs/log/f31.md | The packet prefix is byte-stable, and a check proves it |
 | F32 | landed | factory/tools/seatReturn.mjs, contracts/seat-return.v1.json, docs/log/f32.md | The control plane reads the meter into the return |
-| F33 | queued | factory/tools/spark.mjs, factory/tools/packet.mjs, factory/tools/sizeBudget.mjs, factory/budgets.json | Packet windowing and growth bands |
+| F33 | issued | factory/tools/spark.mjs, factory/tools/packet.mjs, factory/tools/sizeBudget.mjs, factory/budgets.json | Packet windowing and growth bands |
 | F34 | queued | AGENTS.md, factory/OPERATING_MODEL.md | AGENTS carries the orchestration model and sheds the provisional group |
 | F35 | queued | factory/tools/alumni.mjs, contracts/intake.v1.json | Alumni scan reads a child TRAPS.md |
 | F36 | queued | factory/traps.yaml, factory/tools/packet.mjs | A trap names its object; a seat packet is scoped to its Holds |
@@ -99,7 +99,6 @@ No envelope opens a gate.
 
 Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.
 
-- 2026-09-20 F31 landed from writer/F31 (pc-dashscope), commit 1da51b2. Two independent writer returns existed for this envelope; a fresh review ran both and their negative proofs. writer/F31 checks envelope-last for an issued lane and an unissued lane and guards the prefix-equality assertion against an empty string, so it cannot pass vacuously; writer/F31-ds checked envelope-last for the issued lane only and had no empty-prefix guard. writer/F31-ds was not landed. Fast-forward preserved the writer's commit; this is the first lane where D-45's writer-seat-plus-independent-reviewer loop actually ran, rather than a control-plane self-authored records sitting. D-45 paid.
 - 2026-09-20 kitCheck rule B was red on the F31 issuance commit: factory/packages.json carried no row for board lane F31. Control-plane oversight from issuance, not the writer's — F31 was not in the lane's holds, so the writer correctly left it alone and named it in docs/log/f31.md. Fixed in the landing commit.
 - 2026-09-20 Sitting 7 closed. F31 was the only lane and it landed; D-45 is paid. D-49 still needs the owner word — carried again. Nothing is running and no experiment is open.
 - 2026-09-20 Five seat runs measured on one envelope. deepseek-flash direct produced a complete correct lane for USD 0.02 over 1,013,608 tokens; deepseek-v4.1-flash did the same over 3,140,038; qwen3-coder-plus burned 4,898,721 and never committed; claude-sonnet-5 cost USD 1.29 over two runs and wrote no product code. Cache hit rates 92.8 to 98.1 per cent, which is the span F31 now checks. S08, S09 and S10 minted.
@@ -110,4 +109,5 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 Control plane handed off. The board and factory/decisions.json carry everything this tenure learned, including the orchestration model read from Otto and Virbos (D-53) and the governance-maintenance model (D-54); nothing of it is left in the session. X01 is open and is the first exception this repository has taken on purpose rather than by decree.
 - 2026-09-20 X01 opened and reverted the same day: it suspended a whole gate step to excuse one cap, switching off F31's prefix guard landed that morning. A suspension must not be wider than its hypothesis. The cap was cleared by compaction, and board.now now carries routing facts only, with the handoff in D-55, because the slice is in every seat's packet.
 - 2026-09-20 Seat-packet cap raised 26 to 27 KB by D-56 after compaction failed to close a 0.5 KB gap, held at one KB headroom so the pressure stays. X01 was reverted first: a suspension must not be wider than its hypothesis. F36 brings the packet back under 26 by scoping a seat's traps to its Holds; the cap is not nudged again.
+- function at() { [native code] } undefined
 - function at() { [native code] } undefined
