@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-CONTROL PLANE VACANT. Handoff, tenure summary and the successor's first acts in order: D-55. Reading path over budget and it is the first job: F33, alone. Ceilings do not move; compact instead (D-52, D-54). Orchestration model: D-53. Queue: the lanes below, in id order; F33 and F34 each run alone, F36 follows F33. Nothing is running, no envelope is issued, no experiment is open. Otto and Virbos stay read-only. Overlay still shelf.
+CONTROL PLANE HELD — Claude Code desktop, sitting 10. Handoff, prior tenure and the first acts in order: D-55. Queue: the lanes below, in id order; F33 and F34 each run alone, F36 follows F33. Reading path sits at the D-56 cap with about a KB of headroom; F33 then F36 restore it. Ceilings do not move; compact instead (D-52, D-54). Orchestration model: D-53. Nothing is running, no envelope is issued, no experiment is open. Otto and Virbos stay read-only. Overlay still shelf.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -99,7 +99,6 @@ No envelope opens a gate.
 
 Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.
 
-- 2026-09-20 F31 issued. A handoff naming four pillars was re-assessed against live main: cloud orchestration is already built and green, the prompt-cache prefix is built by construction but unguarded, the spend meter has zero rows so no cap can be set from data yet, and the memory feedback loop has no machine-readable record of a correction to count. F31 takes the one gap with no data dependency. Records issuance skips Actions so the GHA writer does not race the local seat.
 - 2026-09-20 F31 landed from writer/F31 (pc-dashscope), commit 1da51b2. Two independent writer returns existed for this envelope; a fresh review ran both and their negative proofs. writer/F31 checks envelope-last for an issued lane and an unissued lane and guards the prefix-equality assertion against an empty string, so it cannot pass vacuously; writer/F31-ds checked envelope-last for the issued lane only and had no empty-prefix guard. writer/F31-ds was not landed. Fast-forward preserved the writer's commit; this is the first lane where D-45's writer-seat-plus-independent-reviewer loop actually ran, rather than a control-plane self-authored records sitting. D-45 paid.
 - 2026-09-20 kitCheck rule B was red on the F31 issuance commit: factory/packages.json carried no row for board lane F31. Control-plane oversight from issuance, not the writer's — F31 was not in the lane's holds, so the writer correctly left it alone and named it in docs/log/f31.md. Fixed in the landing commit.
 - 2026-09-20 Sitting 7 closed. F31 was the only lane and it landed; D-45 is paid. D-49 still needs the owner word — carried again. Nothing is running and no experiment is open.
@@ -111,3 +110,4 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 Control plane handed off. The board and factory/decisions.json carry everything this tenure learned, including the orchestration model read from Otto and Virbos (D-53) and the governance-maintenance model (D-54); nothing of it is left in the session. X01 is open and is the first exception this repository has taken on purpose rather than by decree.
 - 2026-09-20 X01 opened and reverted the same day: it suspended a whole gate step to excuse one cap, switching off F31's prefix guard landed that morning. A suspension must not be wider than its hypothesis. The cap was cleared by compaction, and board.now now carries routing facts only, with the handoff in D-55, because the slice is in every seat's packet.
 - 2026-09-20 Seat-packet cap raised 26 to 27 KB by D-56 after compaction failed to close a 0.5 KB gap, held at one KB headroom so the pressure stays. X01 was reverted first: a suspension must not be wider than its hypothesis. F36 brings the packet back under 26 by scoping a seat's traps to its Holds; the cap is not nudged again.
+- function at() { [native code] } undefined
