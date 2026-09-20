@@ -1,5 +1,5 @@
 {
-  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33 landed. Next: F34 ALONE, then F35 to F38, F36 after F33 (both hold packet.mjs). Handoff and the first acts in order: D-55. Ceilings do not move; compact instead (D-52, D-54). Orchestration model: D-53. This session's tool policy refuses a seat launch about three times in four, so treat the owner as the launcher and hand over the line rather than retry. Nothing is running, no envelope is issued, no experiment is open. Four sparks open: S13 to S16. Otto and Virbos stay read-only. Overlay still shelf.",
+  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33 and F34 landed. Next: F36 (packet.mjs, after F33), then absorb S13 to S16, then F35, F37, F38. Handoff and the first acts in order: D-55. Ceilings do not move; compact instead (D-52, D-54). Orchestration model now in AGENTS section 3; its derivation and the full index are in factory/OPERATING_MODEL.md. This session's tool policy refuses a seat launch about three times in four, so the owner is the reliable launcher. Nothing is running, no envelope is issued, no experiment is open. Four sparks open: S13 to S16. Otto and Virbos stay read-only. Overlay still shelf.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -240,7 +240,7 @@
     {
       "id": "F34",
       "title": "AGENTS carries the orchestration model and sheds the provisional group",
-      "state": "queued",
+      "state": "landed",
       "hold": "AGENTS.md, factory/OPERATING_MODEL.md"
     },
     {
@@ -359,10 +359,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "Control plane taken by a Claude Code desktop session, sitting 10. Reading path walked in order: AGENTS.md, the live board slice, the traps digest, factory/CONTROL_PLANE.md, via node factory/tools/packet.mjs cp. State verified at the objects before anything was issued: git ls-remote origin refs/heads/main and this checkout both at 6a5fc14, git status --porcelain empty, factory/envelopes/ holds only README.md, node factory/tools/spark.mjs look prints no open sparks, node factory/tools/experiment.mjs list shows X01 reverted and nothing open, and node factory/tools/landingGate.mjs passed all twenty steps. board.now had gone stale on one line: the reading path is no longer over budget, D-56 having raised the seat cap, so the line now names the headroom instead of a breach. Next act is F33, alone."
-    },
-    {
-      "at": "2026-09-20",
       "event": "F33 issued to a writer seat, alone, at base f47edce. It does the three things D-52 and D-54 ordered and nobody has built: split the bundled packet gate step so a suspension can be narrower than its hypothesis, which is what X01 got wrong; implement the 80 per cent growth band AGENTS section 4 has required since F0 with nothing enforcing it, banding at 80 and failing only over ceiling; and give spark.mjs the rotation ledger.mjs already has, so the ten absorbed and two dropped sparks leave the control-plane packet. Envelope is 6132 bytes against a 6144 cap, measured by node factory/tools/packet.mjs --check. budgets.json and sparks.json are withheld from the seat: the band needs no new field, and running rotate on the live file is the control plane's act at landing, as ledger rotate is. landing-checks.json is handed over for the lane's duration and the envelope says so rather than doing it silently."
     },
     {
@@ -404,6 +400,10 @@
     {
       "at": "2026-09-20",
       "event": "F33 landed from writer/F33 at 8da5e53, fast-forward, after one correction and a split to a fresh seat on the same cheap tier. What it built: the reading-path gate step is two steps, so a suspension can be narrower than its hypothesis and F31's prefix guard survives one that targets the budget, which is what X01 got wrong; sizeBudget prints a percentage of cap for every budgeted file and the three context budgets and bands at 80, implementing the rule AGENTS section 4 has carried since F0 with nothing enforcing it; and spark.mjs rotate windows the store as ledger.mjs windows the ledger. Measured at landing: node factory/tools/spark.mjs rotate printed moved 12 kept 4, factory/sparks.json went 8332 to 2457 bytes, and node factory/tools/packet.mjs cost puts the control-plane packet at 36.3 KB against a 44 KB cap, down from 42.1. Three independent reviews ran, two of them separate claude -p processes; each of the first two found a blocking defect the control plane's own verification had missed, both of the same shape, an assertion satisfied by construction. docs/sparks/*.md now carries a 48 KB glob cap, which the lane named and could not add."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F34 landed as a control-plane records commit, not a writer envelope. AGENTS section 8 says the control plane writes documentation directly, section 3 says a records envelope gets no review, and T53 says an archive-at-80-per-cent cut is a records commit between landings and does not issue a writer. Three changes. AGENTS section 3 now carries D-53's orchestration model: a lane carries a wave and a depends-on and order is derived from that graph rather than judged, siblings run only on holds proved disjoint at the files and written down with a free slot not counting as proof, one review slot stays reserved, and a seat census is read from the process table with a dead seat resumed on its own session id. The provisional group of D-49 moved to factory/OPERATING_MODEL.md with a table naming what enforces each bullet, checked at the objects: seven of the nine map to a trap in the digest every packet carries, and 'a writer never fast-forwards main' is already AGENTS section 3's push the branch only, never main, so the move removed a duplicate rather than a law. Section 9's index kept the twelve rows a seat or an issuing control plane reaches for constantly and the rest moved verbatim. Measured: node factory/tools/sizeBudget.mjs puts AGENTS.md at 86.6 per cent of its 12 KB cap, from 96.8, and the seat packet at 93.5 from 98.0; node factory/tools/packet.mjs cost puts the control-plane packet at 34.9 KB, out of the band entirely. factory/OPERATING_MODEL.md gained a 16 KB cap, because a file that receives what a capped file sheds and is itself unmeasured is T01."
     }
   ]
 }

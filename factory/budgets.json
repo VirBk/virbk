@@ -51,6 +51,10 @@
     {
       "path": "factory/drops/virbos.md",
       "capKb": 12
+    },
+    {
+      "path": "factory/OPERATING_MODEL.md",
+      "capKb": 16
     }
   ],
   "globs": [

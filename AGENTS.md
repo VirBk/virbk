@@ -35,7 +35,9 @@ Two writers at a time is a ceiling, not a target. A seat with no blocker on the 
 - Corrections stay with the writer. Sweep-tier: one correction, then split. Keystone: two, then split. No third round.
 - A session is a fuse. Split on envelope done, correction cap, spend cap, or a named decay sign (`factory/sessions.json`). A successor reads this file, BOARD, the envelope — never a transcript, never a compaction. It looks at `factory/sparks.json`; it does not obey it.
 - The control plane lands: it verifies the return at the objects, proves any rebase with `git range-diff` and a blob sweep, runs the landing gate from a fresh archive of the commit, fast-forwards main, restamps the board, deletes `factory/envelopes/<lane>.md`.
-- Nothing is issued from an unlanded tip. Siblings only when the board names their files disjoint.
+- Nothing is issued from an unlanded tip. A lane carries a wave and a depends-on; order is derived from that graph, not judged. A lane whose work another running lane would invalidate is held back on purpose, with the reason on the board.
+- Siblings only on holds proved disjoint at the files, at the issue, and written down. A free slot is not a proof. One review slot stays reserved, so a returned lane never waits for a review.
+- A seat census is read from the process table, not from the scheduler. A dead seat is resumed on its own session id, never relaunched blind.
 - Shared files are single-writer holds: `contracts/` and any generated client, the package manifest and lockfile, the app shell and routes, `factory/board.json`, this file.
 - Every writer envelope carries a self-check: drive the list a reviewer of the lane would be given, fix what it finds, record what changed in the lane log.
 - Main is frozen between a landing’s branch push and its fast-forward. Hold board edits until after.
@@ -64,16 +66,7 @@ Two kinds, and they are not the same kind. The owner’s do not move. The rest a
 - A cloud writer receives a worktree of the envelope holds, not the owner's disk.
 - GitHub write access is not a contributor. A contributor is a commit that landed on the default branch with an email on a GitHub account. Parent `access` is `owner-only`.
 
-**The factory’s, and provisional.** Each has paid for itself so far. An experiment may suspend the check that enforces one. None of them is a reason to refuse an idea outright.
-
-- Do not point the control-plane session at DeepSeek or Qwen. Spawn a writer seat. Cursor Cloud Agents cannot take that token. Cloud isolate is `git-bus` or `codespace` (`factory/HANDS.md`).
-- Do not invent a third seat with a model. Claude Code absent is the default. A DeepSeek or DashScope token is the writer; the topologies are in `factory/runtimes.json`. Do not install Claude Code to spend it.
-- Envelopes live as git blobs in `factory/envelopes/`. Issues are not the board.
-- A writer never fast-forwards main and never reviews its own branch.
-- A reviewer is never a weaker model than the writer.
-- A child never writes VirBk/virbk. Returns arrive as intakes. Absorbing is a Grok envelope.
-- An intake without a check is refused. A trap without a check is a diary.
-- An absorbed reference is not a live child. It takes a drop from `factory/drops/` after its running seats finish, not the kit. Helping it is a sidecar factory, not an overlay, and not this sitting as its control plane.
+**The factory’s, and provisional.** Each has paid for itself so far. Every one is already enforced by a trap in your digest or by section 3 above, so the list itself is derivation, not law you must carry: `factory/OPERATING_MODEL.md`. An experiment may suspend the check behind one. None of them is a reason to refuse an idea outright.
 
 ## 6. Data rules that never move
 
@@ -115,41 +108,16 @@ The repository is memory. The session is a fuse: every model rots if it stays. D
 | Need | File |
 |---|---|
 | Live state | `BOARD.md` (generated) / `factory/board.json` (source) |
-| Work packages | `factory/packages.json` |
-| Decisions | `factory/decisions.json` |
 | Traps | `factory/traps.yaml` |
+| Decisions | `factory/decisions.json` |
 | Size budgets | `factory/budgets.json` |
-| Landing steps | `factory/landing-checks.json` |
-| Landing gate | `factory/tools/landingGate.mjs` |
-| Envelope template | `factory/templates/ENVELOPE.md` |
-| 10/10 rubric | `factory/ASSESSMENT.md` |
-| Session fuse | `factory/sessions.json` |
-| How to copy | `factory/COPY.md` |
-| Runtimes | `factory/runtimes.json` |
-| PM picks | `factory/project.json` |
-| Contribute | `access`, `commitCredit` in `factory/project.json` |
-| Cloud isolate | `factory/HANDS.md` |
-| Prompt cache | `promptCache` in `factory/project.json` |
-| Token only | topologies in `factory/runtimes.json` |
-| Help a product | `factory/help.json`. Never overlay alumni. |
-| Writer path | `factory/writer-paths.json`, `factory/tools/route.mjs` |
-| Launch | Control plane. Recipe: `factory/tools/seat.mjs` |
-| Envelope blobs | `factory/envelopes/` |
-| Writer recipes, launch | `factory/tools/seat.mjs` |
-| Parent register | `factory/lineage.json` |
-| Alumni drops | `factory/drops/` |
-| Intake template | `factory/templates/INTAKE.md` |
-| Intake gate | `factory/tools/intake.mjs` |
+| Every gate step, and the landing steps | `factory/landing-checks.json` |
+| Envelope template, envelope blobs | `factory/templates/ENVELOPE.md`, `factory/envelopes/` |
 | Lane records | `docs/log/<lane>.md` |
-| Owner console | `factory/CONSOLE.md` |
-| Closed concerns | `factory/concerns.json` |
-| Derivation | `factory/CONTROL_PLANE.md` |
-| Owner-ask list | `factory/owner-ask.json` |
-| Sparks (look, not law) | `factory/sparks.json` |
 | Reading path, context budget | `factory/tools/packet.mjs` |
-| Ledger window | `factory/tools/ledger.mjs` |
-| Alumni measurement, check pack | `factory/tools/alumni.mjs` |
-| Every gate step and tool | `factory/landing-checks.json` |
-| Versioned interfaces | `contracts/` |
+| PM picks, runtimes, writer path | `factory/project.json`, `factory/runtimes.json`, `factory/writer-paths.json` |
+| Launch recipes | `factory/tools/seat.mjs`. The control plane launches. |
+| Session fuse | `factory/sessions.json` |
+| Control-plane derivation | `factory/CONTROL_PLANE.md` |
 
-Every other document is history or reference until the owner moves it.
+The rest of the index — lineage, drops, help, intakes, contracts, console, concerns, sparks, the rubric, how to copy, the per-tool map — is in `factory/OPERATING_MODEL.md`. Every other document is history or reference until the owner moves it.
