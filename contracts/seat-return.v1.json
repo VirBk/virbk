@@ -53,6 +53,11 @@
       "type": "string",
       "minLength": 1
     },
+    "meterModel": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The model id the harness meter recorded for the project the lane ran in — the id that actually answered, not the one the launcher was told. A seat cannot see its own model and echoes the envelope's Runtime stamp instead (T69), so the recorder reads this from the usage record and fills it in; it is therefore optional in a return and never required. The two ids agree through the native-to-DashScope map in factory/tools/route.mjs, never by string equality: deepseek-flash and deepseek-v4.1-flash are one model at two vendors (T48). Recording refuses a disagreement, so both ids sit on the stored row and a later price question can see which one was served."
+    },
     "base": {
       "type": "string",
       "minLength": 7

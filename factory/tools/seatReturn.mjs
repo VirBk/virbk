@@ -3,11 +3,21 @@
 // printed. A session that says it understands still invents (S06 -> T56).
 //
 //   node factory/tools/seatReturn.mjs return.json
-//   node factory/tools/seatReturn.mjs return.json --record
+//   node factory/tools/seatReturn.mjs return.json --record --project <path>
 //   node factory/tools/seatReturn.mjs spend
 //   node factory/tools/seatReturn.mjs meter <project-path>
 //   node factory/tools/seatReturn.mjs --template
 //   node factory/tools/seatReturn.mjs --self-test
+//
+// A seat cannot see its own model and echoes the envelope's Runtime stamp
+// instead, so the model in a return is a claim about the launcher, not a
+// measurement (T69). Recording therefore reads the harness meter for the
+// project the lane ran in and refuses a return whose model disagrees with
+// the id that actually answered. The two ids are compared through the
+// native-to-DashScope map that factory/tools/route.mjs owns, never by
+// string equality: deepseek-flash and deepseek-v4.1-flash are one model
+// at two vendors (T48). A project the meter has no row for is a refusal,
+// not a pass — an unchecked model is the thing this refuses to store.
 //
 // The runtime is checked against the live catalog, not against a list
 // typed into the schema once: factory/runtimes.json is the catalog and
@@ -23,6 +33,7 @@
 // be a durable false measurement in the store (F32).
 
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -34,11 +45,41 @@ import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+// The router owns which id a base expects (T48, T75). This asks it for the
+// id a model is served as instead of typing the pairs in a second copy.
+import { resolve as resolveRoute } from "./route.mjs";
 
 const kitRoot = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const NL = String.fromCharCode(10);
 const SHA = /^[0-9a-f]{7,40}$/i;
 const USAGE_SOURCE = "qwen usage_record.jsonl";
+
+// One model is sold under two names and the router owns the relation (T48,
+// T75), so both sides of a comparison are folded to the id the DashScope base
+// expects and then compared. A second copy of the pairs here would be a second
+// place for the price table to drift. The spec is read from kitRoot, never
+// from the store root: a temporary store has no writer-paths.json and must not
+// be asked for one.
+let routeSpecCache = null;
+function routeSpec() {
+  if (!routeSpecCache) routeSpecCache = json(kitRoot, "factory/writer-paths.json");
+  return routeSpecCache;
+}
+
+export function providerId(model) {
+  return resolveRoute(
+    { writerModel: String(model), writerPath: "dashscope" },
+    routeSpec(),
+    new Date(0),
+    true,
+  ).providerModel;
+}
+
+// Symmetric because both sides land on the same canonical form. An id the
+// table does not list passes through unchanged and agrees only with itself.
+export function sameModel(a, b) {
+  return providerId(a) === providerId(b);
+}
 
 const TEMPLATE =
   JSON.stringify(
@@ -171,7 +212,7 @@ export function readMeter(file, projectPath) {
     "outputTokens " + totals.outputTokens,
     "cachedTokens " + totals.cachedTokens,
   ];
-  return { ok: true, row: best.row, totals, lines };
+  return { ok: true, row: best.row, ids, totals, lines };
 }
 
 export function returnErrors(root, row) {
@@ -189,6 +230,7 @@ export function returnErrors(root, row) {
     "spendUsd",
     "tokens",
     "cachedTokens",
+    "meterModel",
     "note",
   ];
   const extra = Object.keys(row).filter((k) => !known.includes(k));
@@ -200,6 +242,12 @@ export function returnErrors(root, row) {
   }
   // Hosted ids are catalog ids or their DashScope mapping; both are named.
   if (typeof row.model !== "string" || !row.model.trim()) errors.push("model");
+  // The id the harness meter recorded, when the return carries one. A seat
+  // cannot see its own model, so this is not required of a seat — but a
+  // present one is an id, not a sentence. The recorder cross-checks it.
+  if (row.meterModel !== undefined && (typeof row.meterModel !== "string" || !row.meterModel.trim())) {
+    errors.push("meterModel is not a model id");
+  }
   if (typeof row.base !== "string" || !SHA.test(row.base)) errors.push("base is not a sha");
   if (typeof row.branch !== "string" || !row.branch.trim()) errors.push("branch");
   if (/^(main|master)$/.test(String(row.branch))) errors.push("a writer never returns main");
@@ -255,13 +303,18 @@ function schemaErrors(root) {
   if (live.join(",") !== inSchema.join(",")) {
     errors.push("contracts/seat-return.v1.json runtime enum is not factory/runtimes.json topologies");
   }
-  for (const field of ["measured", "cachedTokens"]) {
+  for (const field of ["measured", "cachedTokens", "meterModel"]) {
     if (!schema.properties || !(field in schema.properties)) {
       errors.push("contracts/seat-return.v1.json has no " + field);
     }
   }
   if (!(schema.required || []).includes("measured")) {
     errors.push("contracts/seat-return.v1.json does not require measured");
+  }
+  // A seat cannot see its own model: the id is written by the recorder from
+  // the meter, so requiring it would make every seat's return invalid.
+  if ((schema.required || []).includes("meterModel")) {
+    errors.push("contracts/seat-return.v1.json requires meterModel — a seat cannot know it");
   }
   if (!schema.properties?.tokens) {
     errors.push("contracts/seat-return.v1.json has no tokens");
@@ -313,6 +366,11 @@ export function rowKey(row) {
       String(row.tokens.source),
     );
   }
+  // The meter's id is a different axis from the launcher's claim, so a return
+  // that carries one keys differently. A row stored before this lane has no
+  // meterModel and keeps the key it was written with, which is why this is
+  // appended and never substituted.
+  if (row.meterModel) parts.push(String(row.meterModel));
   return createHash("sha256").update(parts.join(String.fromCharCode(31))).digest("hex").slice(0, 16);
 }
 
@@ -329,12 +387,115 @@ function saveStore(root, data) {
   writeFileSync(join(root, STORE), JSON.stringify(data, null, 2) + NL);
 }
 
-export function record(root, row) {
+// The shape of a stored row, in one place. A row is what the record kept,
+// not the return it came from: prose (`changed`, `verify`, `measured`) stays
+// in the lane log. A rewrite that drops a field or renames one is the
+// mutation this refuses, and it refuses it on the file that ships.
+const STORE_ROW_REQUIRED = ["at", "key", "lane", "runtime", "model", "base", "branch"];
+const STORE_ROW_OPTIONAL = ["spendUsd", "cachedTokens", "tokens", "meterModel"];
+const KEY_HEX = /^[0-9a-f]{16}$/;
+
+export function storeErrors(root) {
+  const errors = [];
+  let data;
+  try {
+    data = loadStore(root);
+  } catch (err) {
+    return [STORE + " does not read: " + String(err.message || err)];
+  }
+  if (typeof data.rule !== "string" || !data.rule.trim()) {
+    errors.push(STORE + " has no rule string");
+  }
+  const keys = data.rows.map((r) => r && r.key);
+  if (new Set(keys).size !== keys.length) {
+    errors.push(STORE + " repeats a key — the same return was counted twice");
+  }
+  data.rows.forEach((r, i) => {
+    const where = STORE + " row " + (i + 1);
+    if (!r || typeof r !== "object" || Array.isArray(r)) {
+      errors.push(where + " is not an object");
+      return;
+    }
+    for (const f of STORE_ROW_REQUIRED) {
+      if (!(f in r)) errors.push(where + " has no " + f);
+    }
+    const extra = Object.keys(r).filter(
+      (k) => !STORE_ROW_REQUIRED.includes(k) && !STORE_ROW_OPTIONAL.includes(k),
+    );
+    if (extra.length) errors.push(where + " has unknown fields: " + extra.join(", "));
+    if (typeof r.key !== "string" || !KEY_HEX.test(r.key)) errors.push(where + " key is not a content key");
+    if (typeof r.at !== "string" || Number.isNaN(Date.parse(r.at))) errors.push(where + " at is not a time");
+    if (typeof r.lane !== "string" || !r.lane.trim()) errors.push(where + " lane is not a lane id");
+    if (typeof r.runtime !== "string" || !r.runtime.trim()) {
+      errors.push(where + " runtime is not a runtime id");
+    }
+    if (typeof r.model !== "string" || !r.model.trim()) errors.push(where + " model is not a model id");
+    if (typeof r.base !== "string" || !SHA.test(r.base)) errors.push(where + " base is not a sha");
+    if (
+      r.spendUsd !== undefined &&
+      (typeof r.spendUsd !== "number" || !Number.isFinite(r.spendUsd) || r.spendUsd < 0)
+    ) {
+      errors.push(where + " spendUsd is not a non-negative number");
+    }
+    if (r.meterModel !== undefined && (typeof r.meterModel !== "string" || !r.meterModel.trim())) {
+      errors.push(where + " meterModel is not a model id");
+    }
+    if (r.tokens !== undefined) {
+      const t = r.tokens;
+      if (!t || typeof t !== "object" || Array.isArray(t)) {
+        errors.push(where + " tokens is not an object");
+      } else {
+        for (const f of ["in", "out", "cached", "requests"]) {
+          if (typeof t[f] !== "number" || !Number.isFinite(t[f]) || t[f] < 0) {
+            errors.push(where + " tokens." + f + " is not a non-negative number");
+          }
+        }
+        if (typeof t.source !== "string" || !t.source.trim()) {
+          errors.push(where + " tokens.source is empty");
+        }
+      }
+    }
+  });
+  return errors;
+}
+
+export function record(root, row, project, meterFile = usageRecordPath()) {
   const data = loadStore(root);
   const key = rowKey(row);
   if (data.rows.some((r) => r.key === key)) {
     return { ok: false, key, reason: "already recorded" };
   }
+
+  // T69. The model in a return is a claim about the launcher: the seat cannot
+  // see its own model and echoes the envelope's Runtime stamp instead. What
+  // the seat cannot do is check that claim, so the recorder does, against the
+  // id the harness meter recorded for the project the lane ran in. No meter
+  // row at all is a refusal and not a pass — a claim nobody measured is the
+  // thing this refuses to store.
+  const meter = readMeter(meterFile, project);
+  if (!meter.ok) {
+    return { ok: false, key: null, reason: "no meter for " + String(project || "the project") + ": " + meter.reason };
+  }
+  const agreed = meter.ids.find((id) => sameModel(id, row.model));
+  if (!agreed) {
+    return {
+      ok: false,
+      key: null,
+      reason:
+        "model disagreement: the return says " + row.model +
+        ", the meter recorded " + meter.ids.join(", "),
+    };
+  }
+  if (row.meterModel !== undefined && !sameModel(row.meterModel, agreed)) {
+    return {
+      ok: false,
+      key: null,
+      reason:
+        "meterModel disagreement: the return declares " + row.meterModel +
+        ", the meter recorded " + agreed,
+    };
+  }
+
   const stored = {
     at: new Date().toISOString(),
     key,
@@ -352,9 +513,15 @@ export function record(root, row) {
   } else {
     stored.cachedTokens = typeof row.cachedTokens === "number" ? row.cachedTokens : 0;
   }
+  // Both ids on the row: the launcher's claim and the meter's answer. The
+  // relation between them is not stable over time — an unversioned id sent to
+  // the DashScope base is a different price (T48) — so a later price question
+  // has to be able to see which id was actually served, not just that the two
+  // folded together on the day they were compared.
+  stored.meterModel = agreed;
   data.rows.push(stored);
   saveStore(root, data);
-  return { ok: true, key, rows: data.rows.length };
+  return { ok: true, key, rows: data.rows.length, meterModel: agreed };
 }
 
 function usd(n) {
@@ -443,6 +610,30 @@ function selfTest() {
     tokens: { in: 120, out: 30, cached: 80, requests: 2, source: "qwen usage_record.jsonl" },
   };
 
+  // Recording reads the meter for the project the lane ran in, so every
+  // record below needs a project the record file has a row for. The row names
+  // the model under the other vendor's id on purpose: the return claims
+  // deepseek-v4.1-flash, the meter says deepseek-flash, and the router's map
+  // is what makes that an agreement instead of a refusal (T48).
+  const meterDir = mkdtempSync(join(tmpdir(), "seat-return-project-"));
+  const meterFile = join(meterDir, "usage_record.jsonl");
+  const project = "C:\\proj\\f38";
+  const counts = (requests, inputTokens, outputTokens, cachedTokens) => ({
+    requests,
+    inputTokens,
+    outputTokens,
+    cachedTokens,
+  });
+  writeFileSync(
+    meterFile,
+    JSON.stringify({
+      sessionId: "f38",
+      timestamp: 10,
+      project,
+      models: { "deepseek-flash": counts(3, 30, 6, 9) },
+    }) + NL,
+  );
+
   const cases = [
     ["no measured", { ...good, measured: "" }],
     ["a word, not output", { ...good, measured: "ok" }],
@@ -458,6 +649,7 @@ function selfTest() {
     ["tokens without a source", { ...strip(good, ["spendUsd"]), tokens: { ...metered.tokens, source: "" } }],
     ["tokens with a negative count", { ...strip(good, ["spendUsd"]), tokens: { ...metered.tokens, cached: -1 } }],
     ["tokens is not an object", { ...strip(good, ["spendUsd"]), tokens: 4 }],
+    ["meterModel is a sentence", { ...good, meterModel: "  " }],
   ];
   for (const [name, row] of cases) {
     if (!returnErrors(kitRoot, row).length) errors.push("case passed but should fail: " + name);
@@ -471,15 +663,18 @@ function selfTest() {
   // The store: a row survives, a re-record is refused, spend sums rows.
   const dir = mkdtempSync(join(tmpdir(), "seat-return-"));
   try {
-    if (!record(dir, good).ok) errors.push("first record refused");
-    if (record(dir, good).ok) errors.push("the same return was recorded twice");
+    if (!record(dir, good, project, meterFile).ok) errors.push("first record refused");
+    if (record(dir, good, project, meterFile).ok) errors.push("the same return was recorded twice");
     const other = { ...good, lane: "F99", spendUsd: 0.25, cachedTokens: 1000 };
-    if (!record(dir, other).ok) errors.push("a different return was refused");
+    if (!record(dir, other, project, meterFile).ok) errors.push("a different return was refused");
     const rows = loadStore(dir).rows;
     if (rows.length !== 2) errors.push("store has " + rows.length + " rows, expected 2");
     if (rows.some((r) => !r.key || !r.at)) errors.push("a row is missing its key or its time");
     if (rows.some((r) => "measured" in r || "changed" in r)) {
       errors.push("the store keeps rows; prose belongs in the lane log");
+    }
+    if (rows.some((r) => r.meterModel !== "deepseek-flash")) {
+      errors.push("the row did not keep the id the meter recorded");
     }
     const report = spendReport(dir);
     if (!/returns 2/.test(report)) errors.push("spend did not count both rows");
@@ -502,12 +697,14 @@ function selfTest() {
   // store, and no dollar is invented for a return that has none.
   const dir2 = mkdtempSync(join(tmpdir(), "seat-return-metered-"));
   try {
-    if (!record(dir2, metered).ok) errors.push("a metered return was refused by the store");
-    if (record(dir2, metered).ok) errors.push("the same metered return was recorded twice");
+    if (!record(dir2, metered, project, meterFile).ok) errors.push("a metered return was refused by the store");
+    if (record(dir2, metered, project, meterFile).ok) errors.push("the same metered return was recorded twice");
     const rows = loadStore(dir2).rows;
     if (rows.length !== 1) errors.push("metered store has " + rows.length + " rows");
-    if (!rows[0].tokens) errors.push("the store dropped the tokens block");
-    if ("spendUsd" in rows[0]) errors.push("the store invented a dollar for a metered row");
+    // Guarded: a refusal upstream leaves no row, and reading rows[0].tokens
+    // then would crash the test instead of reporting what went wrong.
+    if (rows.length && !rows[0].tokens) errors.push("the store dropped the tokens block");
+    if (rows.length && "spendUsd" in rows[0]) errors.push("the store invented a dollar for a metered row");
     const report = spendReport(dir2);
     if (!/metered rows 1 {2}in 120 {2}out 30 {2}cached 80 {2}requests 2/.test(report)) {
       errors.push("spend did not read the metered row back:\n" + report);
@@ -547,6 +744,9 @@ function selfTest() {
       }
       if (!hit.lines.includes("file " + rec)) errors.push("meter did not print the file it read");
       if (!hit.lines.includes("source " + USAGE_SOURCE)) errors.push("meter did not name its source");
+      if (hit.ids.join(",") !== "deepseek-flash,qwen3-coder-plus") {
+        errors.push("meter did not report which ids answered: " + hit.ids.join(","));
+      }
     }
     if (readMeter(rec, "c:/proj/c").ok) errors.push("meter matched a project that is not in the record");
     if (readMeter(join(dir3, "absent.jsonl"), "c:/proj/a").ok) {
@@ -560,6 +760,145 @@ function selfTest() {
   } finally {
     rmSync(dir3, { recursive: true, force: true });
   }
+
+  // One model is sold under two names, and the router owns the pairs (T48,
+  // T75). The relation lives in factory/tools/route.mjs; what is written here
+  // is the expectation, so that a comparison by raw string — which would call
+  // every one of these three a disagreement — fails this test.
+  const pairs = [
+    ["deepseek-flash", "deepseek-v4.1-flash"],
+    ["deepseek-v4-pro", "deepseek-v4-pro-0813"],
+    ["qwen3-coder", "qwen3-coder-plus"],
+  ];
+  for (const [a, b] of pairs) {
+    if (a === b) errors.push("a pair is not a pair: " + a);
+    if (!sameModel(a, b)) errors.push("the router's map does not fold " + a + " and " + b);
+    if (providerId(a) !== providerId(b)) errors.push(a + " and " + b + " fold to different ids");
+    if (a === providerId(a)) errors.push(a + " was not remapped — the map is not being asked");
+  }
+  if (!sameModel("deepseek-flash", "deepseek-flash")) errors.push("an id does not fold to itself");
+  if (sameModel("deepseek-flash", "deepseek-v4-pro")) errors.push("two different models folded as one");
+  if (sameModel("qwen3.7-flash", "qwen3.8-max")) errors.push("two different models folded as one");
+
+  // T69, both halves. The return claims a model; the meter answers with the
+  // id that actually answered; and a project the meter has no row for is a
+  // refusal rather than a pass. The claim and the answer below are one model
+  // at two vendors, so only the router's map finds the agreement.
+  const dir4 = mkdtempSync(join(tmpdir(), "seat-return-t69-"));
+  try {
+    const agrees = { ...good, lane: "F38" };
+    const out = record(dir4, agrees, project, meterFile);
+    if (!out.ok) {
+      errors.push("a return that agrees with the meter was refused: " + out.reason);
+    } else if (out.meterModel !== "deepseek-flash") {
+      errors.push("the row names " + out.meterModel + ", not the id the meter recorded");
+    }
+    if (record(dir4, agrees, project, meterFile).ok) errors.push("the same return doubled its row");
+    if (loadStore(dir4).rows.length !== 1) {
+      errors.push("the store holds " + loadStore(dir4).rows.length + " rows after one return and one re-record");
+    }
+
+    const wrong = { ...good, lane: "F38", model: "qwen3.7-flash" };
+    const refused = record(dir4, wrong, project, meterFile);
+    if (refused.ok) errors.push("a return whose model disagrees with the meter was recorded");
+    else if (!refused.reason.includes("qwen3.7-flash") || !refused.reason.includes("deepseek-flash")) {
+      errors.push("the refusal did not name both ids: " + refused.reason);
+    }
+    if (loadStore(dir4).rows.length !== 1) {
+      errors.push("a refusal changed the store's row count: " + loadStore(dir4).rows.length);
+    }
+
+    const declared = { ...good, lane: "F38", meterModel: "qwen3.7-flash" };
+    if (record(dir4, declared, project, meterFile).ok) {
+      errors.push("a return that declared the wrong meterModel was recorded");
+    }
+
+    const unmetered = record(dir4, { ...good, lane: "F41" }, "C:/proj/nobody", meterFile);
+    if (unmetered.ok) errors.push("a project with no meter row was recorded anyway");
+    else if (!/^no meter/.test(unmetered.reason)) {
+      errors.push("a missing meter did not say so: " + unmetered.reason);
+    }
+    if (loadStore(dir4).rows.length !== 1) {
+      errors.push("an unmetered refusal changed the row count: " + loadStore(dir4).rows.length);
+    }
+  } finally {
+    rmSync(dir4, { recursive: true, force: true });
+  }
+
+  // The store that ships. Its rows are the only real measurement this factory
+  // has, so its shape is checked here: the gate step that runs this file is
+  // then the check that catches a rewrite (D-59, T65).
+  const shipped = loadStore(kitRoot);
+  for (const e of storeErrors(kitRoot)) errors.push("live store: " + e);
+  const dir5 = mkdtempSync(join(tmpdir(), "seat-return-shape-"));
+  try {
+    const copy = join(dir5, STORE);
+    mkdirSync(dirname(copy), { recursive: true });
+    const write = (data) => writeFileSync(copy, JSON.stringify(data, null, 2) + NL);
+    write(shipped);
+    if (storeErrors(dir5).length) {
+      errors.push("a faithful copy of the shipped store failed: " + storeErrors(dir5).join("; "));
+    }
+    if (!shipped.rows.length) {
+      errors.push("the store shipped with no rows — this check would prove nothing");
+    } else {
+      const bent = JSON.parse(JSON.stringify(shipped));
+      delete bent.rows[0].branch;
+      write(bent);
+      if (!storeErrors(dir5).length) errors.push("a stored row that lost its branch passed");
+      const bent2 = JSON.parse(JSON.stringify(shipped));
+      bent2.rows[0].key = "not-a-key";
+      write(bent2);
+      if (!storeErrors(dir5).length) errors.push("a stored row with a broken key passed");
+      const bent3 = JSON.parse(JSON.stringify(shipped));
+      bent3.rows[0].modelId = bent3.rows[0].model;
+      delete bent3.rows[0].model;
+      write(bent3);
+      const joined = storeErrors(dir5).join("; ");
+      if (!/unknown fields: modelId/.test(joined) || !/has no model/.test(joined)) {
+        errors.push("a renamed field was not caught: " + (joined || "no error at all"));
+      }
+      const bent4 = JSON.parse(JSON.stringify(shipped));
+      bent4.rows[0].lane = "  ";
+      write(bent4);
+      const blank = storeErrors(dir5).join("; ");
+      if (!/lane is not a lane id/.test(blank)) {
+        errors.push("a stored row with a blank lane was not caught: " + (blank || "no error at all"));
+      }
+    }
+  } finally {
+    rmSync(dir5, { recursive: true, force: true });
+  }
+
+  // The contract that ships is checked by --check-contract, which no gate step
+  // runs. This is the gate's copy of that check, so loosening a required field
+  // to make a disagreement pass is red where the landings look.
+  const dir6 = mkdtempSync(join(tmpdir(), "seat-return-contract-"));
+  try {
+    mkdirSync(join(dir6, "contracts"), { recursive: true });
+    mkdirSync(join(dir6, "factory"), { recursive: true });
+    const contract = join(dir6, "contracts/seat-return.v1.json");
+    copyFileSync(join(kitRoot, "contracts/seat-return.v1.json"), contract);
+    copyFileSync(join(kitRoot, "factory/runtimes.json"), join(dir6, "factory/runtimes.json"));
+    if (schemaErrors(dir6).length) {
+      errors.push("a faithful copy of the contract failed: " + schemaErrors(dir6).join("; "));
+    }
+    const straight = json(dir6, "contracts/seat-return.v1.json");
+    const bent = JSON.parse(JSON.stringify(straight));
+    bent.required = (bent.required || []).filter((f) => f !== "measured");
+    writeFileSync(contract, JSON.stringify(bent, null, 2) + NL);
+    if (!schemaErrors(dir6).length) errors.push("a contract that stopped requiring measured passed");
+    const bent2 = JSON.parse(JSON.stringify(straight));
+    bent2.required = [...(bent2.required || []), "meterModel"];
+    writeFileSync(contract, JSON.stringify(bent2, null, 2) + NL);
+    if (!schemaErrors(dir6).length) {
+      errors.push("a contract that requires a seat to know its own meterModel passed");
+    }
+  } finally {
+    rmSync(dir6, { recursive: true, force: true });
+  }
+
+  rmSync(meterDir, { recursive: true, force: true });
 
   if (errors.length) fail("seatReturn self-test failed", errors);
   console.log("seatReturn self-test ok");
@@ -576,7 +915,7 @@ if (cmd === "--template") {
 }
 
 if (cmd === "--check-contract") {
-  const errors = schemaErrors(kitRoot);
+  const errors = [...schemaErrors(kitRoot), ...storeErrors(kitRoot)];
   if (errors.length) fail("seat-return contract failed", errors);
   console.log("seat-return contract ok");
   process.exit(0);
@@ -599,7 +938,7 @@ if (cmd === "meter") {
 
 if (!cmd || cmd.startsWith("-")) {
   console.error(
-    "usage: node factory/tools/seatReturn.mjs <return.json> [--record] | spend | meter <project-path> | --template | --check-contract | --self-test",
+    "usage: node factory/tools/seatReturn.mjs <return.json> [--record --project <path>] | spend | meter <project-path> | --template | --check-contract | --self-test",
   );
   process.exit(1);
 }
@@ -617,8 +956,16 @@ console.log("return ok  " + row.lane + "  " + row.runtime + "  " + row.model);
 
 // A return that fails validation is never recorded: the check is above.
 if (process.argv.includes("--record")) {
-  const out = record(storeRoot(), row);
-  if (!out.ok) fail("record refused", [out.reason + ": " + out.key]);
-  console.log("recorded " + out.key + "  rows " + out.rows);
+  // The project is not optional. A return is recorded only against the meter
+  // row of the project its lane ran in, and guessing that path would defeat
+  // the check it is there to make (T69).
+  const at = process.argv.indexOf("--project");
+  const project = at > -1 ? process.argv[at + 1] : null;
+  if (!project || project.startsWith("--")) {
+    fail("record refused", ["--record needs --project <path>; a model nobody measured is not stored"]);
+  }
+  const out = record(storeRoot(), row, project);
+  if (!out.ok) fail("record refused", [out.reason + (out.key ? ": " + out.key : "")]);
+  console.log("recorded " + out.key + "  rows " + out.rows + "  meter says " + out.meterModel);
 }
 process.exit(0);
