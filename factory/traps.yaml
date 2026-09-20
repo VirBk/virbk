@@ -426,3 +426,15 @@
   object: "factory/tools/alumni.mjs"
   title: Child's lesson invisible to the parent's scanner
   rule: alumni.mjs scan measures structure and never opens a child's TRAPS.md, so a lesson written in prose reaches the parent only by a person reading it.
+
+- id: T72
+  kind: machine
+  object: "factory/tools/seat.mjs"
+  title: Packet handed to a seat as one argv string
+  rule: A recipe hands the packet over on stdin, never as one argv string, because a cap-sized packet is over the command-line limit and the harness dies with Argument list too long before it reads a byte. Check is node factory/tools/seat.mjs --self-test.
+
+- id: T73
+  kind: machine
+  object: "factory/tools/seat.mjs"
+  title: Writer key read from whichever shell is open
+  rule: A Windows recipe line reads the writer key from the user store with [Environment]::GetEnvironmentVariable("NAME","User") in the same act as the launch, never from a bare $env:NAME, which is whatever was true when that terminal opened. Check is node factory/tools/seat.mjs --self-test.
