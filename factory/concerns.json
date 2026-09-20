@@ -30,6 +30,12 @@
       "ask": "Retire the session. Nothing that matters may live only in the chat. Record the conversation, the concerns, the answers, and the plan.",
       "answer": "Git is memory. Conversation is not stored (no SESSION_LOG, no handoff.md). Outcomes live as decisions and CONSOLE.md. Closed concerns live here. Plan is factory/packages.json. A new concern is a new id. Never reuse D-09. Read live main before any write to the parent.",
       "holds": ["D-08", "D-14", "D-34", "D-35"]
+    },
+    {
+      "id": "C-06",
+      "ask": "Adopt a proposed feedback loop: a spend log, a redundancy distiller, a prompt-prefix gate step, a token cap in CI, a replacement writer Action, and five architectural sparks.",
+      "answer": "Rejected on verification. The spend cap stays the envelope's and hitting it is a return. Prefix stability stays the packet's ordering, measured by cachedTokens in the return, not by a hash of BOARD.md. Lessons stay traps.yaml behind spark.mjs, which has shape, an open cap and a TTL. The writer runner stays writer.yml plus ghaWriter.mjs. The one gap, that nothing sums spend across returns, is open as S07.",
+      "holds": ["D-46", "S07", "T45", "T61"]
     }
   ]
 }

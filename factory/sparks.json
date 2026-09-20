@@ -61,6 +61,15 @@
       "status": "absorbed",
       "openedOn": 2,
       "absorbedAs": "T56"
+    },
+    {
+      "id": "S07",
+      "kind": "trap",
+      "claim": "A return validates spendUsd and cachedTokens and then discards the row, so no command sums spend or cache hits across lanes.",
+      "object": "factory/tools/seatReturn.mjs",
+      "whyNotLaw": "Returns so far are prose in lane logs; a store with no rows is a fixture, and the cap it would enforce has no dated row in factory/decisions.json.",
+      "status": "open",
+      "openedOn": 5
     }
   ]
 }

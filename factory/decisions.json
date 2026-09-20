@@ -319,6 +319,14 @@
       "charged": "The owner asked the control plane to study and execute in one session. Recording the deviation is cheaper than pretending it did not happen.",
       "summary": "For this records sitting the control plane wrote the kit itself on the owner word, with no independent reviewer session. The landing gate and the new self-tests are the evidence; the next code lane returns to a writer seat plus a fresh reviewer. This is a one-sitting waiver, not a change to AGENTS section 3.",
       "reversible": true
+    },
+    {
+      "id": "D-46",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "A handoff proposed a feedback tool, a replacement writer Action, a prompt-prefix gate step, distilled lessons appended to the packet, a token cap in CI, and five sparks written straight into a new file.",
+      "summary": "Assessed against live main and rejected part by part. Deleting .github/workflows/writer.yml exits the ghaWriter self-test 1 and reds gate step 13. A factory/tools file no gate step names reds kitCheck rule G. A prefix hash over BOARD.md guards bytes the packet does not send, and cachedTokens in a return already measures the hit. Distilled lessons appended to the packet are traps without checks, which traps.yaml behind spark.mjs already covers. A token cap in a workflow is an undated threshold and the envelope already names the spend cap. Sparks written outside spark.mjs skip shape, the open cap and the one-sitting TTL. One claim survived and is open as S07.",
+      "reversible": true
     }
   ]
 }

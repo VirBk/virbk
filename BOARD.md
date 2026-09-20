@@ -89,7 +89,6 @@ No envelope opens a gate.
 
 Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.
 
-- 2026-09-20 F23 landed. The landing gate unpacks its own archive in process, with autocrlf off, so it runs on the Windows control plane and measures the bytes the Ubuntu runner measures. Before this the local gate exited on archive failed. T60. D-40.
 - 2026-09-20 F24 landed. factory/tools/packet.mjs is the seat reading path, ordered for a prefix cache, with a byte budget in factory/budgets.json that the gate fails. AGENTS names it and stayed under cap. T61. D-38.
 - 2026-09-20 F25 landed. The board ledger is a window; older rows rotate to docs/ledger/. The render says so. T61. D-39.
 - 2026-09-20 F26 landed. alumni.mjs scans a product read-only, maps each signal to the trap that paid for it, emits candidate intakes the intake gate accepts, and prints the check pack and the provenance chain. Every absorbed portable intake names the law it became. T62. D-43.
@@ -101,3 +100,4 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 Newlines pinned with .gitattributes so the working tree, the gate archive and the runner measure one number. Each alumni drop now names the read-only command the parent uses to measure adoption.
 - 2026-09-20 F28 landed. The writer Action and every seat recipe launch on the packet instead of an envelope plus a browse. ghaWriter self-test fails if the packet stops being the prompt. T61. D-38.
 - 2026-09-20 Sitting closed twice in one day: once after the records lanes, once after F28. Two closes are two sittings in the record, which is what happened.
+- 2026-09-20 A feedback-loop handoff was assessed against live main and nothing was landed from it. The checks it would have turned red are named in D-46. The one gap it found is open as S07: no command sums spend or cache hits across returns.
