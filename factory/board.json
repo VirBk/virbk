@@ -1,5 +1,5 @@
 {
-  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33, F34 and F36 landed. Next: absorb S13 to S16, then F35, F37, F38. Handoff and first acts: D-55. Ceilings do not move; compact instead (D-52, D-54, D-57). Orchestration model is AGENTS section 3; derivation and the full index are in factory/OPERATING_MODEL.md. Per-lane trap scoping is deferred with a trigger (D-58). A trap now names its object and the gate proves it resolves. While an envelope is live the gate is red on Writer Action by design and every push to main carries a skip-ci marker. Four sparks open: S13 to S16. Otto and Virbos stay read-only. Overlay still shelf.",
+  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33, F34 and F36 landed. Nothing running, no envelope issued, no experiment open. Order, and it is not id order: F37 next, then F39, then F35 and F38. F37 and F39 carry the checks that four open sparks need before they can be absorbed, and a spark must be absorbed or dropped before sitting 11 closes, which is the dependency that moves them ahead. S13 and S16 are seat.mjs and land in F37; S14 and S15 are the cloud writer path and land in F39. A trap without a check is a diary (T24), so absorbing is those lanes, not a records commit. Handoff and first acts: D-55. Ceilings do not move; compact instead (D-52, D-54, D-57). Per-lane trap scoping deferred with a trigger (D-58). The sweep tier writes checks that pin the implementation, not the property: D-59. While an envelope is live the gate is red on Writer Action by design and every push to main carries a skip-ci marker. Otto and Virbos stay read-only. Overlay still shelf.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -257,15 +257,21 @@
     },
     {
       "id": "F37",
-      "title": "Holds proved disjoint, and a seat census from the process table",
+      "title": "The seat launch is checked: disjoint holds, a process-table census, a cap-sized packet, a key from its store",
       "state": "queued",
-      "hold": "factory/tools/seat.mjs, factory/landing-checks.json"
+      "hold": "factory/tools/seat.mjs, factory/landing-checks.json, factory/traps.yaml"
     },
     {
       "id": "F38",
       "title": "A return's model is checked against the meter",
       "state": "queued",
       "hold": "factory/tools/seatReturn.mjs, contracts/seat-return.v1.json"
+    },
+    {
+      "id": "F39",
+      "state": "queued",
+      "hold": ".github/workflows/writer.yml, factory/tools/ghaWriter.mjs, factory/traps.yaml",
+      "title": "The cloud writer takes the router, and idles loudly instead of failing"
     }
   ],
   "keystones": [
@@ -359,10 +365,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "The writer keys are live and the shells are stale. Measured from the owner's own PowerShell: the process copy of DEEPSEEK_API_KEY answers 401 at api.deepseek.com/v1/models and the User-scope copy of the same name answers 200; DASHSCOPE_API_KEY behaves the same at dashscope-intl, and the two scopes differ in length as well as hash. The rotation D-51 recorded reached the store and never reached an open terminal, so this sitting spent two wrong diagnoses on a key that was never actually retired and nearly handed over a launch command that could not work. S16. A launch reads the key from the store in the same act, which is T04's shape and what docs/log/f33.md now does. The earlier ledger row calling both keys 401 described this session's shell and is superseded by the measurement at the store."
-    },
-    {
-      "at": "2026-09-20",
       "event": "Correction to the row claiming this control plane cannot launch a seat by any route: it is not a rule, it is a probabilistic classifier, and the row was false as written. Four attempts in one sitting: argv launch at approval-mode yolo refused, argv launch at approval-mode auto ALLOWED and executed, stdin launch at the same approval-mode auto refused, gh workflow dispatch refused. Two identical approval modes, opposite answers. The repository carries no .claude settings, so no permission rule was ever committed here and none was lost. The likely difference from sittings 8 and 9 is that this session runs in auto mode, where a classifier decides instead of asking the owner; an interactive session surfaces a prompt the owner answers. That cannot be confirmed, because T26 and T50 make a transcript not the record, so the prior tenure's launch route is unrecoverable by design. The routing fact stands in weaker form: the owner is the reliable launcher, and the control plane should hand over the line rather than retry a classifier."
     },
     {
@@ -404,6 +406,10 @@
     {
       "at": "2026-09-21",
       "event": "F36 landed from writer/F36 at b106bd2, fast-forward, after one correction. Every trap carries an object: 52 are a star meaning it binds everywhere, 19 name a path, and node factory/tools/packet.mjs --self-test fails when a trap has no object, when a non-star object does not resolve in the tree, and when no trap carries a non-star object at all. trapsDigest emits only the first sentence of a trap whose stored rule names a check, and the stored rule keeps every sentence it had: traps.yaml took 71 insertions and 0 deletions. Measured at the objects: seat packet 25.3 to 23.6 KB, 90.9 per cent of the 26 KB cap D-57 restored, and the traps digest 12.0 to 10.3 KB. Digest to digest the compression removed 1702 bytes against D-52's estimate of about 2.7 KB, and the lane log carries both rather than adopting the estimate. F31 survives untouched, which is what D-58 deferred the scoping half to protect: the envelope part is last and the bytes before it are byte-identical for two different lanes, checked directly rather than through the self-test that claims it."
+    },
+    {
+      "at": "2026-09-21",
+      "event": "D-59 recorded and the queue reordered off id order for a stated dependency, which is the rule AGENTS section 3 gained in F34. D-59 names what three lanes demonstrated: this tier writes checks that pin the implementation rather than the property, and such a check is invisible to the seat's self-test and to the gate by construction, because it is built from the thing it is meant to test. It adopts three responses and explicitly declines a tier change, on the evidence that deepseek-flash produced three landed lanes at roughly a fifth of a dollar each and took correction accurately whenever the envelope dictated instead of offering; the envelopes were underspecified, not the seat too cheap. The falsifier is stated: a fourth assertion satisfied by construction, on a dictating envelope that names its own mutation, makes that reading wrong. The reorder: F37 absorbs S13 and S16, which are both factory/tools/seat.mjs, and gains traps.yaml and a wider title; a new lane F39 takes S14 and S15, the cloud writer path. Both come before F35 and F38 because a spark must be absorbed or dropped before sitting 11 closes and neither can be absorbed until its check exists."
     }
   ]
 }
