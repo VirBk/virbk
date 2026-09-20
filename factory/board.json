@@ -1,5 +1,5 @@
 {
-  "now": "Sitting 4 open. F22-F28 landed: the kit checks its own shape, the gate runs where the control plane sits, the reading path is a packet under a byte budget and is what a seat is launched with, the ledger is a window, alumni are measured, a return pastes the command. Writer idle; references remain read-only. Overlay still shelf. Path dashscope.",
+  "now": "Sitting 4 closed. F22-F28 landed: the kit checks its own shape, the gate runs where the control plane sits, the reading path is a packet under a byte budget and is what a seat is launched with, the ledger is a window, alumni are measured, a return pastes the command. Nothing is running. References remain read-only. Overlay still shelf. Path dashscope.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -299,10 +299,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "Parent remote named in live law is VirBk/virbk; the help-target guard reads factory/lineage.json instead of a literal. Older rows keep the previous name as history. D-42."
-    },
-    {
-      "at": "2026-09-20",
       "event": "F23 landed. The landing gate unpacks its own archive in process, with autocrlf off, so it runs on the Windows control plane and measures the bytes the Ubuntu runner measures. Before this the local gate exited on archive failed. T60. D-40."
     },
     {
@@ -344,6 +340,10 @@
     {
       "at": "2026-09-20",
       "event": "F28 landed. The writer Action and every seat recipe launch on the packet instead of an envelope plus a browse. ghaWriter self-test fails if the packet stops being the prompt. T61. D-38."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "Sitting closed twice in one day: once after the records lanes, once after F28. Two closes are two sittings in the record, which is what happened."
     }
   ]
 }

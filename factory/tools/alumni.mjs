@@ -229,12 +229,12 @@ function checkPack() {
 function provenance() {
   const lineage = JSON.parse(readFileSync(join(kitRoot, "factory/lineage.json"), "utf8"));
   const traps = readFileSync(join(kitRoot, "factory/traps.yaml"), "utf8");
-  const out = ["law       intake  child     title"];
+  const out = ["law".padEnd(14) + "intake".padEnd(8) + "child".padEnd(10) + "title"];
   for (const row of lineage.intakes || []) {
     const law = String(row.absorbedAs || "(none)");
     const known = law.startsWith("T") ? new RegExp("^- id: " + law + "$", "m").test(traps) : true;
     out.push(
-      law.padEnd(10) +
+      law.padEnd(14) +
         row.id.padEnd(8) +
         String(row.child).padEnd(10) +
         row.title +
