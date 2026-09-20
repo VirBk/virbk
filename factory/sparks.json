@@ -77,6 +77,15 @@
       "whyNotLaw": "Caught on the first act of sitting 11, by a control plane running the command the board's Now line cites for a mutual-disjointness claim about three lanes. The claim is true here - all three pairs were run by hand and each printed none shared - but the named command cannot mean what the sentence says. No check drives an extra argument, and the tool's own doc comment says 'disjoint <LANE> <LANE>' while the CLI accepts more without complaint.",
       "status": "open",
       "openedOn": 11
+    },
+    {
+      "id": "S21",
+      "kind": "trap",
+      "claim": "The gated 'seat packet' band measures seatPacket(root, null), the packet with no lane and so without the envelope: with F40 issued sizeBudget prints 99.7 per cent of 26 KB while packet.mjs seat F40 prints 31.6 KB.",
+      "object": "factory/tools/sizeBudget.mjs",
+      "whyNotLaw": "Two readings, and the control plane could not settle it from the objects. Either the band measures a different object than the one that reaches a writer, which is D-59's family in the gate's own hand, or it is deliberately the byte-stable cacheable prefix at 26 with the envelope budgeted separately at 6, total about 32, in which case one label for two numbers 5.7 KB apart is what needs fixing. budgets.json's note and D-57 both speak of 'the packet' at 25.3 KB, which is the prefix reading. Settle it before the next ceiling argument: a control plane reading 99.7 per cent green can hand a seat 22 per cent more context than the number it just checked.",
+      "status": "open",
+      "openedOn": 11
     }
   ]
 }
