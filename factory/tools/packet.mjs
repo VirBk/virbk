@@ -160,6 +160,14 @@ function render(parts) {
   return out.join(NL);
 }
 
+// Everything rendered before the envelope part. Those are the bytes every
+// lane of a sitting shares, so they are the span a prefix cache can hit (T45).
+// Null when there is no envelope part at all.
+function prefixBytes(parts) {
+  const i = parts.findIndex((p) => p.name.startsWith("envelope "));
+  return i < 0 ? null : render(parts.slice(0, i));
+}
+
 function total(parts) {
   return parts.reduce((n, p) => n + p.bytes, 0);
 }
@@ -256,6 +264,36 @@ function selfTest() {
 
   const missing = seatPacket(kitRoot, "F-does-not-exist");
   if (!render(missing).includes("MISSING")) errors.push("an unissued lane must be named MISSING, not silent");
+
+  // The envelope changes every lane; it is the last part so that the bytes
+  // before it are identical for every lane of a sitting. That is the span a
+  // provider prefix cache can hit (T45). One lane is issued and one is not, so
+  // a MISSING part is covered too — it is still the envelope part, still last.
+  const issued = envelopes(kitRoot).map((f) => f.replace(/\.md$/, ""));
+  const laneA = issued[0] || "F-lane-a-not-issued";
+  const laneB = laneA === "F-lane-b-not-issued" ? "F-lane-c-not-issued" : "F-lane-b-not-issued";
+  const packets = [seatPacket(kitRoot, laneA), seatPacket(kitRoot, laneB)];
+  packets.forEach((parts, i) => {
+    const last = parts[parts.length - 1];
+    if (!last || !last.name.startsWith("envelope ")) {
+      errors.push(
+        "seatPacket: the envelope part is not last for " +
+          (i === 0 ? laneA : laneB) +
+          " — static bytes and the cached prefix are broken up",
+      );
+    }
+  });
+  const preA = prefixBytes(packets[0]);
+  const preB = prefixBytes(packets[1]);
+  if (!preA || !preB) {
+    errors.push("seatPacket: a lane produced no bytes before the envelope part");
+  } else if (!preA.includes("===== AGENTS.md =====")) {
+    errors.push("seatPacket: the bytes before the envelope part are empty — the envelope is not last");
+  } else if (preA !== preB) {
+    errors.push(
+      "seatPacket: the bytes before the envelope part differ between " + laneA + " and " + laneB,
+    );
+  }
 
   for (const e of checkErrors(kitRoot)) errors.push("live: " + e);
 
