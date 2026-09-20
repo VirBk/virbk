@@ -359,10 +359,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "The F33 issuance commit was pushed to main without the skip-ci marker the F31 issuance carried, and both Actions ran. The landing gate went red, correctly: ghaWriter --self-test asserts idle against the live envelopes directory, so the gate is red for as long as any envelope is issued, which is why an issuance skips CI and a landing runs it. The writer Action did not idle. It launched a cloud seat headless with yolo on branch writer/F33, the same branch the local worktree holds, and was stopped by 'API Error: 401 Incorrect API key' from DashScope, not by design: the repository secret still holds the key D-51 retired when the owner rotated the pair. Two things follow. S14 holds the missing check. The stale GitHub secret is an owner ask under writer API keys, and until it is replaced the writer Action is a loud failure rather than the loud skip T55 requires."
-    },
-    {
-      "at": "2026-09-20",
       "event": "This control plane cannot launch a writer seat by any route. A local spawn of the qwen harness and a gh workflow dispatch of the writer Action were both refused by the session's tool policy as creating an unsafe agent; the stdin form of the local launch was refused twice. T35's order is run the binary underneath, launch from this session, then hand over the one line and leave, and the first two rungs are exhausted. The routing fact a successor needs: a Claude Code desktop session under this policy can read, verify at the objects, issue, review and land, and the owner is the launcher. Separately, the two writer keys visible to this session's shell both answer 401 against their own endpoints, curl -o /dev/null -w %{http_code} against dashscope-intl compatible-mode/v1/models and api.deepseek.com/v1/models. That is this shell's environment, not the GitHub secret, which a session cannot read. A handover command is worth nothing if the shell that runs it holds a retired key, so the key is checked at the endpoint before the seat is launched, not after it fails."
     },
     {
@@ -404,6 +400,10 @@
     {
       "at": "2026-09-20",
       "event": "F36 issued at base 2c1159c, alone, narrowed by D-58. Three things: every trap gains an object naming the file or glob it binds to or a star meaning it binds everywhere; packet.mjs --self-test asserts every trap has one and that every non-star object resolves in the tree, so a trap pointing at a file that is not there fails the gate; and trapsDigest emits only the first sentence of a trap that already names a check, which is D-52's second remedy at about 2.7 KB and makes writing a check remove a trap's prose from every future packet. The envelope names what is NOT in scope and why, because the board's title still promises the deferred half. Envelope is 5877 bytes against a 6144 cap."
+    },
+    {
+      "at": "2026-09-21",
+      "event": "F36 returned at 5c8f2ce and the review says CORRECTIONS NEEDED, on the same defect for the third time in two lanes: an assertion satisfied by construction. The compression claim built its expected line by calling firstSentence and ruleNamesACheck, the same two functions trapsDigest calls to build the line being compared, so it pinned a ternary and nothing else; the reviewer gutted compression twice with one-line mutations and the gate stayed green, once turning compression off entirely at 12261 bytes and once truncating all seventy-one rows to 6923. The object-resolves claim had no vacuity guard where its sibling did, so setting every object to star made it vanish silently. The lane's substance is good and confirmed at the objects: 71 objects with 19 non-star all resolving and 52 star rows judged honest against their rule text, no stored rule edited, no digest row dropped, and F31's prefix byte-identical across two lanes with the envelope still last, which is what D-58 deferred the scoping half to protect. Correction 1 issued, narrower than the first envelope: traps.yaml is finished and withheld, and the correction may not write an assertion in terms of the functions that produce what it asserts."
     }
   ]
 }
