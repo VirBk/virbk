@@ -1,4 +1,21 @@
 {
   "rule": "Rows appended by node factory/tools/seatReturn.mjs <return.json> --record, read by node factory/tools/seatReturn.mjs spend. One row per accepted return, keyed by its content so the same return is not counted twice. The lane log keeps the prose. Not the reading path: no seat reads this file.",
-  "rows": []
+  "rows": [
+    {
+      "at": "2026-09-20T10:04:59.525Z",
+      "key": "2a052194c6d6c656",
+      "lane": "F32",
+      "runtime": "pc-dashscope",
+      "model": "deepseek-flash",
+      "base": "da0d13a512954d1c30af4c2f3eef7fa774ced73e",
+      "branch": "writer/F32",
+      "tokens": {
+        "in": 1704644,
+        "out": 75513,
+        "cached": 1567488,
+        "requests": 27,
+        "source": "qwen usage_record.jsonl session 811fde75-c617-4b65-86b0-d6695a10df73"
+      }
+    }
+  ]
 }

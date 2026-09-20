@@ -1,5 +1,5 @@
 {
-  "now": "Sitting 8. F32 issued: the meter that carries spend and cache hits exists in the harness, but the seat cannot see it, so factory/returns.json is still empty after five seat runs. A writer seat holds factory/tools/seatReturn.mjs, contracts/seat-return.v1.json and docs/log/f32.md; a fresh reviewer follows. Three sparks open from the bake-off sitting: S08, S09, S10. D-49 still needs the owner word. References Otto and Virbos remain read-only. Overlay still shelf. Path dashscope.",
+  "now": "Sitting 8. F31 and F32 landed. The packet prefix is checked, and a return can carry token counts the control plane read from the harness meter after the seat closed; factory/returns.json holds its first real row, unpriced by design. Five sparks are open at the cap: S08 the Holds are prose, S09 the meter is the control plane’s to read, S10 a seat echoes its stamp not its model, S11 the host shell dialect, S12 the alumni scan never opens a child TRAPS.md. Next sitting adjudicates all five before anything is minted. D-49 still needs the owner word. References Otto and Virbos remain read-only. Overlay still shelf. Path dashscope.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -228,7 +228,7 @@
     {
       "id": "F32",
       "title": "The control plane reads the meter into the return",
-      "state": "issued",
+      "state": "landed",
       "hold": "factory/tools/seatReturn.mjs, contracts/seat-return.v1.json, docs/log/f32.md"
     }
   ],
@@ -372,6 +372,10 @@
     {
       "at": "2026-09-20",
       "event": "Five seat runs measured on one envelope. deepseek-flash direct produced a complete correct lane for USD 0.02 over 1,013,608 tokens; deepseek-v4.1-flash did the same over 3,140,038; qwen3-coder-plus burned 4,898,721 and never committed; claude-sonnet-5 cost USD 1.29 over two runs and wrote no product code. Cache hit rates 92.8 to 98.1 per cent, which is the span F31 now checks. S08, S09 and S10 minted."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F32 landed. node factory/tools/seatReturn.mjs meter <project> reads the qwen usage record, and a return may carry tokens in place of spendUsd when the harness reports no cost. The first row is F32 itself: 1704644 in, 75513 out, 1567488 cached over 27 requests on deepseek-flash. The seat could not paste those numbers because the record is appended on session exit, which is the case the lane was built for. T67. D-50."
     }
   ]
 }

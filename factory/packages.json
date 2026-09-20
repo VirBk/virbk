@@ -163,7 +163,7 @@
     {
       "id": "F32",
       "title": "The control plane reads the meter into the return",
-      "status": "issued"
+      "status": "landed"
     }
   ]
 }

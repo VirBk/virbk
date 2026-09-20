@@ -352,6 +352,14 @@
       "charged": "AGENTS.md section 5 is titled Boundaries that never move and mixes two kinds: the owner acts (real people data, credentials, money, deploys, gates, API keys) and this factory engineering guesses (no third seat with a model, reviewer never weaker, a trap without a check is a diary). A session reading it cites a preference as if it were physics, and the owner then has to argue with its own notes.",
       "summary": "Proposed: split section 5 into two labelled groups, The owner s and The factory s, and provisional, with one sentence saying the second kind holds until evidence replaces it and that experiment.mjs is how one comes down on purpose. The proposed replacement text is in docs/log/f30.md. Not adopted: editing AGENTS.md is the file that governs the session making the edit, and it was refused twice by the desktop tool policy in the sitting that proposed it. It needs the owner word and a session that is not the one arguing for it.",
       "reversible": true
+    },
+    {
+      "id": "D-50",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "Five seat runs on one envelope produced no row in factory/returns.json, because spendUsd was required and no seat meter reports a dollar. Separately, the same lane cost about USD 0.07 to write on deepseek-flash and USD 1.52 to review on claude-sonnet-5.",
+      "summary": "A return may carry a tokens block read from the harness meter in place of spendUsd when the harness reports no cost; a zero would be a durable false measurement. The qwen usage record reconciles exactly against the provider console: 2793765 tokens local and 2793765 billed across both deepseek-flash lanes, at USD 0.09 and 92.7 per cent cached. Request counts do not reconcile, 48 local against 46 billed, so no threshold is built on requests. Default reviewer is deepseek-v4-pro, which approved F31 to the same standard claude-sonnet-5 approved F32; Claude is kept for keystones and challenge passes. No price table and no cap is set here: pricing a token is its own dated row, and factory/project.json picks are unchanged.",
+      "reversible": true
     }
   ]
 }

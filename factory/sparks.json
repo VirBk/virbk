@@ -98,6 +98,24 @@
       "whyNotLaw": "Nothing records the model the launcher passed, so no check can compare a return's model against it. Until the launcher's pick is written down, absorbing this is a diary.",
       "status": "open",
       "openedOn": 8
+    },
+    {
+      "id": "S11",
+      "kind": "trap",
+      "claim": "The control plane hands the owner commands in a shell dialect the owner's terminal rejects: PowerShell 5.1 has no && and the parent traps.yaml has no row for the host shell, though Otto's TRAPS.md has carried one since 2026-09.",
+      "object": "factory/traps.yaml",
+      "whyNotLaw": "No command reads what the control plane types at the owner. The kit's own gate steps run through bash from a file and seat.mjs already prints a Windows variant, so the checkable surface is not obviously the one that failed.",
+      "status": "open",
+      "openedOn": 8
+    },
+    {
+      "id": "S12",
+      "kind": "trap",
+      "claim": "alumni.mjs scan measures structure and never opens a child's TRAPS.md, so a lesson a child paid for and wrote down in prose cannot reach the parent by measurement.",
+      "object": "factory/tools/alumni.mjs",
+      "whyNotLaw": "The scan found three structural signals on Otto and missed the shell trap sitting in line 7 of its TRAPS.md. What a portable intake of a prose trap would check is not yet named.",
+      "status": "open",
+      "openedOn": 8
     }
   ]
 }
