@@ -257,6 +257,22 @@ function selfTest() {
   const missing = seatPacket(kitRoot, "F-does-not-exist");
   if (!render(missing).includes("MISSING")) errors.push("an unissued lane must be named MISSING, not silent");
 
+  // The provider prefix cache hits on the bytes before the envelope (T45).
+  // Nothing else checks that order, so a reorder would bust the hit silently.
+  const issued = envelopes(kitRoot);
+  const laneA = issued.length ? issued[0].replace(/\.md$/, "") : "F-none-issued";
+  const laneB = "F-does-not-exist";
+  const withEnvelope = seatPacket(kitRoot, laneA);
+  const tail = withEnvelope[withEnvelope.length - 1].name;
+  if (tail.indexOf("envelope ") !== 0) {
+    errors.push("the seat packet does not end with the envelope part: " + tail + " is last");
+  }
+  const prefixA = render(seatPacket(kitRoot, laneA).slice(0, -1));
+  const prefixB = render(seatPacket(kitRoot, laneB).slice(0, -1));
+  if (prefixA !== prefixB) {
+    errors.push("the bytes before the envelope part differ between two lane ids");
+  }
+
   for (const e of checkErrors(kitRoot)) errors.push("live: " + e);
 
   if (errors.length) {
