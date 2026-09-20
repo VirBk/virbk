@@ -63,8 +63,12 @@
       "run": "node factory/tools/landingGate.mjs --self-test"
     },
     {
-      "name": "Reading path under its context budget",
+      "name": "Reading path shape",
       "run": "node factory/tools/packet.mjs --self-test"
+    },
+    {
+      "name": "Reading path under its context budget",
+      "run": "node factory/tools/packet.mjs --check"
     },
     {
       "name": "Ledger is a window, not a novel",

@@ -10,17 +10,40 @@
 //   node factory/tools/packet.mjs --check
 //   node factory/tools/packet.mjs --self-test
 //
+// The gate runs two steps from this file, and they are deliberately two
+// sizes of claim. `--self-test` asserts the packet's shape: the board slice
+// leaks no history, the traps digest loses no row, the envelope is last, the
+// bytes before it are the same for every lane. `--check` measures the live
+// tree against the caps in factory/budgets.json. Both used to be one step,
+// and X01 was reverted because a single step carrying a dozen unrelated
+// assertions cannot be suspended more narrowly than its own hypothesis (T66).
+//
+// Either command takes `--root <tree>`, which points it at a tree other than
+// this one; that is how a fixture tree drives a proof.
+//
 // Why: a lane that changed one line of YAML was billed 195138 input
 // tokens because the seat browsed the repository instead of reading a
 // packet. The ledger, the landed lanes and the archived history are
 // memory; git holds them. They are not the reading path.
 
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const kitRoot = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const NL = String.fromCharCode(10);
+
+// The CLI runs only when this file is the process entry point. sizeBudget.mjs
+// imports the measurements below, and a dispatch that ran on import would end
+// that process — a gate step that cannot fail (T14). The test is on the entry
+// name, so a mis-detection in the safe direction is impossible: node sets
+// argv[1] to the file it was told to run.
+const isEntry = /packet\.mjs$/.test(process.argv[1] || "");
+
+function rootFrom(argv) {
+  const i = argv.indexOf("--root");
+  return i >= 0 && argv[i + 1] ? resolve(argv[i + 1]) : kitRoot;
+}
 
 function read(root, rel) {
   return readFileSync(join(root, rel), "utf8");
@@ -112,7 +135,8 @@ export function trapsDigest(text) {
   return out.join(NL);
 }
 
-function envelopes(root) {
+// Issued envelopes: one per lane the control plane has launched, README out.
+export function envelopes(root) {
   const dir = join(root, "factory/envelopes");
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
@@ -238,9 +262,13 @@ export function checkErrors(root) {
   return errors;
 }
 
-function selfTest() {
+// The shape of the packet, and nothing about its size. A tree over its caps
+// fails --check and passes this; a packet whose envelope is not last fails
+// this and passes --check. Two claims, two steps, so an experiment can
+// suspend one of them (T66).
+function selfTest(root) {
   const errors = [];
-  const board = json(kitRoot, "factory/board.json");
+  const board = json(root, "factory/board.json");
   const slice = boardSlice(board);
   if (board.ledger && board.ledger.length) {
     const first = String(board.ledger[0].event || "").slice(0, 24);
@@ -250,29 +278,29 @@ function selfTest() {
   if (landed && slice.includes(landed.title)) errors.push("board slice leaked a landed lane");
   if (!slice.includes(String(board.now).slice(0, 20))) errors.push("board slice lost Now");
 
-  const digest = trapsDigest(read(kitRoot, "factory/traps.yaml"));
-  const trapIds = (read(kitRoot, "factory/traps.yaml").match(/^- id: \S+/gm) || []).length;
+  const digest = trapsDigest(read(root, "factory/traps.yaml"));
+  const trapIds = (read(root, "factory/traps.yaml").match(/^- id: \S+/gm) || []).length;
   const digestIds = (digest.match(/^T\d+ /gm) || []).length;
   if (trapIds !== digestIds) errors.push("traps digest dropped rows: " + trapIds + " to " + digestIds);
-  if (digest.length >= read(kitRoot, "factory/traps.yaml").length) {
+  if (digest.length >= read(root, "factory/traps.yaml").length) {
     errors.push("traps digest is not smaller than traps.yaml");
   }
 
-  const seat = seatPacket(kitRoot, null);
+  const seat = seatPacket(root, null);
   if (seat.some((p) => p.bytes === 0)) errors.push("a packet part is empty");
-  if (total(seat) >= wholeFiles(kitRoot)) errors.push("the packet is not smaller than reading the files whole");
+  if (total(seat) >= wholeFiles(root)) errors.push("the packet is not smaller than reading the files whole");
 
-  const missing = seatPacket(kitRoot, "F-does-not-exist");
+  const missing = seatPacket(root, "F-does-not-exist");
   if (!render(missing).includes("MISSING")) errors.push("an unissued lane must be named MISSING, not silent");
 
   // The envelope changes every lane; it is the last part so that the bytes
   // before it are identical for every lane of a sitting. That is the span a
   // provider prefix cache can hit (T45). One lane is issued and one is not, so
   // a MISSING part is covered too — it is still the envelope part, still last.
-  const issued = envelopes(kitRoot).map((f) => f.replace(/\.md$/, ""));
+  const issued = envelopes(root).map((f) => f.replace(/\.md$/, ""));
   const laneA = issued[0] || "F-lane-a-not-issued";
   const laneB = laneA === "F-lane-b-not-issued" ? "F-lane-c-not-issued" : "F-lane-b-not-issued";
-  const packets = [seatPacket(kitRoot, laneA), seatPacket(kitRoot, laneB)];
+  const packets = [seatPacket(root, laneA), seatPacket(root, laneB)];
   packets.forEach((parts, i) => {
     const last = parts[parts.length - 1];
     if (!last || !last.name.startsWith("envelope ")) {
@@ -295,47 +323,50 @@ function selfTest() {
     );
   }
 
-  for (const e of checkErrors(kitRoot)) errors.push("live: " + e);
-
   if (errors.length) {
     console.error("packet self-test failed");
     for (const e of errors) console.error("  " + e);
     process.exit(1);
   }
-  console.log("packet self-test ok");
+  console.log("packet self-test ok — shape only");
   process.exit(0);
 }
 
-const cmd = process.argv[2] || "cost";
+if (isEntry) {
+  const root = rootFrom(process.argv);
+  const cmd = process.argv[2] || "cost";
 
-if (cmd === "--self-test") selfTest();
+  if (cmd === "--self-test") selfTest(root);
 
-if (cmd === "--check") {
-  const errors = checkErrors(kitRoot);
-  if (errors.length) {
-    console.error("packet check failed");
-    for (const e of errors) console.error("  " + e);
-    process.exit(1);
+  if (cmd === "--check") {
+    const errors = checkErrors(root);
+    if (errors.length) {
+      console.error("packet check failed");
+      for (const e of errors) console.error("  " + e);
+      process.exit(1);
+    }
+    console.log("packet check ok");
+    process.exit(0);
   }
-  console.log("packet check ok");
-  process.exit(0);
-}
 
-if (cmd === "cost") {
-  cost(kitRoot);
-  process.exit(0);
-}
+  if (cmd === "cost") {
+    cost(root);
+    process.exit(0);
+  }
 
-if (cmd === "seat" || cmd === "cp") {
-  const lane = process.argv[3] || "";
-  const parts = cmd === "seat" ? seatPacket(kitRoot, lane) : cpPacket(kitRoot, lane);
-  process.stdout.write(render(parts));
-  // stdout is the packet. The meter goes to stderr so a pipe stays clean.
-  process.stderr.write(
-    "packet " + cmd + (lane ? " " + lane : "") + "  " + kb(total(parts)) + NL,
+  if (cmd === "seat" || cmd === "cp") {
+    const lane = process.argv[3] || "";
+    const parts = cmd === "seat" ? seatPacket(root, lane) : cpPacket(root, lane);
+    process.stdout.write(render(parts));
+    // stdout is the packet. The meter goes to stderr so a pipe stays clean.
+    process.stderr.write(
+      "packet " + cmd + (lane ? " " + lane : "") + "  " + kb(total(parts)) + NL,
+    );
+    process.exit(0);
+  }
+
+  console.error(
+    "usage: node factory/tools/packet.mjs seat <LANE> | cp [LANE] | cost | --check | --self-test [--root <tree>]",
   );
-  process.exit(0);
+  process.exit(1);
 }
-
-console.error("usage: node factory/tools/packet.mjs seat <LANE> | cp [LANE] | cost | --check | --self-test");
-process.exit(1);

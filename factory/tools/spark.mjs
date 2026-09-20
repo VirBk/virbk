@@ -6,8 +6,14 @@
 //   node factory/tools/spark.mjs absorb S01 --as T41
 //   node factory/tools/spark.mjs look
 //   node factory/tools/spark.mjs close
+//   node factory/tools/spark.mjs rotate
 //   node factory/tools/spark.mjs check
 //   node factory/tools/spark.mjs --self-test
+//
+// An open spark is live and is read by every control-plane packet. An absorbed
+// or dropped one is history: it moves to docs/sparks/<YYYY-MM>.md, as the
+// ledger window moves to docs/ledger (D-52). The window is the status, not a
+// count, so a store with nothing closed rotates to nothing.
 
 import {
   existsSync,
@@ -42,6 +48,9 @@ const GRACE = 1;
 const ID_RE = /^S\d{2,}$/;
 
 const kitRoot = join(dirname(fileURLToPath(import.meta.url)), "../..");
+const NL = String.fromCharCode(10);
+const ARCHIVE_DIR = "docs/sparks";
+const CLOSED = new Set(["absorbed", "dropped"]);
 
 function fail(label, errors) {
   console.error(label);
@@ -305,6 +314,51 @@ function cmdClose(root) {
   cmdLook(root);
 }
 
+// A closed spark is history and leaves the file every control-plane packet
+// reads. Oldest first is the order the file held them in, which is the order
+// they were opened in. Read the archive before appending to it: a spark whose
+// row is already there is not written twice (T65). The month is the host
+// clock, read in the same act as the write (T04).
+function rotate(root, { write = true, now = new Date() } = {}) {
+  const data = loadSparks(root);
+  const items = Array.isArray(data.items) ? data.items : [];
+  const open = items.filter((it) => it.status === "open");
+  const closed = items.filter((it) => CLOSED.has(it.status));
+  if (!closed.length) return { moved: 0, kept: open.length, files: [] };
+  const key = now.toISOString().slice(0, 7);
+  const rel = ARCHIVE_DIR + "/" + key + ".md";
+  if (!write) return { moved: closed.length, kept: open.length, files: [rel] };
+  const abs = join(root, rel);
+  mkdirSync(join(root, ARCHIVE_DIR), { recursive: true });
+  const head =
+    "# Sparks " +
+    key +
+    NL +
+    NL +
+    "Archived from factory/sparks.json. History, not the reading path. One JSON line per spark, in the order the file held them." +
+    NL +
+    NL;
+  const prev = existsSync(abs) ? readFileSync(abs, "utf8") : head;
+  const seen = new Set();
+  for (const row of prev.split(NL)) {
+    if (!row.startsWith("{")) continue;
+    try {
+      const it = JSON.parse(row);
+      if (it && it.id) seen.add(it.id);
+    } catch {
+      // Not a row this file wrote. Leave it where it is.
+    }
+  }
+  const fresh = closed.filter((it) => !seen.has(it.id));
+  if (fresh.length) {
+    const body = prev.endsWith(NL) ? prev : prev + NL;
+    writeFileSync(abs, body + fresh.map((it) => JSON.stringify(it)).join(NL) + NL);
+  }
+  data.items = open;
+  saveSparks(root, data);
+  return { moved: fresh.length, kept: open.length, files: fresh.length ? [rel] : [] };
+}
+
 function writeFixture(dir, sparks, waiver) {
   mkdirSync(join(dir, "factory"), { recursive: true });
   writeFileSync(sparksPath(dir), JSON.stringify(sparks, null, 2) + "\n");
@@ -380,6 +434,133 @@ function selfTest() {
     }
   } finally {
     rmSync(dir, { recursive: true, force: true });
+  }
+
+  // Rotate: the window is the status. Absorbed and dropped leave the file the
+  // packet reads, open stays, a second run moves nothing, and the archive plus
+  // the live file rebuild the item list as it was, in the order it was in.
+  const dir3 = mkdtempSync(join(tmpdir(), "grok-spark3-"));
+  try {
+    // The file is append-only, so the order it holds is opening order — which
+    // is why the ids below are not in ascending order. A rotate that sorted
+    // its rows would pass a set comparison and fail this one.
+    const items = [
+      {
+        id: "S04",
+        kind: "trap",
+        claim: "An absorbed spark must leave the control-plane packet.",
+        object: "factory/tools/spark.mjs",
+        whyNotLaw: "fixture, no check yet",
+        status: "absorbed",
+        openedOn: 1,
+        absorbedAs: "T99",
+      },
+      {
+        id: "S02",
+        kind: "trap",
+        claim: "An absorbed spark keeps its place in the archive.",
+        object: "factory/tools/spark.mjs",
+        whyNotLaw: "fixture, no check yet",
+        status: "absorbed",
+        openedOn: 2,
+        absorbedAs: "T98",
+      },
+      {
+        id: "S03",
+        kind: "lesson",
+        claim: "A dropped spark must leave the packet as well.",
+        object: "factory/sparks.json",
+        whyNotLaw: "fixture, no check yet",
+        status: "dropped",
+        openedOn: 3,
+        because: "fixture",
+      },
+      {
+        id: "S01",
+        kind: "lesson",
+        claim: "An open spark must stay where a seat reads it.",
+        object: "factory/sparks.json",
+        whyNotLaw: "fixture, no check yet",
+        status: "open",
+        openedOn: 4,
+      },
+    ];
+    const before = items.map((it) => JSON.stringify(it));
+    const rel = ARCHIVE_DIR + "/2026-09.md";
+    const archived = () =>
+      readFileSync(join(dir3, rel), "utf8")
+        .split(NL)
+        .filter((row) => row.startsWith("{"))
+        .map((row) => JSON.parse(row));
+    writeFixture(
+      dir3,
+      { sitting: 5, note: "Look, not law. Absorb or drop next sitting.", items },
+      null,
+    );
+
+    const first = rotate(dir3, { now: new Date("2026-09-20T00:00:00Z") });
+    if (first.moved !== 3 || first.kept !== 1) {
+      errors.push("rotate moved " + first.moved + " kept " + first.kept + ", not 3 and 1");
+    }
+    if (first.files.length !== 1 || first.files[0] !== rel) {
+      errors.push("rotate named the wrong archive: " + first.files.join(", "));
+    }
+    const live = loadSparks(dir3);
+    if (live.items.length !== 1 || live.items[0].id !== "S01") {
+      errors.push("rotate did not keep exactly the open spark");
+    }
+    if (check(dir3).length) {
+      errors.push("rotate left the live file failing its own check: " + check(dir3).join("; "));
+    }
+    // Byte-exact, and in the order the file held them: the archive is the
+    // closed rows, the live file is the open ones, and the two read one after
+    // the other are the list as it was.
+    const closed = items.filter((it) => CLOSED.has(it.status));
+    const open = items.filter((it) => it.status === "open");
+    const asRows = (list) => JSON.stringify(list.map((it) => JSON.stringify(it)));
+    if (asRows(archived()) !== asRows(closed)) {
+      errors.push("the archive does not hold the closed rows in file order: " + asRows(archived()));
+    }
+    if (asRows(live.items) !== asRows(open)) {
+      errors.push("the live file does not hold the open rows byte-exact");
+    }
+    if (asRows(archived().concat(live.items)) !== JSON.stringify(before)) {
+      errors.push("archive plus live file do not rebuild the item list in its original order");
+    }
+
+    const again = rotate(dir3, { now: new Date("2026-09-20T00:00:00Z") });
+    if (again.moved !== 0 || again.files.length !== 0) {
+      errors.push("a second rotate moved " + again.moved);
+    }
+
+    // A closed spark back in the live file whose row the archive already holds
+    // is removed from the live file, not appended a second time (T65).
+    const dupId = items[0].id;
+    const back = loadSparks(dir3);
+    back.items.push(items[0]);
+    saveSparks(dir3, back);
+    const dedup = rotate(dir3, { now: new Date("2026-09-20T00:00:00Z") });
+    if (dedup.moved !== 0) errors.push("rotate appended a spark the archive already held");
+    const rows = readFileSync(join(dir3, rel), "utf8")
+      .split(NL)
+      .filter((row) => row.includes('"' + dupId + '"')).length;
+    if (rows !== 1) errors.push("the archive holds " + dupId + " " + rows + " times");
+    if (loadSparks(dir3).items.length !== 1) {
+      errors.push("a spark the archive already held stayed in the live file");
+    }
+
+    // The open spark is still open, still on the clock, and still refuses a
+    // close at the grace sitting, after a rotation.
+    const env = { ...process.env, SPARK_ROOT: dir3 };
+    const refusal = spawnSync(process.execPath, [fileURLToPath(import.meta.url), "close"], {
+      encoding: "utf8",
+      env,
+    });
+    if (refusal.status === 0) {
+      errors.push("rotate made close accept an open spark at its grace sitting");
+    }
+  } finally {
+    rmSync(dir3, { recursive: true, force: true });
   }
 
   // Spawn-based never-move and second-close, so process.exit is observed.
@@ -459,10 +640,14 @@ else if (cmd === "drop") {
   if (!id || !as) fail("usage", ["spark.mjs absorb S01 --as T41"]);
   cmdSetStatus(SPARK_ROOT, id, "absorbed", { absorbedAs: String(as) });
 } else if (cmd === "look") cmdLook(SPARK_ROOT);
-else if (cmd === "close") cmdClose(SPARK_ROOT);
+else if (cmd === "rotate") {
+  const r = rotate(SPARK_ROOT);
+  console.log("moved " + r.moved + "  kept " + r.kept);
+  for (const f of r.files) console.log("  " + f);
+} else if (cmd === "close") cmdClose(SPARK_ROOT);
 else {
   console.error(
-    "usage: node factory/tools/spark.mjs add|drop|absorb|look|close|check|--self-test",
+    "usage: node factory/tools/spark.mjs add|drop|absorb|look|close|rotate|check|--self-test",
   );
   process.exit(1);
 }
