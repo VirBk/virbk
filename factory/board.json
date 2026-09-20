@@ -359,14 +359,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "Onboarding cost measured for the first time: control-plane packet 38.3 KB of a 44 KB cap, AGENTS.md 11.6 KB of 12 KB, traps digest 11.5 KB and 30 per cent of the packet, headroom 24 traps against twenty added in three days. The board is not the grower; traps.yaml and sparks.json are, being the two stores in the reading path with no window. D-52 orders the remedy and D-53 records the orchestration model read from Otto and Virbos. T04 generalised from the host clock to any value not read in the same act as the write, which is the form that would have caught the T67 row."
-    },
-    {
-      "at": "2026-09-20",
-      "event": "Sitting 9 absorbed S08 to S12 as T68 to T71 and the seat packet broke its 26 KB cap in the same act, which is D-52 arriving. Ceilings do not move: X01 is the first live experiment, suspending the packet budget step for 21 days on the hypothesis that the cap is right and the packet is wrong, with F36 the scoping lane that closes it. Six lanes queued in order; F33 and F34 run ALONE because every lane contends on governance surfaces (D-54). Envelope tool-call floor is 40. controlPlane is now the generic owner-selected rather than a vendor id."
-    },
-    {
-      "at": "2026-09-20",
       "event": "Control plane handed off. The board and factory/decisions.json carry everything this tenure learned, including the orchestration model read from Otto and Virbos (D-53) and the governance-maintenance model (D-54); nothing of it is left in the session. X01 is open and is the first exception this repository has taken on purpose rather than by decree."
     },
     {
@@ -404,6 +396,14 @@
     {
       "at": "2026-09-20",
       "event": "Correction to the row claiming this control plane cannot launch a seat by any route: it is not a rule, it is a probabilistic classifier, and the row was false as written. Four attempts in one sitting: argv launch at approval-mode yolo refused, argv launch at approval-mode auto ALLOWED and executed, stdin launch at the same approval-mode auto refused, gh workflow dispatch refused. Two identical approval modes, opposite answers. The repository carries no .claude settings, so no permission rule was ever committed here and none was lost. The likely difference from sittings 8 and 9 is that this session runs in auto mode, where a classifier decides instead of asking the owner; an interactive session surfaces a prompt the owner answers. That cannot be confirmed, because T26 and T50 make a transcript not the record, so the prior tenure's launch route is unrecoverable by design. The routing fact stands in weaker form: the owner is the reliable launcher, and the control plane should hand over the line rather than retry a classifier."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F33 returned at 860237e and the review says CORRECTIONS NEEDED. Two independent reviewers, a fresh in-session agent and a separate claude -p process in its own worktree, agreed on the blocking finding and each caught something the other missed. Blocking: spark.mjs's reconstruction assertion is satisfied by construction, because rotate partitions closed from open without carrying position, so archive-then-live equals the original only when every closed row precedes every open one, and the fixture is built exactly that way; the comment stating it as a general property is a false sentence. Closing S14 while S13 stays open rebuilds S12 S14 S13 S15 S16 against an original S12 S13 S14 S15 S16, which is what the next sitting does to S13 through S16. Also: packet.mjs takes --root only after the command word, and nothing pins the new gate step, since kitCheck rule G asks only that some step name each tool. Correction 1 issued, and at sweep tier it is the only one. What both reviewers confirmed: coverage did not drop, checkErrors is byte-identical across the split, and the two steps fail independently in both directions. The separate process is the review of record; the in-session agent reaches the owner only through the party that wrote the envelope, which is weaker independence than a review of that envelope deserves."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "Seven ledger rows written this session were plain strings where the schema is {at, event}, so renderBoard printed each as 'function at() { [native code] } undefined' and the whole session's record was invisible on the generated board. Repaired in place at 0295f0b. No check parses a ledger row, which is why twenty green gate steps said nothing: T59's shape exactly, packages.json shipped broken and unread for three landings and board.ledger has now done the same. The archive escaped because rotate had only moved well-formed rows; rotate derives the archive filename from rows[0].at, so one more rotation would have written a file named after a native function. The spark this deserves waits until rotate clears sparks.json, because AGENTS section 4 forbids appending to a live file that is over budget."
     }
   ]
 }
