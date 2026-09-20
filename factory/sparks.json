@@ -87,8 +87,9 @@
       "claim": "The spend and cache numbers a return requires already exist in the harness meter, but the seat cannot see them, so spendUsd is self-reported as zero or omitted and factory/returns.json stays empty.",
       "object": "factory/tools/seatReturn.mjs",
       "whyNotLaw": "No command reads a harness meter into a return. Five seat runs produced zero rows, and the reading is the control plane's work, not the seat's.",
-      "status": "open",
-      "openedOn": 8
+      "status": "absorbed",
+      "openedOn": 8,
+      "absorbedAs": "T67"
     },
     {
       "id": "S10",

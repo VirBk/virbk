@@ -330,3 +330,8 @@
   kind: portable
   title: Rule that can only die by decree
   rule: A check that encodes a guess needs a way to be suspended on purpose, with a hypothesis, a measure and an expiry, recorded in factory/experiments.json. The gate still runs a suspended step and still prints what it found; an expired open experiment fails the gate. An untracked waiver leaves no evidence and teaches nothing. Check is node factory/tools/experiment.mjs --self-test.
+
+- id: T67
+  kind: portable
+  title: Meter the seat cannot reach
+  rule: The numbers a return needs are in the harness meter, not in the seat. A qwen usage record is appended on session exit, so a seat can never paste its own tokens; reading it afterwards is the control plane's work. node factory/tools/seatReturn.mjs meter <project-path> prints requests, input, output and cached from that record, and a return may carry a tokens block in place of spendUsd when the harness reports no cost. A zero stands for a measurement that was taken; write no number a command did not print. Check is node factory/tools/seatReturn.mjs --self-test.
