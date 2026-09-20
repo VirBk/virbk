@@ -14,7 +14,7 @@ Writer recipes live in [`factory/tools/seat.mjs`](factory/tools/seat.mjs). Hands
 
 ## Copy
 
-See [`factory/COPY.md`](factory/COPY.md). Do not copy `BOARD.md` contents or any `SESSION_LOG`. Start a new `factory/board.json`. Do not push this child to VirBk/Grok. Do not overlay this kit onto Otto or Virbos; they take a drop.
+See [`factory/COPY.md`](factory/COPY.md). Do not copy `BOARD.md` contents or any `SESSION_LOG`. Start a new `factory/board.json`. Do not push this child to VirBk/virbk. Do not overlay this kit onto Otto or Virbos; they take a drop.
 
 ## What was kept, killed, and changed
 

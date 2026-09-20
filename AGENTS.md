@@ -20,6 +20,8 @@ An envelope from the control plane is the authorization. There is no coding hold
 
 An envelope is one page: the work and its acceptance, the base commit from `git ls-remote origin refs/heads/main`, the scope and holds, what must stay true, the verification, the runtime stamped from `factory/project.json`, the spend cap, the return format, and the two print-mode sentences.
 
+Your reading path is the packet: `node factory/tools/packet.mjs seat <LANE>` — this file, the live board slice, the traps digest, your envelope, in that order, with its byte count. Opening a file the packet does not contain is not required work. Why: `factory/OPERATING_MODEL.md`.
+
 Product delivery is the critical path. A document is changed only when a change makes it false, and only that line. Documentation is never a lane of its own.
 
 Two writers at a time is a ceiling, not a target. A seat with no blocker on the critical path is not filled.
@@ -44,7 +46,7 @@ Two writers at a time is a ceiling, not a target. A seat with no blocker on the 
 - Each lane writes `docs/log/<lane>.md`: what changed, the command that measured it. No essays, no review transcripts, no commit id of its own (rebase rewrites it).
 - Live documents are edited in place. History lives in git. No struck-through corrections, no dated correction blocks, no `SESSION_LOG.md`.
 - No copied numbers. A count is pasted from the command that produced it, with the command, or omitted.
-- `BOARD.md` is generated from `factory/board.json`. Do not hand-edit the markdown.
+- `BOARD.md` is generated from `factory/board.json`. Do not hand-edit the markdown. The ledger there is a window; `node factory/tools/ledger.mjs rotate` moves older rows to `docs/ledger/`.
 - Size budgets in `factory/budgets.json` fail the landing gate. Archive at 80% of cap. Do not append to a live file that is over budget.
 
 ## 5. Boundaries that never move
@@ -55,13 +57,13 @@ Two writers at a time is a ceiling, not a target. A seat with no blocker on the 
 - Every route declares its permission or its authenticated-only status; a route with neither is refused.
 - No envelope opens a gate. Gates live on the board. The owner closes them with a word.
 - Do not point the control-plane session at DeepSeek or Qwen. Spawn a writer seat. Cursor Cloud Agents cannot take that token. Cloud isolate is `git-bus` or `codespace` (`factory/HANDS.md`).
-- Do not invent a third seat with a model. Claude Code absent is the default. A DeepSeek or DashScope token is the writer (`pc-token`, `pc-dashscope`, `cloud-grok`, `cloud-dashscope`). Do not install Claude Code to spend it.
+- Do not invent a third seat with a model. Claude Code absent is the default. A DeepSeek or DashScope token is the writer; the topologies are in `factory/runtimes.json`. Do not install Claude Code to spend it.
 - Envelopes live as git blobs in `factory/envelopes/`. Issues are not the board.
 - A writer never fast-forwards main and never reviews its own branch.
 - A reviewer is never a weaker model than the writer.
 - API keys live in a seat's environment, never in git, never in a `VITE_` variable.
 - A cloud writer receives a worktree of the envelope holds, not the owner's disk.
-- A child never writes VirBk/Grok. Returns arrive as intakes. Absorbing is a Grok envelope.
+- A child never writes VirBk/virbk. Returns arrive as intakes. Absorbing is a Grok envelope.
 - GitHub write access is not a contributor. A contributor is a commit that landed on the default branch with an email on a GitHub account. Parent `access` is `owner-only`.
 - An intake without a check is refused. A trap without a check is a diary.
 - An absorbed reference is not a live child. It takes a drop from `factory/drops/` after its running seats finish, not the kit. Helping it is a sidecar factory, not an overlay, and not this sitting as its control plane.
@@ -99,7 +101,7 @@ Keystones are a closed named list on the board. A challenge pass runs only on on
 
 A handoff is this file plus `BOARD.md`. There is no handoff document. A eureka lands as a spark (`factory/sparks.json`), not as a trap. A session-only waiver is the envelope or gitignored `factory/.waiver`. Last act: `node factory/tools/sitting.mjs close`.
 
-The repository is memory. The session is a fuse. Every model — Grok, Claude, GPT, Qwen, DeepSeek — rots if it stays. Do not pick a model that “doesn’t rot.” Split it. A reviewer is always a fresh session. Never resume a session id from prose. A challenge seat is never resumed. A writer that notices its own decay stops and returns; it does not try to remember. Detail: `factory/sessions.json`.
+The repository is memory. The session is a fuse: every model rots if it stays. Do not pick one that does not. Split it. A reviewer is always a fresh session, never resumed from a session id in prose; neither is a challenge seat. A writer that notices its own decay stops and returns. Detail: `factory/sessions.json`.
 
 ## 9. Where things are
 
@@ -119,14 +121,14 @@ The repository is memory. The session is a fuse. Every model — Grok, Claude, G
 | Runtimes | `factory/runtimes.json` |
 | PM picks | `factory/project.json` |
 | Contribute | `access`, `commitCredit` in `factory/project.json` |
-| Cloud isolate | `git-bus` or `codespace` — `factory/HANDS.md` |
-| Prompt cache | `promptCache` in `factory/project.json`. Native prefix. Do not store answers. |
-| Token only | `pc-token` / `pc-dashscope` / `cloud-grok` / `cloud-dashscope`. No Claude Code. |
-| Help a product | Sidecar: `help-fork` / `help-collab`. `factory/help.json`. Never overlay alumni. |
-| Writer path | Owner picks the model. `auto` = native DeepSeek off-peak if healthy, DashScope PAYG on peak or outage. `factory/writer-paths.json`, `factory/tools/route.mjs` |
+| Cloud isolate | `factory/HANDS.md` |
+| Prompt cache | `promptCache` in `factory/project.json` |
+| Token only | topologies in `factory/runtimes.json` |
+| Help a product | `factory/help.json`. Never overlay alumni. |
+| Writer path | `factory/writer-paths.json`, `factory/tools/route.mjs` |
 | Launch | Control plane. Recipe: `factory/tools/seat.mjs` |
 | Envelope blobs | `factory/envelopes/` |
-| Writer recipes | `factory/tools/seat.mjs` |
+| Writer recipes, launch | `factory/tools/seat.mjs` |
 | Parent register | `factory/lineage.json` |
 | Alumni drops | `factory/drops/` |
 | Intake template | `factory/templates/INTAKE.md` |
@@ -137,6 +139,10 @@ The repository is memory. The session is a fuse. Every model — Grok, Claude, G
 | Derivation | `factory/CONTROL_PLANE.md` |
 | Owner-ask list | `factory/owner-ask.json` |
 | Sparks (look, not law) | `factory/sparks.json` |
+| Reading path, context budget | `factory/tools/packet.mjs` |
+| Ledger window | `factory/tools/ledger.mjs` |
+| Alumni measurement, check pack | `factory/tools/alumni.mjs` |
+| Every gate step and tool | `factory/landing-checks.json` |
 | Versioned interfaces | `contracts/` |
 
 Every other document is history or reference until the owner moves it.

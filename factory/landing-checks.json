@@ -53,6 +53,30 @@
     {
       "name": "Writer Action idles; never pushes main",
       "run": "node factory/tools/ghaWriter.mjs --self-test"
+    },
+    {
+      "name": "Kit holds its own shape",
+      "run": "node factory/tools/kitCheck.mjs --self-test"
+    },
+    {
+      "name": "Gate unpacks on this platform",
+      "run": "node factory/tools/landingGate.mjs --self-test"
+    },
+    {
+      "name": "Reading path under its context budget",
+      "run": "node factory/tools/packet.mjs --self-test"
+    },
+    {
+      "name": "Ledger is a window, not a novel",
+      "run": "node factory/tools/ledger.mjs --self-test"
+    },
+    {
+      "name": "Alumni scan is read-only and emits valid intakes",
+      "run": "node factory/tools/alumni.mjs --self-test"
+    },
+    {
+      "name": "A return pastes the command",
+      "run": "node factory/tools/seatReturn.mjs --self-test"
     }
   ]
 }

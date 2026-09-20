@@ -18,6 +18,8 @@ Closed list: `board-now`, `board-rest`, `docs`, `source`, `tests`, `other`.
 
 A markdown-only grep of the queue line is a miss. The scope lived in the same board, further down, and in source. The stamp said ZERO. The objects did not.
 
+A hosted or private-index code search that returns zero is not a ZERO: the search product is not a container. Open the containers.
+
 A suffix that is wave vocabulary is reconstructed from the table that defined the wave. The last stamp is a lead. Re-derive against the objects.
 
 ## 2. A named issuance is a fetch, not an ask
@@ -88,6 +90,21 @@ Autobuild PC off: isolate is a Codespace. Print `gh codespace create`. Writer to
 
 Cursor local Chat/Agent may BYOK. Cursor cloud, background, automations, and CLI cannot.
 
+## 8b. The packet, the window, the scan
+
+Issue with a packet, not with a pile. `node factory/tools/packet.mjs seat
+<LANE>` is the seat's whole reading path and prints its byte count;
+`cp` prints yours. The gate fails a packet over the budget in
+`factory/budgets.json` and an envelope over one page.
+
+Restamp, then `node factory/tools/ledger.mjs rotate`. History goes to
+`docs/ledger/`. A seat never reads it.
+
+Before a drop, measure: `node factory/tools/alumni.mjs drop-status <child>
+<path>`. Not adopted is a fact, not a nudge. Before an intake is absorbed,
+it names the law it became (`absorbedAs`), and
+`node factory/tools/alumni.mjs provenance` prints the chain.
+
 ## 9. Exhaustive, not long
 
 Open the named document. Open the containers. Quote. Launch or leave. Spark or drop. Stop. Do not start a study. Do not fill a seat because a slot is empty. Do not drop a name you have not searched in source. Do not write a handoff.md.
@@ -109,5 +126,10 @@ not precedent.
 - `node factory/tools/scopeSearch.mjs --self-test`
 - `node factory/tools/ownerAsk.mjs --self-test`
 - `node factory/tools/spark.mjs --self-test`
+- `node factory/tools/kitCheck.mjs --self-test`
+- `node factory/tools/packet.mjs --self-test`
+- `node factory/tools/ledger.mjs --self-test`
+- `node factory/tools/alumni.mjs --self-test`
+- `node factory/tools/seatReturn.mjs --self-test`
 
-A `blocked-on-issuance` stamp without a fetch URL is a diary. A wait whose reason is `Start-Process` is a diary. A eureka that exists only in the transcript is a diary. A fact taken from session notes is a diary. A keystone envelope that does not name the keystone is a diary.
+A `blocked-on-issuance` stamp without a fetch URL is a diary. A wait whose reason is `Start-Process` is a diary. A eureka that exists only in the transcript is a diary. A fact taken from session notes is a diary. A keystone envelope that does not name the keystone is a diary. A drop whose adoption nobody measured is a diary. A return with no pasted command is a diary.

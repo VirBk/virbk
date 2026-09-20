@@ -114,7 +114,7 @@
 - id: T23
   kind: portable
   title: Child writes the parent kit
-  rule: A child never writes VirBk/Grok. Returns arrive as intakes. Absorbing is a Grok envelope.
+  rule: A child never writes VirBk/virbk. Returns arrive as intakes. Absorbing is a Grok envelope.
 
 - id: T24
   kind: portable
@@ -204,7 +204,7 @@
 - id: T41
   kind: portable
   title: Absorbed reference treated as a live child
-  rule: Alumni take factory/drops/<name>.md after running seats finish. They do not copy factory/ over a live product. Overlay is a later envelope. A child never writes VirBk/Grok.
+  rule: Alumni take factory/drops/<name>.md after running seats finish. They do not copy factory/ over a live product. Overlay is a later envelope. A child never writes VirBk/virbk.
 
 - id: T42
   kind: portable
@@ -276,3 +276,47 @@
   kind: portable
   title: Writer Action that stays red or pushes main
   rule: Idle is success. Missing secret is a loud skip. Branch is writer/<lane> only. Check is node factory/tools/ghaWriter.mjs --self-test.
+- id: T56
+  kind: portable
+  title: Return that says it verified without pasting the command
+  rule: A return names the command and what the command printed. A word is not output. Check is node factory/tools/seatReturn.mjs --self-test.
+
+- id: T57
+  kind: portable
+  title: Hosted or private-index search treated as a ZERO
+  rule: A search product is not a container. GitHub code search of a private repo returned empty while the objects were not. Open the containers. Check is node factory/tools/scopeSearch.mjs --self-test.
+
+- id: T58
+  kind: portable
+  title: Control plane that issues without reading its own derivation
+  rule: A session that will issue, stamp, drop, or wait reads factory/CONTROL_PLANE.md. Check is factory/sessions.json successorReads naming it, failed by node factory/tools/spark.mjs --self-test.
+
+- id: T59
+  kind: portable
+  title: State file that no check parses
+  rule: Every tracked .json parses in the gate. factory/packages.json shipped broken and unread for three landings. Check is node factory/tools/kitCheck.mjs --self-test.
+
+- id: T60
+  kind: portable
+  title: Gate that only runs on the runner
+  rule: The landing gate unpacks its own archive in process and pins newline conversion, so the control plane can run it on the machine it sits at and measure the bytes CI measures. Check is node factory/tools/landingGate.mjs --self-test.
+
+- id: T61
+  kind: portable
+  title: History inside the reading path
+  rule: The ledger and landed lanes are history; the packet is the reading path and has a byte budget. Check is node factory/tools/packet.mjs --self-test and node factory/tools/ledger.mjs --self-test.
+
+- id: T62
+  kind: portable
+  title: Drop issued and never measured
+  rule: An alumni drop names the script and the gate file it expects, in factory/lineage.json. Adoption is a command, not a hope. Check is node factory/tools/alumni.mjs drop-status <child> <path>, exit 2 when not adopted.
+
+- id: T63
+  kind: portable
+  title: Two files holding the same state
+  rule: The board is the board. A plan file, a console page, or a README that restates lane state drifts within a sitting. Check is node factory/tools/kitCheck.mjs --self-test.
+
+- id: T64
+  kind: portable
+  title: Contract enum typed once, catalog moved
+  rule: A schema that lists ids by hand is checked against the catalog that owns them. seat-return named a runtime that no topology has and omitted the one the last two lanes ran on. Check is node factory/tools/seatReturn.mjs --check-contract.

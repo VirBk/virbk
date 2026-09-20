@@ -86,6 +86,14 @@ function fail(label, errors) {
   process.exit(1);
 }
 
+function parentRemote() {
+  try {
+    return String(loadJson(join(root, "factory/lineage.json")).parent || "").trim();
+  } catch {
+    return "";
+  }
+}
+
 function helpTarget(picks) {
   if (!picks || picks.helpMode === "none") return "";
   const path = join(root, "factory/help.json");
@@ -110,8 +118,9 @@ function helpErrors(picks) {
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(target)) {
     errors.push("factory/help.json target must be owner/repo");
   }
-  if (/^virbk\/grok$/i.test(target)) {
-    errors.push("help target cannot be VirBk/Grok");
+  const parent = parentRemote();
+  if (parent && target.toLowerCase() === parent.toLowerCase()) {
+    errors.push("help target cannot be the parent remote: " + parent);
   }
   return errors;
 }

@@ -1,38 +1,237 @@
 {
   "decisions": [
-    {"id": "D-01", "at": "2026-09-16", "status": "adopted", "summary": "VirBk/Grok is the working remote. Otto and Virbos are read-only references.", "reversible": true},
-    {"id": "D-02", "at": "2026-09-16", "status": "adopted", "summary": "The factory is copied as AGENTS.md plus factory/. SESSION_LOG is not created. BOARD is generated from JSON.", "reversible": true},
-    {"id": "D-03", "at": "2026-09-16", "status": "superseded", "summary": "Idle is success until the owner names the product and drops a spec.", "reversible": true},
-    {"id": "D-04", "at": "2026-09-16", "status": "adopted", "summary": "Product is dual-runtime: Claude Code or Grok as control plane; DeepSeek or Qwen as writer. Do not remap the control-plane session.", "reversible": true},
-    {"id": "D-05", "at": "2026-09-16", "status": "adopted", "summary": "Sweep writer is DeepSeek Flash or local Qwen. Keystone writer is DeepSeek V4 Pro or Claude. Reviewer is never weaker than the writer. One correction then split, escalate model on the next envelope.", "reversible": true},
-    {"id": "D-06", "at": "2026-09-16", "status": "adopted", "summary": "Cloud path is Grok as control plane plus a writer on a worktree clone. No GitHub Action until the secret exists.", "reversible": true},
-    {"id": "D-07", "at": "2026-09-16", "status": "adopted", "summary": "Grok is the parent factory. Children copy the kit and return portable intakes. A child never writes VirBk/Grok. An intake without a check is refused. Size budgets regularize.", "reversible": true},
-    {"id": "D-08", "at": "2026-09-16", "status": "adopted", "summary": "The session is a fuse. Git is memory. Split on envelope done, correction cap, spend cap, or a named decay sign. Successor reads AGENTS, BOARD, envelope. Never a transcript or compaction. Fresh same-tier instance after a split. Reviewer is always a fresh session. Never resume a session id from prose.", "reversible": true},
-    {"id": "D-09", "at": "2026-09-16", "status": "superseded", "summary": "Hands are a dumb runner. Claude Code is optional. Live picks live in factory/project.json; allowed ids in factory/runtimes.json. Default topology is local-hands (Grok + hands.mjs + Qwen Code + worktree + ff-only). Project managers mix from the catalog. Envelopes are git blobs. Hands never call a model.", "reversible": true},
-    {"id": "D-10", "at": "2026-09-17", "status": "adopted", "summary": "The owner console is the live surface: setup, local/cloud floor, product chassis (clickable iff landed), token mix. Spec lives in factory/CONSOLE.md. The running app is the Grok App Builder project named GROK Factory. Kit memory is this repository.", "reversible": true},
-    {"id": "D-11", "at": "2026-09-17", "status": "adopted", "summary": "Lean token mix: save on the write, not on judgment. Hands have no weights. Sweep writer on ordinary lanes. Keystone only when the control plane names the lane. Review every loop, never the author, never weaker. Do not remap the control-plane session.", "reversible": true},
-    {"id": "D-12", "at": "2026-09-17", "status": "adopted", "summary": "Control-plane derivation is factory/CONTROL_PLANE.md. Any control plane — Grok in the cloud or Claude Code on the desktop — opens every container before ZERO, fetches a named issuance, and stamps collection as a second fact. A markdown-only grep of the queue line is not a finding.", "reversible": true},
-    {"id": "D-14", "at": "2026-09-17", "status": "adopted", "summary": "Three grades of memory. Law is AGENTS, traps, owner-ask, CONTROL_PLANE, absorbed lineage. Sparks are factory/sparks.json — look, not law; absorb or drop next sitting. Waivers are envelope holds or gitignored factory/.waiver and die at sitting close. The tired session quarantines; the fresh session writes law. No handoff.md.", "reversible": true},
-    {"id": "D-15", "at": "2026-09-17", "status": "adopted", "summary": "Otto and Virbos remain read-only alumni. They receive factory/drops after running seats finish. They are not live children. Overlay of factory/ onto a live product is a later envelope with a kit pin, never a GitHub fork.", "reversible": true},
-    {"id": "D-16", "at": "2026-09-17", "status": "adopted", "summary": "GitHub contribute is a factory pick, not a sidebar. access (owner-only | fork-and-pull | collaborator-write) and commitCredit (owner-account | github-noreply | co-authored-by-owner) live in factory/project.json with the other PM options. Parent live picks are owner-only + owner-account. A collaborator is write access. A contributor is a commit that landed on default branch with an email on a GitHub account. Children mix from the catalog; a child still never writes VirBk/Grok.", "reversible": true},
-    {"id": "D-17", "at": "2026-09-17", "status": "adopted", "summary": "Cloud control plane stays Grok. It deploys a terminal; it does not become DeepSeek, Qwen, or Cursor Cloud Agent. Recommended: git-bus reuses the local autobuild host; codespace is the throwaway terminal when that host is off. Writer token is a Codespaces secret or the seat env, never git. Cursor local Chat/Agent may BYOK; Cursor cloud/background/CLI cannot. No GitHub Action until the writer secret exists.", "reversible": true},
-    {"id": "D-18", "at": "2026-09-17", "status": "adopted", "summary": "Prompt cache is native to the provider or local runtime. The factory does not store answers. It orchestrates a byte-stable prefix (AGENTS, BOARD, envelope, tools) with variable work last, a session cache key where the API has one, and pasted hit tokens in the lane log. Pick promptCache in project.json: local-kv on the autobuild PC, provider-prefix on DeepSeek/Grok/Qwen APIs, explicit-breakpoint only when the harness can mark cache_control.", "reversible": true},
-    {"id": "D-19", "at": "2026-09-17", "status": "adopted", "summary": "Claude Code absent is the default. Owner with only a DeepSeek or DashScope token: Grok stays control plane. Writer is aider (DeepSeek) or qwen-code (DashScope). PC topologies pc-token and pc-dashscope. Cloud topologies cloud-grok and cloud-dashscope. Token in seat env or a Codespaces secret, never git, never VITE_. Do not install Claude Code or Cursor to spend the token. Do not remap Grok onto the token. F3 still waits on the key itself.", "reversible": true},
-    {"id": "D-20", "at": "2026-09-17", "status": "adopted", "summary": "To help an ongoing product (example: Virbos), copy the kit into a new empty remote and pick help-fork or help-collab. factory/help.json names the target. Isolate is a sibling clone. PRs contain product files only. This factory never lands the target's main, never overlays factory/ onto alumni, never writes VirBk/Grok, never runs as control plane of Grok and the target in one sitting. Overlay-pin stays shelf. Virbos stays alumni.", "reversible": true},
-    {"id": "D-21", "at": "2026-09-17", "status": "adopted", "summary": "Writer meter is Alibaba Model Studio PAYG (Singapore), not Token Plan. Owner picks the model from the Qwen and DeepSeek ladder, flagship down to the still-acceptable floor. Path auto uses native DeepSeek off-peak if healthy and DashScope PAYG on peak or native outage. Pin native or dashscope. Qwen is always DashScope. Keys stay in seat env.", "reversible": true},
-    {"id": "D-22", "at": "2026-09-17", "status": "adopted", "summary": "F3 issued on pc-dashscope. Owner has DASHSCOPE_API_KEY in the PC seat env and no DEEPSEEK_API_KEY. Path is pinned dashscope until the native key exists. Writer is qwen-code + qwen3-coder on PAYG Singapore. Grok stays control plane. Do not remap this session onto the token.", "reversible": true},
-    {"id": "D-23", "at": "2026-09-17", "status": "adopted", "summary": "F3 landed. First cheap writer return accepted: seat recipes launch at dashscope-intl, not Beijing. Catalog writerModel qwen3-coder is not a DashScope API id; hosted launch uses qwen3-coder-plus (fallback qwen3-coder-next, qwen3.7-flash) until the catalog maps. Native DeepSeek still off. Grok stayed control plane.", "reversible": true},
-    {"id": "D-24", "at": "2026-09-17", "status": "adopted", "summary": "Catalog id qwen3-coder is the local Ollama tag, not a DashScope API name. Hosted topologies pc-dashscope and cloud-dashscope pick qwen3-coder-plus. Live writerModel is qwen3-coder-plus until the owner picks another ladder id that DashScope serves. Seat recipes must print the live pick, not a hardcoded alias.", "reversible": true},
-    {"id": "D-25", "at": "2026-09-17", "status": "adopted", "summary": "F15 does not land. qwen3-coder-plus escaped template interpolation twice. Split to F16 on qwen3.7-plus. Hosted recipe acceptance is the printed live writerModel id, not a placeholder.", "reversible": true},
-    {"id": "D-26", "at": "2026-09-17", "status": "adopted", "summary": "F16 landed. Hosted qwen-code and pc-dashscope recipes print the live factory/project.json writerModel. Local Ollama keeps the qwen3-coder tag. Catalog mapping is now executable at launch, not only a note.", "reversible": true},
-    {"id": "D-27", "at": "2026-09-17", "status": "adopted", "summary": "Owner word: native DeepSeek key is present; usage lag is not key-absent. Live writerModel is deepseek-v4.1-flash on DashScope PAYG Singapore. Path stays pinned dashscope until native credit posts. Same DASHSCOPE_API_KEY as Qwen. Catalog deepseek-flash is native-only; unversioned DashScope deepseek-v4-pro is the expensive alias. Grok stays control plane.", "reversible": true},
-    {"id": "D-28", "at": "2026-09-17", "status": "adopted", "summary": "F15 dropped, superseded by F16/F17. S01 absorbed as T49: helpMode other than none plus a factory envelope is a second class of work. S02 dropped: T25 already names decay signs. Sitting stays 2. Path still dashscope.", "reversible": true},
-    {"id": "D-29", "at": "2026-09-17", "status": "superseded", "summary": "Otto drop after O38 supersedes the F8 morning drop. WHEN is O38 landed and no seat holding files. Intakes I19 I20. Traps T50 T51. Session notes are not the record. Keystone named at issue. Overlay still shelf.", "reversible": true},
-    {"id": "D-30", "at": "2026-09-17", "status": "adopted", "summary": "Otto drop is a check Otto's gate already runs: size budgets on landingChecks.yml plus archive under cap. Evening D-29 drop superseded (more law, no check, would grow over-cap files). T52 I21. Overlay still shelf.", "reversible": true},
-    {"id": "D-31", "at": "2026-09-17", "status": "adopted", "summary": "Virbos drop is a check Virbos's gate already runs: size budgets on tools/check.yml plus archive under cap. Morning F8 file superseded (more law, no check, would grow over-cap files). T52 I21. Overlay still shelf. Do not cap BUSINESS_RULES. SESSION_LOG stays frozen and excluded.", "reversible": true},
-    {"id": "D-32", "at": "2026-09-17", "status": "adopted", "summary": "Size archive is CP hygiene at 80%, between landings, not a product envelope. The gate fails at cap; it does not split. First alumni sitting cuts to Now-only so product landings stay green. T53 I22.", "reversible": true},
-    {"id": "D-33", "at": "2026-09-17", "status": "adopted", "summary": "Owner reversed D-09. Original CP loop is dual-runtime only (D-04): control plane issues, launches the writer, reviews, lands. Otto launched seats from the CP session. A required third hands actor (F6, hands.mjs) is a regression. hands.mjs may remain as optional scripts; it is not the orchestration. D-11 lean mix still holds minus that actor.", "reversible": true},
-    {"id": "D-34", "at": "2026-09-17", "status": "adopted", "charged": "Owner asked whether this conversation, the concerns, and the plan were in the repo. A stale Grok session then replaced live decisions.json and packages.json from a lagging checkout, colliding D-09 (already reversed as D-33) and dropping F6-F18 from the plan file.", "summary": "Read live main before any write to the parent. Never replace decisions.json or packages.json from a sitting that has not fetched. Conversation is not stored. A new concern is a new id. Never reuse D-09.", "reversible": true},
+    {
+      "id": "D-01",
+      "at": "2026-09-16",
+      "status": "adopted",
+      "summary": "VirBk/Grok is the working remote. Otto and Virbos are read-only references.",
+      "reversible": true
+    },
+    {
+      "id": "D-02",
+      "at": "2026-09-16",
+      "status": "adopted",
+      "summary": "The factory is copied as AGENTS.md plus factory/. SESSION_LOG is not created. BOARD is generated from JSON.",
+      "reversible": true
+    },
+    {
+      "id": "D-03",
+      "at": "2026-09-16",
+      "status": "superseded",
+      "summary": "Idle is success until the owner names the product and drops a spec.",
+      "reversible": true
+    },
+    {
+      "id": "D-04",
+      "at": "2026-09-16",
+      "status": "adopted",
+      "summary": "Product is dual-runtime: Claude Code or Grok as control plane; DeepSeek or Qwen as writer. Do not remap the control-plane session.",
+      "reversible": true
+    },
+    {
+      "id": "D-05",
+      "at": "2026-09-16",
+      "status": "adopted",
+      "summary": "Sweep writer is DeepSeek Flash or local Qwen. Keystone writer is DeepSeek V4 Pro or Claude. Reviewer is never weaker than the writer. One correction then split, escalate model on the next envelope.",
+      "reversible": true
+    },
+    {
+      "id": "D-06",
+      "at": "2026-09-16",
+      "status": "adopted",
+      "summary": "Cloud path is Grok as control plane plus a writer on a worktree clone. No GitHub Action until the secret exists.",
+      "reversible": true
+    },
+    {
+      "id": "D-07",
+      "at": "2026-09-16",
+      "status": "adopted",
+      "summary": "Grok is the parent factory. Children copy the kit and return portable intakes. A child never writes VirBk/Grok. An intake without a check is refused. Size budgets regularize.",
+      "reversible": true
+    },
+    {
+      "id": "D-08",
+      "at": "2026-09-16",
+      "status": "adopted",
+      "summary": "The session is a fuse. Git is memory. Split on envelope done, correction cap, spend cap, or a named decay sign. Successor reads AGENTS, BOARD, envelope. Never a transcript or compaction. Fresh same-tier instance after a split. Reviewer is always a fresh session. Never resume a session id from prose.",
+      "reversible": true
+    },
+    {
+      "id": "D-09",
+      "at": "2026-09-16",
+      "status": "superseded",
+      "summary": "Hands are a dumb runner. Claude Code is optional. Live picks live in factory/project.json; allowed ids in factory/runtimes.json. Default topology is local-hands (Grok + hands.mjs + Qwen Code + worktree + ff-only). Project managers mix from the catalog. Envelopes are git blobs. Hands never call a model.",
+      "reversible": true
+    },
+    {
+      "id": "D-10",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "The owner console is the live surface: setup, local/cloud floor, product chassis (clickable iff landed), token mix. Spec lives in factory/CONSOLE.md. The running app is the Grok App Builder project named GROK Factory. Kit memory is this repository.",
+      "reversible": true
+    },
+    {
+      "id": "D-11",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Lean token mix: save on the write, not on judgment. Hands have no weights. Sweep writer on ordinary lanes. Keystone only when the control plane names the lane. Review every loop, never the author, never weaker. Do not remap the control-plane session.",
+      "reversible": true
+    },
+    {
+      "id": "D-12",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Control-plane derivation is factory/CONTROL_PLANE.md. Any control plane — Grok in the cloud or Claude Code on the desktop — opens every container before ZERO, fetches a named issuance, and stamps collection as a second fact. A markdown-only grep of the queue line is not a finding.",
+      "reversible": true
+    },
+    {
+      "id": "D-14",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Three grades of memory. Law is AGENTS, traps, owner-ask, CONTROL_PLANE, absorbed lineage. Sparks are factory/sparks.json — look, not law; absorb or drop next sitting. Waivers are envelope holds or gitignored factory/.waiver and die at sitting close. The tired session quarantines; the fresh session writes law. No handoff.md.",
+      "reversible": true
+    },
+    {
+      "id": "D-15",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Otto and Virbos remain read-only alumni. They receive factory/drops after running seats finish. They are not live children. Overlay of factory/ onto a live product is a later envelope with a kit pin, never a GitHub fork.",
+      "reversible": true
+    },
+    {
+      "id": "D-16",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "GitHub contribute is a factory pick, not a sidebar. access (owner-only | fork-and-pull | collaborator-write) and commitCredit (owner-account | github-noreply | co-authored-by-owner) live in factory/project.json with the other PM options. Parent live picks are owner-only + owner-account. A collaborator is write access. A contributor is a commit that landed on default branch with an email on a GitHub account. Children mix from the catalog; a child still never writes VirBk/Grok.",
+      "reversible": true
+    },
+    {
+      "id": "D-17",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Cloud control plane stays Grok. It deploys a terminal; it does not become DeepSeek, Qwen, or Cursor Cloud Agent. Recommended: git-bus reuses the local autobuild host; codespace is the throwaway terminal when that host is off. Writer token is a Codespaces secret or the seat env, never git. Cursor local Chat/Agent may BYOK; Cursor cloud/background/CLI cannot. No GitHub Action until the writer secret exists.",
+      "reversible": true
+    },
+    {
+      "id": "D-18",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Prompt cache is native to the provider or local runtime. The factory does not store answers. It orchestrates a byte-stable prefix (AGENTS, BOARD, envelope, tools) with variable work last, a session cache key where the API has one, and pasted hit tokens in the lane log. Pick promptCache in project.json: local-kv on the autobuild PC, provider-prefix on DeepSeek/Grok/Qwen APIs, explicit-breakpoint only when the harness can mark cache_control.",
+      "reversible": true
+    },
+    {
+      "id": "D-19",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Claude Code absent is the default. Owner with only a DeepSeek or DashScope token: Grok stays control plane. Writer is aider (DeepSeek) or qwen-code (DashScope). PC topologies pc-token and pc-dashscope. Cloud topologies cloud-grok and cloud-dashscope. Token in seat env or a Codespaces secret, never git, never VITE_. Do not install Claude Code or Cursor to spend the token. Do not remap Grok onto the token. F3 still waits on the key itself.",
+      "reversible": true
+    },
+    {
+      "id": "D-20",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "To help an ongoing product (example: Virbos), copy the kit into a new empty remote and pick help-fork or help-collab. factory/help.json names the target. Isolate is a sibling clone. PRs contain product files only. This factory never lands the target's main, never overlays factory/ onto alumni, never writes VirBk/Grok, never runs as control plane of Grok and the target in one sitting. Overlay-pin stays shelf. Virbos stays alumni.",
+      "reversible": true
+    },
+    {
+      "id": "D-21",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Writer meter is Alibaba Model Studio PAYG (Singapore), not Token Plan. Owner picks the model from the Qwen and DeepSeek ladder, flagship down to the still-acceptable floor. Path auto uses native DeepSeek off-peak if healthy and DashScope PAYG on peak or native outage. Pin native or dashscope. Qwen is always DashScope. Keys stay in seat env.",
+      "reversible": true
+    },
+    {
+      "id": "D-22",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "F3 issued on pc-dashscope. Owner has DASHSCOPE_API_KEY in the PC seat env and no DEEPSEEK_API_KEY. Path is pinned dashscope until the native key exists. Writer is qwen-code + qwen3-coder on PAYG Singapore. Grok stays control plane. Do not remap this session onto the token.",
+      "reversible": true
+    },
+    {
+      "id": "D-23",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "F3 landed. First cheap writer return accepted: seat recipes launch at dashscope-intl, not Beijing. Catalog writerModel qwen3-coder is not a DashScope API id; hosted launch uses qwen3-coder-plus (fallback qwen3-coder-next, qwen3.7-flash) until the catalog maps. Native DeepSeek still off. Grok stayed control plane.",
+      "reversible": true
+    },
+    {
+      "id": "D-24",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Catalog id qwen3-coder is the local Ollama tag, not a DashScope API name. Hosted topologies pc-dashscope and cloud-dashscope pick qwen3-coder-plus. Live writerModel is qwen3-coder-plus until the owner picks another ladder id that DashScope serves. Seat recipes must print the live pick, not a hardcoded alias.",
+      "reversible": true
+    },
+    {
+      "id": "D-25",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "F15 does not land. qwen3-coder-plus escaped template interpolation twice. Split to F16 on qwen3.7-plus. Hosted recipe acceptance is the printed live writerModel id, not a placeholder.",
+      "reversible": true
+    },
+    {
+      "id": "D-26",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "F16 landed. Hosted qwen-code and pc-dashscope recipes print the live factory/project.json writerModel. Local Ollama keeps the qwen3-coder tag. Catalog mapping is now executable at launch, not only a note.",
+      "reversible": true
+    },
+    {
+      "id": "D-27",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Owner word: native DeepSeek key is present; usage lag is not key-absent. Live writerModel is deepseek-v4.1-flash on DashScope PAYG Singapore. Path stays pinned dashscope until native credit posts. Same DASHSCOPE_API_KEY as Qwen. Catalog deepseek-flash is native-only; unversioned DashScope deepseek-v4-pro is the expensive alias. Grok stays control plane.",
+      "reversible": true
+    },
+    {
+      "id": "D-28",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "F15 dropped, superseded by F16/F17. S01 absorbed as T49: helpMode other than none plus a factory envelope is a second class of work. S02 dropped: T25 already names decay signs. Sitting stays 2. Path still dashscope.",
+      "reversible": true
+    },
+    {
+      "id": "D-29",
+      "at": "2026-09-17",
+      "status": "superseded",
+      "summary": "Otto drop after O38 supersedes the F8 morning drop. WHEN is O38 landed and no seat holding files. Intakes I19 I20. Traps T50 T51. Session notes are not the record. Keystone named at issue. Overlay still shelf.",
+      "reversible": true
+    },
+    {
+      "id": "D-30",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Otto drop is a check Otto's gate already runs: size budgets on landingChecks.yml plus archive under cap. Evening D-29 drop superseded (more law, no check, would grow over-cap files). T52 I21. Overlay still shelf.",
+      "reversible": true
+    },
+    {
+      "id": "D-31",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Virbos drop is a check Virbos's gate already runs: size budgets on tools/check.yml plus archive under cap. Morning F8 file superseded (more law, no check, would grow over-cap files). T52 I21. Overlay still shelf. Do not cap BUSINESS_RULES. SESSION_LOG stays frozen and excluded.",
+      "reversible": true
+    },
+    {
+      "id": "D-32",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Size archive is CP hygiene at 80%, between landings, not a product envelope. The gate fails at cap; it does not split. First alumni sitting cuts to Now-only so product landings stay green. T53 I22.",
+      "reversible": true
+    },
+    {
+      "id": "D-33",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "summary": "Owner reversed D-09. Original CP loop is dual-runtime only (D-04): control plane issues, launches the writer, reviews, lands. Otto launched seats from the CP session. A required third hands actor (F6, hands.mjs) is a regression. hands.mjs may remain as optional scripts; it is not the orchestration. D-11 lean mix still holds minus that actor.",
+      "reversible": true
+    },
+    {
+      "id": "D-34",
+      "at": "2026-09-17",
+      "status": "adopted",
+      "charged": "Owner asked whether this conversation, the concerns, and the plan were in the repo. A stale Grok session then replaced live decisions.json and packages.json from a lagging checkout, colliding D-09 (already reversed as D-33) and dropping F6-F18 from the plan file.",
+      "summary": "Read live main before any write to the parent. Never replace decisions.json or packages.json from a sitting that has not fetched. Conversation is not stored. A new concern is a new id. Never reuse D-09.",
+      "reversible": true
+    },
     {
       "id": "D-35",
       "at": "2026-09-17",
@@ -55,6 +254,70 @@
       "status": "adopted",
       "charged": "Owner placed DASHSCOPE_API_KEY as a GitHub Actions secret.",
       "summary": "Writer Action is allowed. .github/workflows/writer.yml launches qwen-code on an issued envelope. Idle is success. Missing secret is a loud skip, not a red badge. Pushes writer/<lane> only. Never main. Grok stays control plane.",
+      "reversible": true
+    },
+    {
+      "id": "D-38",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "F21 changed one line of YAML and the meter reported 195138 input tokens over nine turns. The reading path was a habit, not a command, and the board it named was mostly ledger.",
+      "summary": "The reading path is a packet: node factory/tools/packet.mjs seat LANE prints AGENTS, the live board slice, the traps digest and the envelope, in that order for a prefix cache, with its byte count. factory/budgets.json names the seat, control-plane and envelope caps and the landing gate fails them. Opening a file the packet does not contain is not required work.",
+      "reversible": true
+    },
+    {
+      "id": "D-39",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "The ledger was the largest section of the board that every seat read, and it only grows.",
+      "summary": "The board ledger is a live window; node factory/tools/ledger.mjs rotate moves older rows to docs/ledger/, which no seat reads. The render names the window. Nothing is deleted.",
+      "reversible": true
+    },
+    {
+      "id": "D-40",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "node factory/tools/landingGate.mjs printed archive failed on the owner Windows machine: a temp path interpolated into a shell string. The only green gate was the badge.",
+      "summary": "The landing gate unpacks its own git archive in process and pins autocrlf off, so it runs on the control plane machine and measures the same bytes the runner measures.",
+      "reversible": true
+    },
+    {
+      "id": "D-41",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "factory/packages.json was invalid JSON from F19 to F21 and no check read it.",
+      "summary": "The kit checks its own shape: every tracked .json parses, plan and board agree, a lane log the board names exists, a gate step names a file that is here, every tool is named by a gate step.",
+      "reversible": true
+    },
+    {
+      "id": "D-42",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "The help-target guard refused a repository that no longer exists and would have let a sidecar name the real parent.",
+      "summary": "The parent remote in live law is the board remote, VirBk/virbk. factory/lineage.json is the source and factory/tools/hands.mjs reads it; a literal repo name is not a guard. Older rows keep the previous name as history.",
+      "reversible": true
+    },
+    {
+      "id": "D-43",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "Otto and Virbos each took a drop on 2026-09-17. Both were still not adopted on 2026-09-20 and nothing in the parent would have noticed.",
+      "summary": "Alumni contribute by measurement. node factory/tools/alumni.mjs scan is read-only, maps each signal to the trap that paid for it, and emits candidate intakes the intake gate validates. drop-status measures adoption against the script and gate named in factory/lineage.json. checks prints the pack a new child copies; provenance prints the chain. Every absorbed portable intake names the law it became in absorbedAs.",
+      "reversible": true
+    },
+    {
+      "id": "D-44",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "S06: a session that confirms it understands still invents. The contract also named a runtime that is not a topology and omitted the one the last two lanes ran on.",
+      "summary": "A seat return names the command and what it printed; measured is required. The seat-return contract runtime enum is the live topology catalog, checked by node factory/tools/seatReturn.mjs --check-contract.",
+      "reversible": true
+    },
+    {
+      "id": "D-45",
+      "at": "2026-09-20",
+      "status": "adopted",
+      "charged": "The owner asked the control plane to study and execute in one session. Recording the deviation is cheaper than pretending it did not happen.",
+      "summary": "For this records sitting the control plane wrote the kit itself on the owner word, with no independent reviewer session. The landing gate and the new self-tests are the evidence; the next code lane returns to a writer seat plus a fresh reviewer. This is a one-sitting waiver, not a change to AGENTS section 3.",
       "reversible": true
     }
   ]

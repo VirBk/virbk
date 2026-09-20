@@ -1,1 +1,2 @@
 Read AGENTS.md, then BOARD.md, then your envelope. Documentation is never a lane. No copied numbers.
+Seat reading path: node factory/tools/packet.mjs seat <LANE>

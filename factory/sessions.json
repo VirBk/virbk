@@ -1,6 +1,6 @@
 {
   "rule": "Git is memory. The session is a fuse. Compaction is not a briefing.",
-  "thesis": "Every model — Grok, Claude, GPT, Qwen, DeepSeek — rots if it stays. The curve differs. The failure mode does not. Do not pick a model that does not rot. Split the session.",
+  "thesis": "Every model \u2014 Grok, Claude, GPT, Qwen, DeepSeek \u2014 rots if it stays. The curve differs. The failure mode does not. Do not pick a model that does not rot. Split the session.",
   "duties": {
     "controlPlane": "Owns lifetime, split triggers, successor envelope. Never a transcript dump. Last act is sitting close.",
     "writer": "Re-reads the envelope. On a decay sign: stop, print the signs, return.",
@@ -33,7 +33,9 @@
     "BOARD.md",
     "the envelope",
     "factory/traps.yaml once",
-    "factory/sparks.json (look, not law)"
+    "factory/sparks.json (look, not law)",
+    "factory/CONTROL_PLANE.md (a control plane that will issue or drop)",
+    "the packet: node factory/tools/packet.mjs seat <LANE>"
   ],
   "successorNever": [
     "transcript",

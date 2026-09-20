@@ -4,9 +4,22 @@
   "title": "SeatReturn",
   "type": "object",
   "additionalProperties": false,
-  "required": ["lane", "runtime", "model", "base", "branch", "changed", "verify", "spendUsd"],
+  "required": [
+    "lane",
+    "runtime",
+    "model",
+    "base",
+    "branch",
+    "changed",
+    "verify",
+    "measured",
+    "spendUsd"
+  ],
   "properties": {
-    "lane": { "type": "string", "minLength": 1 },
+    "lane": {
+      "type": "string",
+      "minLength": 1
+    },
     "runtime": {
       "type": "string",
       "enum": [
@@ -14,15 +27,55 @@
         "cloud-grok",
         "desktop-two-process",
         "desktop-qwen",
-        "desktop-deepseek"
-      ]
+        "public-fork",
+        "team-shared",
+        "cloud-git-bus",
+        "pc-token",
+        "pc-dashscope",
+        "cloud-dashscope",
+        "help-fork",
+        "help-collab"
+      ],
+      "description": "A topology id from factory/runtimes.json. The catalog is the source; this list is checked against it by factory/tools/seatReturn.mjs."
     },
-    "model": { "type": "string", "minLength": 1 },
-    "base": { "type": "string", "minLength": 7 },
-    "branch": { "type": "string", "minLength": 1 },
-    "changed": { "type": "array", "items": { "type": "string" } },
-    "verify": { "type": "string", "minLength": 1 },
-    "spendUsd": { "type": "number", "minimum": 0 },
-    "note": { "type": "string" }
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base": {
+      "type": "string",
+      "minLength": 7
+    },
+    "branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "changed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "verify": {
+      "type": "string",
+      "minLength": 1
+    },
+    "spendUsd": {
+      "type": "number",
+      "minimum": 0
+    },
+    "note": {
+      "type": "string"
+    },
+    "measured": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What the verify command printed. A word is not output."
+    },
+    "cachedTokens": {
+      "type": "number",
+      "minimum": 0,
+      "description": "prompt_cache_hit_tokens or cached_tokens, pasted from the meter."
+    }
   }
 }

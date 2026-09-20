@@ -289,6 +289,11 @@ function selfTest() {
     rmSync(dir, { recursive: true, force: true });
   }
 
+  const cp = readFileSync(join(kitRoot, "factory/CONTROL_PLANE.md"), "utf8");
+  if (!/hosted or private-index code search/i.test(cp)) {
+    errors.push("CONTROL_PLANE.md does not name a hosted search zero as not a ZERO (T57)");
+  }
+
   const kit = searchRoot(kitRoot, "scopeSearch");
   if (kit.verdict !== "found") {
     errors.push("the kit does not find its own tool name");

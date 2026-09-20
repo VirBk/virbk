@@ -1,6 +1,6 @@
 # Intake — return a lesson to Grok
 
-A child files one of these when it paid for a trap, a lesson, or a practice. Absorbing it is a Grok envelope. The child does not write VirBk/Grok.
+A child files one of these when it paid for a trap, a lesson, or a practice. Absorbing it is a Grok envelope. The child does not write VirBk/virbk.
 
 Validate before sending:
 

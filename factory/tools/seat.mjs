@@ -200,7 +200,7 @@ export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-flash"
   "help-fork": `# Sidecar factory. This repo is not the product. Target is factory/help.json.
 # Example: help Virbos. Virbos stays alumni. Do not overlay factory/ onto it.
 
-# 1. Copy this kit into a new empty remote. Never VirBk/Grok.
+# 1. Copy this kit into a new empty remote. Never VirBk/virbk.
 # 2. cp factory/help.example.json factory/help.json
 #    set target to owner/repo (example VirBk/virbos)
 # 3. node factory/tools/hands.mjs apply-topology help-fork

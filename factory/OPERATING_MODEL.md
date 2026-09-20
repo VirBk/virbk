@@ -23,7 +23,7 @@ Otto and Virbos paid once. Distilling them once is not a factory. A factory is a
 
 The kit is the weights. A child is a run. An intake is the gradient — one charge, one rule, one check. Size budgets are regularization. Merging a child's board is overfitting. A trap with no check is underfit.
 
-Grok is the only writer of the kit. A child never pushes VirBk/Grok.
+Grok is the only writer of the kit. A child never pushes VirBk/virbk.
 
 ## Why the board is JSON
 
@@ -62,3 +62,36 @@ The money is the tool loop. Remapping a Claude Code window to DeepSeek keeps the
 ## Why hands are not a model
 
 Claude Code was judgment plus hands in one window. The factory needs the split. A runner with a model is a third seat with no envelope. `hands.mjs` cuts worktrees, prints recipes, runs the landing gate, and fast-forwards. It does not pick a model, does not read a key, and does not open a GitHub Action while that Action would stay red.
+
+## Why the reading path is a packet
+
+A seat told to read three files reads them whole and then browses. A lane
+that changed one line of YAML billed 195138 input tokens over nine turns;
+the line was correct, the reading was not. The cost is not the three files.
+It is the ledger inside the live board, the landed lanes beside it, and the
+repository underneath. `factory/tools/packet.mjs` prints the reading path
+exactly — this law, the live board slice, the traps digest, the envelope,
+in that order so a provider prefix cache hits — and prints its own byte
+count, so the context budget is a number the landing gate fails on rather
+than a habit a tired session drops. Opening a file the packet does not
+contain is not required work.
+
+## Why the ledger is a window
+
+`factory/board.json` is live state. Its ledger was history living inside
+live state, and every seat read every row of it, forever.
+`node factory/tools/ledger.mjs rotate` moves older rows to `docs/ledger/`,
+which no seat reads. Nothing is deleted: a dropped row is a deletion git
+would show. The board keeps the window `factory/budgets.json` names.
+
+## Why alumni are measured, not pasted
+
+Otto and Virbos each took a drop naming one check their own gate could run.
+Days later `node factory/tools/alumni.mjs drop-status` reported both not
+adopted: the script absent, the gate not naming it. A drop nobody measures
+is a letter, not a lesson. The scan is read-only, runs against a working
+copy, and emits candidate intakes in the shape the intake gate already
+validates. An alumnus contributes by being measured. A new child runs the
+same scan on itself before its first landing, and copies the check pack
+(`alumni.mjs checks`) with the name of whoever paid for each line
+(`alumni.mjs provenance`).

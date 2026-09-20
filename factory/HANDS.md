@@ -23,7 +23,7 @@ node factory/tools/hands.mjs apply-topology help-collab
 node factory/tools/hands.mjs check
 ```
 
-`access` is who may produce a landed commit. `commitCredit` is which email GitHub attributes. `promptCache` is native prefix reuse. `helpMode` is `none` (this repo is the product) or a sidecar (`fork-and-pr`, `collaborator-branch`). Parent live picks stay `helpMode` `none`. A child never writes VirBk/Grok. A sidecar never lands the target's main.
+`access` is who may produce a landed commit. `commitCredit` is which email GitHub attributes. `promptCache` is native prefix reuse. `helpMode` is `none` (this repo is the product) or a sidecar (`fork-and-pr`, `collaborator-branch`). Parent live picks stay `helpMode` `none`. A child never writes VirBk/virbk. A sidecar never lands the target's main.
 
 Change one field after applying a topology. `check` fails an unknown id. Mixes are allowed; unknown ids are not.
 

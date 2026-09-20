@@ -5,13 +5,13 @@ Live surface the owner walks. Spec, not a writer envelope. Control plane wrote i
 ## Setup
 
 1. Floor — local machine or cloud.
-2. Remote — GitHub owner/repo. Empty owner is filled by the session as VirBk. Children never write VirBk/Grok.
+2. Remote — GitHub owner/repo. Empty owner is filled by the session as VirBk. Children never write VirBk/virbk.
 3. Seats — control plane is Grok (this session, wired) or Claude desktop. Writer is local Qwen, DeepSeek Flash, DeepSeek V4 Pro, or an own model. Keys never enter git. Never a `VITE_` variable. Do not remap this session onto a writer token. Cursor Cloud Agents cannot take that token.
 4. Name — local folder `~/factory/<slug>`. Cloud codespace `grok-<lane>`, not the owner's disk. git-bus reuses the PC that already autobuilds.
 5. Charge — objective, goals, spec, expected result. Becomes the first envelope.
 6. Bench — install plan for that floor. Prepare writes `factory.project.json`, `SPEC.md`, `install.sh`, `.env.example`. The preview cannot apt-install on the laptop; the owner runs the script on the machine that hosts hands.
 7. Contribute — who may land, and which email GitHub attributes. Live picks `access` and `commitCredit`. Parent default is owner-only + owner-account. `public-fork` or `team-shared` when this repo is the product. A collaborator is write access. A contributor is a landed commit with an email on a GitHub account.
-8. Help — to add a complementary factory onto an ongoing product (example: Virbos), copy the kit into a **new empty remote**. `apply-topology help-fork` (no write on the target) or `help-collab` (invited write). Write `factory/help.json` from `factory/help.example.json`. Isolate clones the target as a sibling. PRs are product files only. This factory never lands the target's main, never overlays `factory/` onto alumni, never writes VirBk/Grok, never runs as control plane of Grok and the target in one sitting. Overlay stays shelf.
+8. Help — to add a complementary factory onto an ongoing product (example: Virbos), copy the kit into a **new empty remote**. `apply-topology help-fork` (no write on the target) or `help-collab` (invited write). Write `factory/help.json` from `factory/help.example.json`. Isolate clones the target as a sibling. PRs are product files only. This factory never lands the target's main, never overlays `factory/` onto alumni, never writes VirBk/virbk, never runs as control plane of Grok and the target in one sitting. Overlay stays shelf.
 
 ## Floor
 
@@ -44,7 +44,7 @@ Cloud, DeepSeek: `apply-topology cloud-grok`. Place the key as a Codespaces secr
 
 Cloud, DashScope: `apply-topology cloud-dashscope`. Same secret rule.
 
-Do not install Claude Code or Cursor to spend the token. Do not add a GitHub Action while the secret is missing. F3 is issued on pc-dashscope.
+Do not install Claude Code or Cursor to spend the token. Do not add a GitHub Action while the secret is missing.
 
 ## Token mix
 
@@ -81,12 +81,22 @@ node factory/tools/route.mjs probe
 
 Place `DASHSCOPE_API_KEY` for Qwen and for DeepSeek failover. Place `DEEPSEEK_API_KEY` to take native off-peak. Never git, never `VITE_`.
 
-## Landed this sitting
+## What landed
 
-F3 — first cheap writer envelope. Singapore URL. Windows stanza.
-F16 — hosted recipes print live writerModel. F15 later dropped (escaped placeholder; superseded). Catalog `qwen3-coder` is Ollama-only; hosted pick is `qwen3-coder-plus`.
-F17 — live seat is `deepseek-v4.1-flash` on the same DashScope key. Path stays `dashscope` until native credit posts. Catalog `deepseek-flash` is native-only.
-F18 — F15 dropped (superseded). S01 absorbed as T49. S02 dropped. Sitting stays 2.
+BOARD.md, generated from `factory/board.json`. This file does not keep a second copy of lane state; a stale copy is what made the owner ask twice.
+
+## What a sitting costs
+
+```
+node factory/tools/packet.mjs cost
+node factory/tools/alumni.mjs scan <path>
+node factory/tools/alumni.mjs drop-status <child> <path>
+```
+
+The first prints the reading path every seat pays for and the cut the
+packet makes. The second measures any product repository, read-only, and
+maps each signal to the trap that paid for it. The third says whether an
+alumni drop was adopted.
 
 ## Successor
 

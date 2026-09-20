@@ -34,7 +34,7 @@ Check
   <the command, gate step, or envelope hold that would catch a repeat>
 
 Refuse if this is a child's BOARD, a SESSION_LOG, a copied count, or real data.
-Absorbing this is a Grok envelope. The child does not write VirBk/Grok.
+Absorbing this is a Grok envelope. The child does not write VirBk/virbk.
 `;
 
 function loadJson(path) {
@@ -71,6 +71,7 @@ function shapeErrors(row, { requireStatus = false } = {}) {
         "check",
         "portable",
         "status",
+        "absorbedAs",
       ].includes(k),
   );
   if (extra.length) errors.push("unknown fields: " + extra.join(", "));
@@ -88,6 +89,31 @@ function shapeErrors(row, { requireStatus = false } = {}) {
   if (requireStatus && !STATUS.has(row.status)) errors.push("status");
   if (row.status != null && !STATUS.has(row.status)) errors.push("status");
   return errors;
+}
+
+// An absorbed portable row names the law it became, and that law is in
+// the tree: a trap id, or a file and a numbered section.
+function lawErrors(row, root) {
+  if (row.status !== "absorbed" || row.portable !== "portable") return [];
+  const named = String(row.absorbedAs || "").trim();
+  if (!named) return ["absorbedAs — an absorbed lesson names the law it became"];
+  const NL = String.fromCharCode(10);
+  if (/^T[0-9]+$/.test(named)) {
+    const traps = readFileSync(join(root, "factory/traps.yaml"), "utf8");
+    const has = traps.split(NL).some((line) => line.trim() === "- id: " + named);
+    return has ? [] : ["absorbedAs names " + named + ", which is not in traps.yaml"];
+  }
+  const parts = named.split(" ");
+  const section = parts.length === 2 ? parts[1] : "";
+  if (!/^[0-9]+$/.test(section)) {
+    return ["absorbedAs must be a trap id or a file and section: " + named];
+  }
+  const file = join(root, parts[0]);
+  if (!existsSync(file)) return ["absorbedAs names " + parts[0] + ", which is not in the tree"];
+  const text = readFileSync(file, "utf8");
+  return text.includes("## " + section + ".")
+    ? []
+    : ["absorbedAs names " + named + ", and that section is not in " + parts[0]];
 }
 
 function gateErrors(row, existing) {
@@ -135,6 +161,7 @@ if (cmd === "--check-register") {
     const rest = intakes.filter((x) => x.id !== row.id);
     const rowErrors = validateOne(row, rest, { requireStatus: true });
     for (const e of rowErrors) errors.push(row.id + " " + e);
+    for (const e of lawErrors(row, root)) errors.push(row.id + " " + e);
     if (row.status === "absorbed" && row.portable === "reject") {
       errors.push(row.id + " absorbed but portable=reject");
     }

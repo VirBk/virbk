@@ -54,6 +54,8 @@ const lines = [
   "",
   "## Ledger",
   "",
+  "Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.",
+  "",
   ...board.ledger.map((e) => `- ${e.at} ${e.event}`),
   "",
 ];

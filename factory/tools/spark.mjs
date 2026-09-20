@@ -201,6 +201,12 @@ function kitMarkers() {
   if (!/spark\.mjs/i.test(cp)) errors.push("CONTROL_PLANE.md missing spark.mjs");
   if (!/sparks\.json/i.test(sessions)) errors.push("sessions.json successorReads missing sparks");
   if (!/\.waiver/i.test(sessions)) errors.push("sessions.json successorNever missing .waiver");
+  if (!/CONTROL_PLANE\.md/.test(sessions)) {
+    errors.push("sessions.json successorReads missing CONTROL_PLANE.md (T58)");
+  }
+  if (!/packet\.mjs/.test(sessions)) {
+    errors.push("sessions.json successorReads missing the packet (T61)");
+  }
   if (!/factory\/\.waiver/.test(gi)) errors.push(".gitignore missing factory/.waiver");
   if (!/spark\.mjs --self-test/.test(landing)) {
     errors.push("landing-checks.json missing spark self-test");

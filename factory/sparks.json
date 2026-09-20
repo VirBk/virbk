@@ -28,8 +28,9 @@
       "claim": "A hosted or private-index code search that returns zero is not a ZERO.",
       "object": "factory/tools/scopeSearch.mjs",
       "whyNotLaw": "The search product is not a container. GitHub search of Virbos was empty; the objects were not.",
-      "status": "open",
-      "openedOn": 2
+      "status": "absorbed",
+      "openedOn": 2,
+      "absorbedAs": "T57"
     },
     {
       "id": "S04",
@@ -37,8 +38,9 @@
       "claim": "A control plane that will issue or drop reads factory/CONTROL_PLANE.md.",
       "object": "factory/sessions.json",
       "whyNotLaw": "successorReads names sparks but not CONTROL_PLANE.md; CONSOLE does. Drift, not yet a check.",
-      "status": "open",
-      "openedOn": 2
+      "status": "absorbed",
+      "openedOn": 2,
+      "absorbedAs": "T58"
     },
     {
       "id": "S05",
@@ -46,8 +48,9 @@
       "claim": "An owner paste of a missed spark is a lead, not law.",
       "object": "factory/CONTROL_PLANE.md",
       "whyNotLaw": "No check that a successor treated a chat paste as AGENTS.",
-      "status": "open",
-      "openedOn": 2
+      "status": "dropped",
+      "openedOn": 2,
+      "because": "T50 already rules that the repository is the record and a fact from chat or notes is a diary; a second row would be the same law twice."
     },
     {
       "id": "S06",
@@ -55,8 +58,9 @@
       "claim": "A session that confirms it understands still invents and leaves the loop; reading files or alumni is not a hold.",
       "object": "factory/sessions.json",
       "whyNotLaw": "Landing checks do not read chat. No command fails a spoken confirmation. Until a return must paste a command or omit, absorbing this is a diary.",
-      "status": "open",
-      "openedOn": 2
+      "status": "absorbed",
+      "openedOn": 2,
+      "absorbedAs": "T56"
     }
   ]
 }

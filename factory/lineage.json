@@ -1,5 +1,5 @@
 {
-  "parent": "VirBk/Grok",
+  "parent": "VirBk/virbk",
   "role": "Only writer of the kit. Children copy. Alumni take a drop. Portable intakes absorb.",
   "flywheel": [
     "copy",
@@ -14,7 +14,7 @@
     "Copied counts",
     "Real people, pay, or client data",
     "A rule with no check",
-    "A direct write to VirBk/Grok from a child remote",
+    "A direct write to VirBk/virbk from a child remote",
     "A factory overlay onto Otto or Virbos without a kit pin and owner word"
   ],
   "children": [
@@ -24,7 +24,14 @@
       "repo": "VirBk/Otto",
       "status": "alumni",
       "take": "Envelope, landing gate, keystones, idle-is-success, real-data gates, closed owner-ask, ruling-fits-hold. Alumni drop after O38 is a size check on Otto's own gate plus archive (D-30). A drop that grows over-cap files is pain (T52).",
-      "drop": "factory/drops/otto.md"
+      "drop": {
+        "file": "factory/drops/otto.md",
+        "at": "2026-09-17",
+        "expect": {
+          "script": "tools/sizeBudget.js",
+          "gate": "tools/landingChecks.yml"
+        }
+      }
     },
     {
       "id": "virbos",
@@ -32,7 +39,14 @@
       "repo": "VirBk/virbos",
       "status": "alumni",
       "take": "Decision register, authority levels, walkthrough as acceptance, derivation containers. Alumni drop after PK-3b and LEAVE-TYPE-KEY is a size check on Virbos's own gate plus archive (D-31). A drop that grows over-cap files is pain (T52).",
-      "drop": "factory/drops/virbos.md"
+      "drop": {
+        "file": "factory/drops/virbos.md",
+        "at": "2026-09-17",
+        "expect": {
+          "script": "tools/sizeBudget.js",
+          "gate": "tools/check.yml"
+        }
+      }
     },
     {
       "id": "next",
@@ -53,7 +67,8 @@
       "rule": "No envelope, no code. One page: acceptance, base SHA, holds, check.",
       "check": "Landing refuses a branch whose return does not cite an envelope id.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "AGENTS.md 2"
     },
     {
       "id": "I02",
@@ -65,7 +80,8 @@
       "rule": "Do not create SESSION_LOG.md. Lane logs are a few lines. History is git.",
       "check": "Size budget and a landing-gate glob fail any SESSION_LOG.md.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T26"
     },
     {
       "id": "I03",
@@ -77,7 +93,8 @@
       "rule": "factory/board.json is the source. BOARD.md is generated.",
       "check": "renderBoard.mjs --check fails a landing if the markdown drifted.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T01"
     },
     {
       "id": "I04",
@@ -89,7 +106,8 @@
       "rule": "Parse the check list from a fresh git archive of the commit under test.",
       "check": "landingGate.mjs exits 1 if factory/landing-checks.json is missing from the archive.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T08"
     },
     {
       "id": "I05",
@@ -101,7 +119,8 @@
       "rule": "Two writers is a ceiling, not a target. Empty seats stay empty.",
       "check": "The board names disjoint holds before a second sibling launches.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T11"
     },
     {
       "id": "I06",
@@ -113,7 +132,8 @@
       "rule": "Paste from the command that produced the number, with the command, or omit.",
       "check": "Landing gate forbids digits in README/AGENTS/BOARD except in generated tables.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T02"
     },
     {
       "id": "I07",
@@ -125,7 +145,8 @@
       "rule": "Spawn a writer seat. Do not remap the control-plane session.",
       "check": "Envelope names a runtime. A writer return whose model equals the CP is a stop.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T19"
     },
     {
       "id": "I08",
@@ -137,7 +158,8 @@
       "rule": "Judgment is Grok or Claude. Hands are a dumb runner. Writer harness is a PM pick in factory/project.json.",
       "check": "hands.mjs --self-test fails a project.json whose pick is not in runtimes.json.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "AGENTS.md 1"
     },
     {
       "id": "I09",
@@ -149,7 +171,8 @@
       "rule": "A ZERO names every container, including empty ones. Product source is a container. The board's later sections are a container.",
       "check": "node factory/tools/scopeSearch.mjs --self-test fails if a token that lives only in source is reported absent.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T32"
     },
     {
       "id": "I10",
@@ -161,7 +184,8 @@
       "rule": "A named law, circular, IRR, RFC, or PDF is a fetch. Quote it or stamp the miss. Asking the owner is for documents that do not exist.",
       "check": "CONTROL_PLANE.md is required CP reading. A blocked-on-issuance ledger row without a fetch URL is a diary.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T33"
     },
     {
       "id": "I11",
@@ -173,7 +197,8 @@
       "rule": "An agency still collecting is a second fact. Transcribe the issuance. Do not collapse practice into no legal basis.",
       "check": "CONTROL_PLANE.md requires both facts stamped. The issuance URL is in the ledger row.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T34"
     },
     {
       "id": "I12",
@@ -185,7 +210,8 @@
       "rule": "A refused launch is not an owner ask. Binary underneath, then hands launch, then print the one-line and split. Do not wait.",
       "check": "node factory/tools/ownerAsk.mjs --self-test fails if CONTROL_PLANE.md does not name tool-policy and hands launch.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T35"
     },
     {
       "id": "I13",
@@ -197,7 +223,8 @@
       "rule": "Before issue, every sentence of the ruling is implementable in the named holds. Split what cannot.",
       "check": "CONTROL_PLANE.md section on ruling and hold. Envelope holds are the bound. A lane whose other half is owed is a control-plane defect.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T36"
     },
     {
       "id": "I14",
@@ -209,7 +236,8 @@
       "rule": "A landing line names which check covered what. A green gate is not evidence about a suite it does not contain.",
       "check": "landing-checks.json note says the gate is these steps only. CONTROL_PLANE.md requires the integration run named or named as not run.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T37"
     },
     {
       "id": "I15",
@@ -221,7 +249,8 @@
       "rule": "A seat return that looks like a drive is a lead until the control plane runs one command at the objects.",
       "check": "CONTROL_PLANE.md. A register row that cites a seat return as fact must name the command the control plane ran.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T38"
     },
     {
       "id": "I16",
@@ -233,7 +262,8 @@
       "rule": "Mid-sitting, spark.mjs add. Successor looks at factory/sparks.json. Absorbing is an envelope with a check. Do not write handoff.md.",
       "check": "node factory/tools/spark.mjs --self-test fails if CONTROL_PLANE.md does not say look, not law.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T39"
     },
     {
       "id": "I17",
@@ -245,7 +275,8 @@
       "rule": "A waiver is the envelope or gitignored factory/.waiver. Sitting close expires it. Never BOARD, never traps.",
       "check": "node factory/tools/spark.mjs --self-test fails if factory/.waiver is tracked or present in the archive.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T40"
     },
     {
       "id": "I18",
@@ -257,7 +288,8 @@
       "rule": "Alumni take a dated drop after running seats finish. They file intakes. They do not copy the kit over a live product. Overlay is a later envelope with a pin.",
       "check": "factory/drops/ names otto and virbos. lineage status is alumni. COPY.md refuses retrofit. A child remote is still the empty next.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T41"
     },
     {
       "id": "I19",
@@ -269,7 +301,8 @@
       "rule": "The repository is the record. Session notes, Claude memory, and handoff files are not.",
       "check": "CONTROL_PLANE.md names the repository as the record and session notes as not. T50. A fact taken from notes is a diary.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T50"
     },
     {
       "id": "I20",
@@ -281,7 +314,8 @@
       "rule": "A closed keystone list is read at issue. Every writer envelope names the keystone or its absence. Recent skips are not precedent.",
       "check": "CONTROL_PLANE.md requires the keystone named at issue. T51. An envelope that omits it is a diary.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T51"
     },
     {
       "id": "I21",
@@ -293,7 +327,8 @@
       "rule": "A drop is a check that product's existing gate runs, or archive first. Do not append to an over-cap live file.",
       "check": "factory/drops/otto.md names the size step on landingChecks.yml. factory/drops/virbos.md names it on tools/check.yml. T52. D-30 D-31. A drop that only mints prose is a diary.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T52"
     },
     {
       "id": "I22",
@@ -305,7 +340,9 @@
       "rule": "The size script fails; it does not split. Archive at 80% is a CP records commit between landings. First cut is Now-only. Do not issue a writer.",
       "check": "factory/drops/otto.md and virbos.md name 80% between landings and Now-only as the first cut. T53. D-32. A writer envelope whose hold is a board archive is a diary.",
       "portable": "portable",
-      "status": "absorbed"
+      "status": "absorbed",
+      "absorbedAs": "T53"
     }
-  ]
+  ],
+  "provenance": "Every absorbed portable intake names the law it became in absorbedAs: a trap id, or a file and section. node factory/tools/alumni.mjs provenance prints the chain."
 }

@@ -57,6 +57,16 @@
     {
       "pattern": "docs/log/*.md",
       "capKb": 8
+    },
+    {
+      "pattern": "docs/ledger/*.md",
+      "capKb": 48
     }
-  ]
+  ],
+  "context": {
+    "seatPacketKb": 26,
+    "cpPacketKb": 44,
+    "envelopeKb": 6,
+    "ledgerRows": 12
+  }
 }

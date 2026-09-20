@@ -1,5 +1,5 @@
 {
-  "now": "Sitting 3. F21 landed: shallow checkout for the landing gate. Writer idle; references remain read-only. Overlay still shelf. Path dashscope.",
+  "now": "Sitting 3. F22-F27 landed: the kit checks its own shape, the gate runs where the control plane sits, the reading path is a packet under a byte budget, the ledger is a window, alumni are measured, a return pastes the command. Writer idle; references remain read-only. Overlay still shelf. Path dashscope.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -49,7 +49,7 @@
       "id": "F2",
       "title": "Name the product paragraph and never-move rules",
       "state": "landed",
-      "hold": "AGENTS.md \u00a71 and \u00a75"
+      "hold": "AGENTS.md §1 and §5"
     },
     {
       "id": "F3",
@@ -127,7 +127,7 @@
       "id": "F15",
       "title": "Map hosted writer model to a real DashScope id",
       "state": "dropped",
-      "hold": "factory/tools/seat.mjs, docs/log/f15.md"
+      "hold": "factory/tools/seat.mjs"
     },
     {
       "id": "F16",
@@ -164,11 +164,47 @@
       "title": "Shallow checkout for the landing gate",
       "state": "landed",
       "hold": ".github/workflows/landing.yml, docs/log/f21.md"
+    },
+    {
+      "id": "F22",
+      "title": "Kit holds its own shape",
+      "state": "landed",
+      "hold": "factory/tools/kitCheck.mjs, factory/packages.json, factory/lineage.json, docs/log/f22.md"
+    },
+    {
+      "id": "F23",
+      "title": "Landing gate runs where the control plane sits",
+      "state": "landed",
+      "hold": "factory/tools/landingGate.mjs, docs/log/f23.md"
+    },
+    {
+      "id": "F24",
+      "title": "The packet: a reading path with a byte budget",
+      "state": "landed",
+      "hold": "factory/tools/packet.mjs, AGENTS.md, factory/budgets.json, docs/log/f24.md"
+    },
+    {
+      "id": "F25",
+      "title": "Board ledger is a window, not a novel",
+      "state": "landed",
+      "hold": "factory/tools/ledger.mjs, factory/tools/renderBoard.mjs, docs/log/f25.md"
+    },
+    {
+      "id": "F26",
+      "title": "Alumni contribute by measurement",
+      "state": "landed",
+      "hold": "factory/tools/alumni.mjs, factory/lineage.json, contracts/intake.v1.json, docs/log/f26.md"
+    },
+    {
+      "id": "F27",
+      "title": "A return pastes the command",
+      "state": "landed",
+      "hold": "factory/tools/seatReturn.mjs, contracts/seat-return.v1.json, docs/log/f27.md"
     }
   ],
   "keystones": [
-    "Dual-runtime closed loop: spec \u2192 runtime-stamped envelope \u2192 cheap writer return \u2192 strong review \u2192 land \u2192 spend in the lane log",
-    "Parent flywheel: copy \u2192 run \u2192 return intake \u2192 Grok absorbs under size budgets"
+    "Dual-runtime closed loop: spec → runtime-stamped envelope → cheap writer return → strong review → land → spend in the lane log",
+    "Parent flywheel: copy → run → return intake → Grok absorbs under size budgets"
   ],
   "holds": [
     {
@@ -238,6 +274,14 @@
     {
       "name": "factory/concerns.json",
       "holder": "control plane"
+    },
+    {
+      "name": "factory/budgets.json",
+      "holder": "control plane"
+    },
+    {
+      "name": "factory/landing-checks.json",
+      "holder": "control plane"
     }
   ],
   "shelf": [
@@ -248,148 +292,52 @@
   ],
   "ledger": [
     {
-      "at": "2026-09-16",
-      "event": "Factory opened. Otto and Virbos read-only. Working remote VirBk/Grok, previously empty."
-    },
-    {
-      "at": "2026-09-16",
-      "event": "F0 landed. Kit on VirBk/Grok. Board is JSON. Waiting on owner specs."
-    },
-    {
-      "at": "2026-09-16",
-      "event": "F1 spec landed: cheap writer seats, desktop and cloud. Dual-runtime named. Do not remap the CP session."
-    },
-    {
-      "at": "2026-09-16",
-      "event": "F2 landed. Product paragraph is parent factory plus dual-runtime. Never-move: child does not write Grok."
-    },
-    {
-      "at": "2026-09-16",
-      "event": "F4 landed. Lineage register, intake contract, intake gate. Otto and Virbos absorbed. Next child copies the kit."
-    },
-    {
-      "at": "2026-09-16",
-      "event": "F5 landed. Session fuse. Git is memory. Compaction is not a briefing. Fresh same-tier instance after a split."
-    },
-    {
-      "at": "2026-09-16",
-      "event": "F6 landed. Hands are a dumb runner. Claude Code optional. PM picks in project.json. Default topology local-hands."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F7 landed. Owner console spec in factory/CONSOLE.md. Lean token mix. Control plane session retired."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "Virbos derivation miss absorbed. CONTROL_PLANE.md required for any control plane. scopeSearch on the landing gate. Intakes I09 I10 I11. Traps T32 T33 T34."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "Otto owner-wait absorbed. Closed ask list, hands launch, ruling-fits-hold, named checks. Intakes I12 I13 I14 I15. Traps T35 T36 T37 T38."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "Spark/waiver quarantine landed. factory/sparks.json look-not-law. factory/.waiver gitignored. sitting close. Intakes I16 I17. Traps T39 T40. S01 S02 open."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F8 landed. Alumni drops for Otto and Virbos. Intake I18. Trap T41. Decision D-15. Overlay is a later envelope, not this sitting."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F9 landed. access and commitCredit are catalog picks. Topologies public-fork and team-shared. Trap T42 T43. Decision D-16. Parent remains owner-only."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F10 landed. Cloud isolate is git-bus or codespace. Topology cloud-git-bus. cloud-grok uses codespace+aider. Trap T44. Decision D-17. No GitHub Action. F3 still queued on a key."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F11 landed. promptCache pick. Trap T45. Decision D-18. No answer store. Prefix law in the envelope stamp."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F12 landed. Topologies pc-token, pc-dashscope, cloud-dashscope. Trap T46. Decision D-19. Token is the writer, never the control plane. F3 still queued on the key."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F13 landed. helpMode pick. Topologies help-fork and help-collab. Isolate help-clone. Trap T47. Decision D-20. Virbos stays alumni. Overlay still shelf."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F14 landed. PAYG Singapore. Owner ladder. Path auto native/DashScope. T clock + probe. D-21. F3 still queued on the keys."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F3 issued. pc-dashscope. Path pinned dashscope until DEEPSEEK_API_KEY is in the seat. D-22. Writer is qwen-code, not this session."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F3 landed. Writer qwen3-coder-plus on PAYG Singapore. Seat recipes use dashscope-intl. D-23. Catalog id qwen3-coder is not a DashScope API name."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F15 issued. Catalog: qwen3-coder is Ollama-only. pc-dashscope and cloud-dashscope pick qwen3-coder-plus. Writer interpolates live writerModel. D-24."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F15 split. Writer escaped JS ${writerModel}; recipes printed a placeholder. F16 issued on qwen3.7-plus. D-25."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F16 landed. seat.mjs interpolates live writerModel (qwen3-coder-plus). F15 stays split. D-26."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F17 landed. Same DASHSCOPE_API_KEY invokes deepseek-v4.1-flash. Hosted map: deepseek-flash \u2192 deepseek-v4.1-flash. Path stays dashscope until native credit posts. T48. D-27. F15 stays split."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "F18 landed. F15 dropped (superseded by F16/F17). S01 absorbed as T49. S02 dropped (T25). Sitting-class check on the landing gate. D-28."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "Otto drop after O38. Morning F8 WHEN stale (O38 issued). Intakes I19 I20. Traps T50 T51. D-29. Paste after O38 lands. Overlay still shelf."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "Otto drop rewritten. Evening file was more law, no check. Useful drop is size step on Otto landingChecks.yml plus archive under cap. D-29 superseded. D-30 T52 I21."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "Virbos drop rewritten. Morning file was more law, no check. Useful drop is size step on tools/check.yml plus archive under cap. D-31 T52 I21-both."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "Size archive is CP hygiene at 80% between landings. Script fails; it does not split. First alumni cut is Now-only. D-32 T53 I22."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "S06 opened. Session confirmation is not a hold. Reading files or alumni does not bind the next sentence. Look, not law."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "Owner reversed D-09. Original CP loop has no hands actor. F6 third seat is regression. D-33. D-04 stands."
-    },
-    {
-      "at": "2026-09-17",
-      "event": "D-35. Closed owner concerns recorded in factory/concerns.json. Plan remains packages.json. Conversation not stored. F7 outcomes stood; the questions did not."
-    },
-    {
-      "at": "2026-09-18",
-      "event": "F19 landed. Owner: public repo. Landing Action runs the gate on ubuntu. No writer secret. Writer runner stays shelf. D-36."
-    },
-    {
-      "at": "2026-09-18",
-      "event": "F20 landed. Owner placed DASHSCOPE_API_KEY. Writer Action idles green; launches qwen-code on an envelope; never pushes main. D-37 T55."
-    },
-    {
       "at": "2026-09-20",
       "event": "F21 issued after owner review of PR #3. Local qwen-code writer on deepseek-v4.1-flash. Records issuance skips Actions to prevent a duplicate writer; final landing requires the full gate."
     },
     {
       "at": "2026-09-20",
       "event": "F21 landed ff-only after a DeepSeek writer return, fresh approved review, and Ubuntu archive gate (Actions run 35483615467). Envelope retired; usage recorded in docs/log/f21.md. PR #3 closed in favor of #4. Sitting closed."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F22 landed. Every tracked .json parses in the gate; factory/packages.json had been invalid since F19 and no step read it. Plan and board are checked against each other. T59 T63. D-41."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "Parent remote named in live law is VirBk/virbk; the help-target guard reads factory/lineage.json instead of a literal. Older rows keep the previous name as history. D-42."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F23 landed. The landing gate unpacks its own archive in process, with autocrlf off, so it runs on the Windows control plane and measures the bytes the Ubuntu runner measures. Before this the local gate exited on archive failed. T60. D-40."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F24 landed. factory/tools/packet.mjs is the seat reading path, ordered for a prefix cache, with a byte budget in factory/budgets.json that the gate fails. AGENTS names it and stayed under cap. T61. D-38."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F25 landed. The board ledger is a window; older rows rotate to docs/ledger/. The render says so. T61. D-39."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F26 landed. alumni.mjs scans a product read-only, maps each signal to the trap that paid for it, emits candidate intakes the intake gate accepts, and prints the check pack and the provenance chain. Every absorbed portable intake names the law it became. T62. D-43."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "Measured, not assumed: alumni.mjs drop-status reports otto and virbos both not adopted, script absent and gate not naming it, three days after the drops were issued. Exit 2 for both."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F27 landed. A seat return names the command and what it printed; the seat-return runtime enum is the live topology list, which had omitted pc-dashscope. T56 T64. D-44."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "S03 absorbed as T57, S04 as T58, S06 as T56. S05 dropped: T50 already holds it."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "Control plane ran as its own writer for this records sitting on the owner word; no independent reviewer session existed. The gate and the new self-tests are the evidence. D-45."
     }
   ]
 }
