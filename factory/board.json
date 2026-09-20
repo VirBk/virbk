@@ -1,5 +1,5 @@
 {
-  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33, F34, F36 and F37 landed. Nothing running, no envelope issued, no experiment open. Order, not id order: F39 next, then F35, then F38. F39 carries the checks S14 and S15 need before they can be absorbed, and a spark must be absorbed or dropped before sitting 11 closes. node factory/tools/seat.mjs disjoint <LANE> <LANE> proves a sibling pair at the files; it reports F37 and F39 overlapping on factory/traps.yaml, so any lane touching traps runs alone. Handoff and first acts: D-55. Ceilings do not move; compact instead (D-52, D-54, D-57). Per-lane trap scoping deferred with a trigger (D-58). The sweep tier pins the implementation, not the property: D-59. Reviewer is Sonnet for this sitting by the owner's word, which AGENTS allows because it is not weaker than a deepseek-flash writer. Three sparks open: S14, S15, S17. Otto and Virbos stay read-only. Overlay still shelf.",
+  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33, F34, F36 and F37 landed. F39 ISSUED and running ALONE, which disjoint proves it must: it holds factory/traps.yaml. No experiment open. Order, not id order: F39 running, then F35, then F38. F39 carries the checks S14 and S15 need before they can be absorbed, and a spark must be absorbed or dropped before sitting 11 closes. node factory/tools/seat.mjs disjoint <LANE> <LANE> proves a sibling pair at the files; it reports F37 and F39 overlapping on factory/traps.yaml, so any lane touching traps runs alone. Handoff and first acts: D-55. Ceilings do not move; compact instead (D-52, D-54, D-57). Per-lane trap scoping deferred with a trigger (D-58). The sweep tier pins the implementation, not the property: D-59. Reviewer is Sonnet for this sitting by the owner's word, which AGENTS allows because it is not weaker than a deepseek-flash writer. Three sparks open: S14, S15, S17. Otto and Virbos stay read-only. Overlay still shelf.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -269,8 +269,8 @@
     },
     {
       "id": "F39",
-      "state": "queued",
-      "hold": ".github/workflows/writer.yml, factory/tools/ghaWriter.mjs, factory/traps.yaml",
+      "state": "issued",
+      "hold": ".github/workflows/writer.yml, factory/tools/ghaWriter.mjs, factory/tools/route.mjs, factory/traps.yaml",
       "title": "The cloud writer takes the router, and idles loudly instead of failing"
     }
   ],
@@ -365,10 +365,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "Seven ledger rows written this session were plain strings where the schema is {at, event}, so renderBoard printed each as 'function at() { [native code] } undefined' and the whole session's record was invisible on the generated board. Repaired in place at 0295f0b. No check parses a ledger row, which is why twenty green gate steps said nothing: T59's shape exactly, packages.json shipped broken and unread for three landings and board.ledger has now done the same. The archive escaped because rotate had only moved well-formed rows; rotate derives the archive filename from rows[0].at, so one more rotation would have written a file named after a native function. The spark this deserves waits until rotate clears sparks.json, because AGENTS section 4 forbids appending to a live file that is over budget."
-    },
-    {
-      "at": "2026-09-20",
       "event": "F33 correction 1 reviewed at 156f40b: CORRECTIONS NEEDED again, and the correction cap is spent, so the lane splits off this seat. All five items do go red on revert, coverage did not regress and the rebase is proven, but rotate's `at` is an index into the list as it stood at that rotation, so a second productive rotation collides: archiving the live store, absorbing S14, rotating again writes S14 at slot 1 against S02 at slot 1, duplicate slots {1: 2}, and the reconstruction the comment and the archive header both promise is impossible. The control plane's own verification missed it by driving one rotation where the reviewer drove two. The same disease appears in item 2, where the --root order assertion passes even when the flag's value is ignored, because the fixture and the live tree both print packet check ok. Both are the original defect's shape: a property true only in the degenerate case. The issuance is at fault too — the correction envelope offered a choice between carrying position and narrowing the claim, and a sweep-tier envelope should not hand a cheap seat that judgement. The split envelope dictates the narrow claim instead of offering it."
     },
     {
@@ -410,6 +406,10 @@
     {
       "at": "2026-09-21",
       "event": "F37 landed from writer/F37 at 1e67ae8, fast-forward, approved on the first return with no correction, which is a first for this sitting and the first lane written to D-59's rule that every acceptance item names the mutation that must turn its check red. Four checks, each driven red by the control plane and again by the reviewer on faithful mutations: a recipe that hands the packet over as an argv string, a Windows line that takes the key from a bare env rather than the user store, a disjointReport whose overlap is always empty, and a census that ignores its injected lister. S13 absorbed as T72 and S16 as T73. The disjoint command earned itself immediately by reporting F37 and F39 overlapping on factory/traps.yaml, an overlap the control plane created when it booked F39 and would have hit had it run them as siblings; AGENTS has required holds proved disjoint since F34 with nothing implementing it. Two findings the control plane could not settle and the reviewer did, by running the objects rather than reasoning about them. The rewritten qwen recipe line -p - < packet.txt was suspected of being an invention; the reviewer read the installed CLI source and ran the literal line against an unreachable port, and stdin is prepended to the prompt so the form works and the suspicion was wrong. The census over-reports: the reviewer's own pip show aider-chat was listed as two running aider seats, caught live, now S17. Not covered, and flagged rather than guessed: the aider and opencode carrier lines, neither harness being installed."
+    },
+    {
+      "at": "2026-09-21",
+      "event": "F39 issued at base 9934c6c, alone, and it takes the last two open sparks that have lanes. Five claims about the GitHub writer Action, each naming the mutation that must turn its check red. It becomes opt-in and idle by default, gated on a repository variable, because today issuing any lane fires a headless cloud seat onto writer/<LANE>, the branch a local worktree may already hold; on F33 exactly that happened and a stale key stopped it rather than design, which is S14. It takes the router instead of hardcoding DashScope and its own model table, so the cloud seat can reach the native path D-51 made default, and the secret it counts becomes the secret the call passes, which is S15 and which today turns T55's loud skip into a loud failure. A missing secret exits 0 with a reason. And the packet reaches it on stdin rather than as an argv string, which is T72 in the cloud path, surviving only because the runner is Linux. factory/tools/route.mjs is handed to the lane for its duration and the envelope says so rather than doing it silently; the router's answer does not change, only a second caller gains the ability to ask it."
     }
   ]
 }
