@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-Sitting 8. F31 landed: the packet self-test now checks the envelope part is last and the bytes before it are byte-stable across lane ids, guarded so the check cannot pass vacuously. D-45 paid: a DashScope writer seat, an independent fresh-Claude review. D-49 still needs the owner word. References Otto and Virbos remain read-only. Overlay still shelf. Nothing is running and no experiment is open.
+Sitting 8. F32 issued: the meter that carries spend and cache hits exists in the harness, but the seat cannot see it, so factory/returns.json is still empty after five seat runs. A writer seat holds factory/tools/seatReturn.mjs, contracts/seat-return.v1.json and docs/log/f32.md; a fresh reviewer follows. Three sparks open from the bake-off sitting: S08, S09, S10. D-49 still needs the owner word. References Otto and Virbos remain read-only. Overlay still shelf. Path dashscope.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -56,6 +56,7 @@ No envelope opens a gate.
 | F29 | landed | factory/tools/seatReturn.mjs, factory/returns.json, docs/log/f29.md | Spend and cache hits survive as rows |
 | F30 | landed | factory/tools/experiment.mjs, factory/experiments.json, factory/tools/landingGate.mjs, docs/log/f30.md | A rule can be suspended on purpose, with an expiry |
 | F31 | landed | factory/tools/packet.mjs, docs/log/f31.md | The packet prefix is byte-stable, and a check proves it |
+| F32 | issued | factory/tools/seatReturn.mjs, contracts/seat-return.v1.json, docs/log/f32.md | The control plane reads the meter into the return |
 
 ## Holds
 
@@ -104,3 +105,4 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 F31 landed from writer/F31 (pc-dashscope), commit 1da51b2. Two independent writer returns existed for this envelope; a fresh review ran both and their negative proofs. writer/F31 checks envelope-last for an issued lane and an unissued lane and guards the prefix-equality assertion against an empty string, so it cannot pass vacuously; writer/F31-ds checked envelope-last for the issued lane only and had no empty-prefix guard. writer/F31-ds was not landed. Fast-forward preserved the writer's commit; this is the first lane where D-45's writer-seat-plus-independent-reviewer loop actually ran, rather than a control-plane self-authored records sitting. D-45 paid.
 - 2026-09-20 kitCheck rule B was red on the F31 issuance commit: factory/packages.json carried no row for board lane F31. Control-plane oversight from issuance, not the writer's — F31 was not in the lane's holds, so the writer correctly left it alone and named it in docs/log/f31.md. Fixed in the landing commit.
 - 2026-09-20 Sitting 7 closed. F31 was the only lane and it landed; D-45 is paid. D-49 still needs the owner word — carried again. Nothing is running and no experiment is open.
+- 2026-09-20 Five seat runs measured on one envelope. deepseek-flash direct produced a complete correct lane for USD 0.02 over 1,013,608 tokens; deepseek-v4.1-flash did the same over 3,140,038; qwen3-coder-plus burned 4,898,721 and never committed; claude-sonnet-5 cost USD 1.29 over two runs and wrote no product code. Cache hit rates 92.8 to 98.1 per cent, which is the span F31 now checks. S08, S09 and S10 minted.

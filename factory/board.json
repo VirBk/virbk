@@ -1,5 +1,5 @@
 {
-  "now": "Sitting 8. F31 landed: the packet self-test now checks the envelope part is last and the bytes before it are byte-stable across lane ids, guarded so the check cannot pass vacuously. D-45 paid: a DashScope writer seat, an independent fresh-Claude review. D-49 still needs the owner word. References Otto and Virbos remain read-only. Overlay still shelf. Nothing is running and no experiment is open.",
+  "now": "Sitting 8. F32 issued: the meter that carries spend and cache hits exists in the harness, but the seat cannot see it, so factory/returns.json is still empty after five seat runs. A writer seat holds factory/tools/seatReturn.mjs, contracts/seat-return.v1.json and docs/log/f32.md; a fresh reviewer follows. Three sparks open from the bake-off sitting: S08, S09, S10. D-49 still needs the owner word. References Otto and Virbos remain read-only. Overlay still shelf. Path dashscope.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -224,6 +224,12 @@
       "title": "The packet prefix is byte-stable, and a check proves it",
       "state": "landed",
       "hold": "factory/tools/packet.mjs, docs/log/f31.md"
+    },
+    {
+      "id": "F32",
+      "title": "The control plane reads the meter into the return",
+      "state": "issued",
+      "hold": "factory/tools/seatReturn.mjs, contracts/seat-return.v1.json, docs/log/f32.md"
     }
   ],
   "keystones": [
@@ -362,6 +368,10 @@
     {
       "at": "2026-09-20",
       "event": "Sitting 7 closed. F31 was the only lane and it landed; D-45 is paid. D-49 still needs the owner word — carried again. Nothing is running and no experiment is open."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "Five seat runs measured on one envelope. deepseek-flash direct produced a complete correct lane for USD 0.02 over 1,013,608 tokens; deepseek-v4.1-flash did the same over 3,140,038; qwen3-coder-plus burned 4,898,721 and never committed; claude-sonnet-5 cost USD 1.29 over two runs and wrote no product code. Cache hit rates 92.8 to 98.1 per cent, which is the span F31 now checks. S08, S09 and S10 minted."
     }
   ]
 }

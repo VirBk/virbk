@@ -71,6 +71,33 @@
       "status": "absorbed",
       "openedOn": 5,
       "absorbedAs": "T65"
+    },
+    {
+      "id": "S08",
+      "kind": "trap",
+      "claim": "A seat with shell access acts to the limit of the instructions it can read, not the limit of its envelope Holds; a session launched in the control-plane checkout has no Holds at all and will land and push.",
+      "object": "factory/templates/ENVELOPE.md",
+      "whyNotLaw": "The control plane compares the changed file set to Holds only at the return, after the seat has already acted. No command bounds a running seat, and no check names where a seat may be launched.",
+      "status": "open",
+      "openedOn": 8
+    },
+    {
+      "id": "S09",
+      "kind": "trap",
+      "claim": "The spend and cache numbers a return requires already exist in the harness meter, but the seat cannot see them, so spendUsd is self-reported as zero or omitted and factory/returns.json stays empty.",
+      "object": "factory/tools/seatReturn.mjs",
+      "whyNotLaw": "No command reads a harness meter into a return. Five seat runs produced zero rows, and the reading is the control plane's work, not the seat's.",
+      "status": "open",
+      "openedOn": 8
+    },
+    {
+      "id": "S10",
+      "kind": "trap",
+      "claim": "A seat echoes the envelope Runtime stamp as its model: two seats reported deepseek-v4.1-flash while one was in fact running deepseek-flash, so a return's model field records the claim, not the run.",
+      "object": "contracts/seat-return.v1.json",
+      "whyNotLaw": "Nothing records the model the launcher passed, so no check can compare a return's model against it. Until the launcher's pick is written down, absorbing this is a diary.",
+      "status": "open",
+      "openedOn": 8
     }
   ]
 }

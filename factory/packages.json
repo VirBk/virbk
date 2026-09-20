@@ -1,36 +1,169 @@
 {
   "packages": [
-    {"id": "F0", "title": "Stand up the factory kit", "status": "landed"},
-    {"id": "F1", "title": "Owner specs land", "status": "landed"},
-    {"id": "F2", "title": "Name the product paragraph", "status": "landed"},
-    {"id": "F3", "title": "First cheap writer envelope", "status": "landed"},
-    {"id": "F4", "title": "Parent factory lineage loop", "status": "landed"},
-    {"id": "F5", "title": "Session fuse protocol", "status": "landed"},
-    {"id": "F6", "title": "Hands split; PM-pickable topologies", "status": "landed"},
-    {"id": "F7", "title": "Owner console and token mix", "status": "landed"},
-    {"id": "F8", "title": "Alumni drops for Otto and Virbos", "status": "landed"},
-    {"id": "F9", "title": "GitHub contribute options", "status": "landed"},
-    {"id": "F10", "title": "Cloud CP deploys the writer terminal", "status": "landed"},
-    {"id": "F11", "title": "Prompt cache as a native prefix, orchestrated", "status": "landed"},
-    {"id": "F12", "title": "Token-only writer, no Claude Code", "status": "landed"},
-    {"id": "F13", "title": "Sidecar factory for an ongoing product", "status": "landed"},
-    {"id": "F14", "title": "Owner-picked writer ladder and path router", "status": "landed"},
-    {"id": "F15", "title": "Map hosted writer model to a real DashScope id", "status": "dropped"},
-    {"id": "F16", "title": "Hosted recipes print the live DashScope model id", "status": "landed"},
-    {"id": "F17", "title": "DashScope DeepSeek Flash on the live seat", "status": "landed"},
-    {"id": "F18", "title": "Close F15; absorb S01 as T49; drop S02", "status": "landed"},
-    {"id": "F19", "title": "Public-repo landing Action", "status": "landed"},
-    {"id": "F20", "title": "GitHub Action writer runner", "status": "landed"},
-    {"id": "F21", "title": "Shallow checkout for the landing gate", "status": "landed"},
-    {"id": "F22", "title": "Kit holds its own shape", "status": "landed"},
-    {"id": "F23", "title": "Landing gate runs where the control plane sits", "status": "landed"},
-    {"id": "F24", "title": "The packet: a reading path with a byte budget", "status": "landed"},
-    {"id": "F25", "title": "Board ledger is a window, not a novel", "status": "landed"},
-    {"id": "F26", "title": "Alumni contribute by measurement", "status": "landed"},
-    {"id": "F27", "title": "A return pastes the command", "status": "landed"},
-    {"id": "F28", "title": "The seat is launched with the packet", "status": "landed"},
-    {"id": "F29", "title": "Spend and cache hits survive as rows", "status": "landed"},
-    {"id": "F30", "title": "A rule can be suspended on purpose, with an expiry", "status": "landed"},
-    {"id": "F31", "title": "The packet prefix is byte-stable, and a check proves it", "status": "landed"}
+    {
+      "id": "F0",
+      "title": "Stand up the factory kit",
+      "status": "landed"
+    },
+    {
+      "id": "F1",
+      "title": "Owner specs land",
+      "status": "landed"
+    },
+    {
+      "id": "F2",
+      "title": "Name the product paragraph",
+      "status": "landed"
+    },
+    {
+      "id": "F3",
+      "title": "First cheap writer envelope",
+      "status": "landed"
+    },
+    {
+      "id": "F4",
+      "title": "Parent factory lineage loop",
+      "status": "landed"
+    },
+    {
+      "id": "F5",
+      "title": "Session fuse protocol",
+      "status": "landed"
+    },
+    {
+      "id": "F6",
+      "title": "Hands split; PM-pickable topologies",
+      "status": "landed"
+    },
+    {
+      "id": "F7",
+      "title": "Owner console and token mix",
+      "status": "landed"
+    },
+    {
+      "id": "F8",
+      "title": "Alumni drops for Otto and Virbos",
+      "status": "landed"
+    },
+    {
+      "id": "F9",
+      "title": "GitHub contribute options",
+      "status": "landed"
+    },
+    {
+      "id": "F10",
+      "title": "Cloud CP deploys the writer terminal",
+      "status": "landed"
+    },
+    {
+      "id": "F11",
+      "title": "Prompt cache as a native prefix, orchestrated",
+      "status": "landed"
+    },
+    {
+      "id": "F12",
+      "title": "Token-only writer, no Claude Code",
+      "status": "landed"
+    },
+    {
+      "id": "F13",
+      "title": "Sidecar factory for an ongoing product",
+      "status": "landed"
+    },
+    {
+      "id": "F14",
+      "title": "Owner-picked writer ladder and path router",
+      "status": "landed"
+    },
+    {
+      "id": "F15",
+      "title": "Map hosted writer model to a real DashScope id",
+      "status": "dropped"
+    },
+    {
+      "id": "F16",
+      "title": "Hosted recipes print the live DashScope model id",
+      "status": "landed"
+    },
+    {
+      "id": "F17",
+      "title": "DashScope DeepSeek Flash on the live seat",
+      "status": "landed"
+    },
+    {
+      "id": "F18",
+      "title": "Close F15; absorb S01 as T49; drop S02",
+      "status": "landed"
+    },
+    {
+      "id": "F19",
+      "title": "Public-repo landing Action",
+      "status": "landed"
+    },
+    {
+      "id": "F20",
+      "title": "GitHub Action writer runner",
+      "status": "landed"
+    },
+    {
+      "id": "F21",
+      "title": "Shallow checkout for the landing gate",
+      "status": "landed"
+    },
+    {
+      "id": "F22",
+      "title": "Kit holds its own shape",
+      "status": "landed"
+    },
+    {
+      "id": "F23",
+      "title": "Landing gate runs where the control plane sits",
+      "status": "landed"
+    },
+    {
+      "id": "F24",
+      "title": "The packet: a reading path with a byte budget",
+      "status": "landed"
+    },
+    {
+      "id": "F25",
+      "title": "Board ledger is a window, not a novel",
+      "status": "landed"
+    },
+    {
+      "id": "F26",
+      "title": "Alumni contribute by measurement",
+      "status": "landed"
+    },
+    {
+      "id": "F27",
+      "title": "A return pastes the command",
+      "status": "landed"
+    },
+    {
+      "id": "F28",
+      "title": "The seat is launched with the packet",
+      "status": "landed"
+    },
+    {
+      "id": "F29",
+      "title": "Spend and cache hits survive as rows",
+      "status": "landed"
+    },
+    {
+      "id": "F30",
+      "title": "A rule can be suspended on purpose, with an expiry",
+      "status": "landed"
+    },
+    {
+      "id": "F31",
+      "title": "The packet prefix is byte-stable, and a check proves it",
+      "status": "landed"
+    },
+    {
+      "id": "F32",
+      "title": "The control plane reads the meter into the return",
+      "status": "issued"
+    }
   ]
 }
