@@ -16,6 +16,9 @@ concurrency:
 
 jobs:
   seat:
+    # Opt-in and off by default: no CLOUD_WRITER repository variable means no
+    # cloud seat at all, so an unset secret cannot turn a push into a red run.
+    if: vars.CLOUD_WRITER == 'on'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:

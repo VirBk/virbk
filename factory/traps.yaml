@@ -438,3 +438,15 @@
   object: "factory/tools/seat.mjs"
   title: Writer key read from whichever shell is open
   rule: A Windows recipe line reads the writer key from the user store with [Environment]::GetEnvironmentVariable("NAME","User") in the same act as the launch, never from a bare $env:NAME, which is whatever was true when that terminal opened. Check is node factory/tools/seat.mjs --self-test.
+
+- id: T74
+  kind: portable
+  object: ".github/workflows/writer.yml"
+  title: Cloud writer that is on by default
+  rule: A job that launches a paid writer is opt-in, so an unset repository variable leaves it idle and idle is a success; a job that fires on the event alone spends every push, and a secret that was never placed reads as a broken Action rather than an absent one. Check is node factory/tools/ghaWriter.mjs --self-test.
+
+- id: T75
+  kind: portable
+  object: "factory/tools/ghaWriter.mjs"
+  title: Cloud seat that keeps its own copy of the route
+  rule: A cloud runner asks the router for the path, the base, the key NAME and the id that base expects, instead of hardcoding a hosted base or carrying its own id map, and it counts the key its own call passes so a key for the other path cannot buy a launch. Check is node factory/tools/ghaWriter.mjs --self-test.

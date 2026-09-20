@@ -8,6 +8,11 @@
 //
 // Clock: ROUTE_NOW=2026-09-18T07:00:00Z
 // Native health (resolve only): ROUTE_NATIVE=up|down
+//
+// The answer is one object: path, reason, base, key NAME and the model id that
+// base expects. A second caller asks for it instead of keeping its own copy of
+// any of the five (T29, T48); `resolveNow` is the whole resolve branch, and
+// the CLI below is one caller of it, not the resolver.
 
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -47,12 +52,26 @@ function familyOf(modelId) {
   return String(modelId).startsWith("deepseek") ? "deepseek" : "qwen";
 }
 
+// Native catalog names are not DashScope API ids (T48). The router owns the
+// map so a caller never picks an id for a base it was handed. An id the table
+// does not know passes through: an already-hosted id is not remapped twice.
+const HOSTED_IDS = {
+  "qwen3-coder": "qwen3-coder-plus",
+  "deepseek-flash": "deepseek-v4.1-flash",
+  "deepseek-v4-pro": "deepseek-v4-pro-0813",
+};
+
+function providerModelFor(model, path) {
+  if (path !== "dashscope") return model;
+  return HOSTED_IDS[model] || model;
+}
+
 function nowDate() {
   if (process.env.ROUTE_NOW) return new Date(process.env.ROUTE_NOW);
   return new Date();
 }
 
-function resolve(picks, spec, now, nativeUp) {
+export function resolve(picks, spec, now, nativeUp) {
   const model = picks.writerModel;
   const requested = picks.writerPath || "auto";
   const family = familyOf(model);
@@ -62,6 +81,7 @@ function resolve(picks, spec, now, nativeUp) {
     return {
       family,
       model,
+      providerModel: providerModelFor(model, "dashscope"),
       requested,
       path: "dashscope",
       reason: requested === "native" ? "qwen-has-no-native" : "qwen-dashscope",
@@ -91,6 +111,7 @@ function row(family, model, requested, path, reason, spec, peak) {
   return {
     family,
     model,
+    providerModel: providerModelFor(model, path),
     requested,
     path,
     reason,
@@ -101,7 +122,7 @@ function row(family, model, requested, path, reason, spec, peak) {
 }
 
 function printResolve(r) {
-  for (const k of ["family", "model", "requested", "path", "reason", "base", "key", "peak"]) {
+  for (const k of ["family", "model", "providerModel", "requested", "path", "reason", "base", "key", "peak"]) {
     console.log(k + "  " + r[k]);
   }
 }
@@ -120,7 +141,28 @@ async function probe(spec) {
   }
 }
 
-const cmd = process.argv[2] || "resolve";
+// The whole resolve branch, clock and health probe included, so the CLI and any
+// importing runner get the same answer from the same file (T29). `env` is a
+// seam for the clock and for pinning native health; it defaults to the live one.
+export async function resolveNow(env = process.env) {
+  const spec = pathsSpec();
+  const picks = project();
+  const now = env.ROUTE_NOW ? new Date(env.ROUTE_NOW) : new Date();
+  let nativeUp;
+  if (env.ROUTE_NATIVE === "down") nativeUp = false;
+  else if (env.ROUTE_NATIVE === "up") nativeUp = true;
+  else if ((picks.writerPath || "auto") !== "dashscope" && familyOf(picks.writerModel) === "deepseek") {
+    const p = await probe(spec);
+    nativeUp = p.up;
+  }
+  return resolve(picks, spec, now, nativeUp);
+}
+
+// The commands below are one caller of the resolver, not the resolver. Gated on
+// this file being the entry point, because a runner imports this module (T29).
+const isEntry = Boolean(process.argv[1]) &&
+  fileURLToPath(import.meta.url).toLowerCase() === process.argv[1].toLowerCase();
+const cmd = isEntry ? process.argv[2] || "resolve" : "";
 
 if (cmd === "peak") {
   const spec = pathsSpec();
@@ -140,17 +182,7 @@ if (cmd === "probe") {
 }
 
 if (cmd === "resolve") {
-  const spec = pathsSpec();
-  const picks = project();
-  const now = nowDate();
-  let nativeUp;
-  if (process.env.ROUTE_NATIVE === "down") nativeUp = false;
-  else if (process.env.ROUTE_NATIVE === "up") nativeUp = true;
-  else if ((picks.writerPath || "auto") !== "dashscope" && familyOf(picks.writerModel) === "deepseek") {
-    const p = await probe(spec);
-    nativeUp = p.up;
-  }
-  printResolve(resolve(picks, spec, now, nativeUp));
+  printResolve(await resolveNow());
   process.exit(0);
 }
 
@@ -201,6 +233,29 @@ if (cmd === "--self-test") {
     spec.bases.dashscope,
   );
 
+  // The answer names the id its chosen base expects (T48, T29).
+  want("native-id", resolve(ds, spec, new Date("2026-09-18T11:00:00Z"), true).providerModel, "deepseek-flash");
+  want("dashscope-id", resolve(ds, spec, new Date("2026-09-18T07:00:00Z"), true).providerModel, "deepseek-v4.1-flash");
+  want(
+    "pin-native-id",
+    resolve({ writerModel: "deepseek-flash", writerPath: "native" }, spec, new Date("2026-09-18T11:00:00Z"), true)
+      .providerModel,
+    "deepseek-flash",
+  );
+  want(
+    "pin-native-outage-id",
+    resolve({ writerModel: "deepseek-flash", writerPath: "native" }, spec, new Date("2026-09-18T11:00:00Z"), false)
+      .providerModel,
+    "deepseek-v4.1-flash",
+  );
+  want(
+    "qwen-coder-id",
+    resolve({ writerModel: "qwen3-coder", writerPath: "auto" }, spec, new Date("2026-09-18T02:00:00Z"), true)
+      .providerModel,
+    "qwen3-coder-plus",
+  );
+  want("already-hosted-id", resolve(hosted, spec, new Date("2026-09-18T11:00:00Z"), true).providerModel, "deepseek-v4.1-flash");
+
   if (failed.length) {
     console.error("self-test failed");
     for (const f of failed) console.error("  " + f);
@@ -210,5 +265,7 @@ if (cmd === "--self-test") {
   process.exit(0);
 }
 
-console.error("usage: node factory/tools/route.mjs resolve|peak|probe|--self-test");
-process.exit(1);
+if (isEntry) {
+  console.error("usage: node factory/tools/route.mjs resolve|peak|probe|--self-test");
+  process.exit(1);
+}
