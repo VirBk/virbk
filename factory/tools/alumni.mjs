@@ -34,6 +34,14 @@ const kitRoot = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const NL = String.fromCharCode(10);
 const SKIP_DIR = new Set(["node_modules", ".git", "dist", "coverage", "build", ".next", "__pycache__"]);
 
+// The CLI runs only when this file is the process entry point. The readers
+// below are exported for the lane that imports them, and a dispatch that ran
+// on import printed the whole check pack and exited the importer — a gate
+// step that cannot fail (T14). The test is on the entry name, so a
+// mis-detection in the safe direction is impossible: node sets argv[1] to the
+// file it was told to run. packet.mjs closes the same hazard the same way.
+const isEntry = /alumni\.mjs$/.test(process.argv[1] || "");
+
 // Portable probes. Each one names the trap that paid for it and the
 // kit cap it measures against.
 const PROBES = [
@@ -68,18 +76,27 @@ const TRAPS_FILE = /TRAPS\.(md|yaml|yml)$/i;
 const ROW_ID = /^([A-Za-z][A-Za-z0-9]{0,5}[-_]?[0-9]{1,4})(?:[\s:.)\u2014-]|$)/;
 
 // A row names a check or it does not, and one function decides, so the two
-// cases cannot blur. An em dash before "Check:" is not a boundary: an
-// unrecognised spelling reads as "names no check", which is the safe way to
-// be wrong. The check runs to the end of its line, so trailing prose on a
+// cases cannot blur. The directive is capital-C "Check is" or "Check:", and
+// only a capital-C one counts: ordinary prose ("check is ticked") is not the
+// directive, and matching it is how a row carrying a junk check reached the
+// gate, which is worse than a row held because the owner acts on it. A row
+// may carry more than one candidate and the LAST wins, because the directive
+// ends a row by convention and prose precedes it; taking the first let prose
+// win and could push the rule under its floor, holding as checkless a row
+// that carried a good check. An em dash before "Check:" is not a boundary.
+// An unrecognised spelling reads as "names no check", which is the safe way
+// to be wrong. The check runs to the end of its line, so trailing prose on a
 // later line stays in the rule.
 function splitCheck(body) {
   const text = String(body || "").replace(/\r\n/g, NL);
-  const m = /(^|[.;][ \t]+|\n[ \t]*)Check(?:[ \t]+is|:)[ \t]+([^\n]+)/i.exec(text);
-  if (!m) return { rule: text, check: "" };
-  const cut = m.index + m[1].length;
+  const re = /(^|[.;][ \t]+|\n[ \t]*)Check(?:[ \t]+is|:)[ \t]+([^\n]+)/g;
+  let last = null;
+  for (const m of text.matchAll(re)) last = m;
+  if (!last) return { rule: text, check: "" };
+  const cut = last.index + last[1].length;
   return {
     rule: text.slice(0, cut).trim().replace(/[.;]$/, ""),
-    check: m[2].trim().replace(/[.;]$/, ""),
+    check: last[2].trim().replace(/[.;]$/, ""),
   };
 }
 
@@ -654,6 +671,13 @@ function selfTest() {
       "- T1 Keep the seat under its cap. Check is node factory/tools/size.mjs reports ok.",
       "- T2 A rule with no check is a diary, and this row is one.",
       "- T7 A check that is too short is refused. Check: TODO.",
+      // T8 carries incidental "check is" prose before its real directive: a
+      // first-match reader emits the prose tail as the check, a junk check
+      // that clears the floor and reaches the owner. T9's rule only clears
+      // its floor once the directive is the one cut at, so a first-match
+      // reader holds it as checkless.
+      "- T8 Confirm the box. check is ticked before merge, always. Check is node factory/tools/kitCheck.mjs --self-test.",
+      "- T9 Do it. check is fine. Check is node factory/tools/kitCheck.mjs --self-test.",
       "",
       "Prose in a TRAPS file is not a row: it is not a bullet, and it carries no id.",
     ].join(NL) + NL;
@@ -688,10 +712,10 @@ function selfTest() {
     });
     try {
       const want = {
-        rows: 6,
-        named: 3,
+        rows: 8,
+        named: 5,
         noid: 1,
-        emit: 3,
+        emit: 5,
         held: ["T2", "T7", "T4"],
         whyNoCheck: ["T2", "T4"],
       };
@@ -700,6 +724,24 @@ function selfTest() {
       if (snapshot(rowsTree) !== before) errors.push("reading a TRAPS file wrote into the scanned tree");
       const problems = trapsProblems(traps, want);
       if (problems.length) errors.push("traps report: " + problems.join("; "));
+
+      // The two halves of the match are asserted on the emitted rows, not on
+      // a count: a junk check that clears the floor changes no count, and a
+      // row held for the wrong reason looks like any other held row. T8's
+      // prose says "check is" before the directive, and T9's rule only clears
+      // the floor when the directive, not the prose, is what was cut at.
+      const emitted = new Map(traps.rows.map((r) => [r.id, r]));
+      const t8 = emitted.get("C-OTTO-T8");
+      const t9 = emitted.get("C-OTTO-T9");
+      if (!t8 || t8.check !== "node factory/tools/kitCheck.mjs --self-test") {
+        errors.push("prose beat the directive: T8 check is " + JSON.stringify(t8 && t8.check));
+      }
+      if (!t9 || t9.check !== "node factory/tools/kitCheck.mjs --self-test") {
+        errors.push(
+          "a false early hit held a row that carries a check: T9 " +
+            (t9 ? JSON.stringify(t9.check) : "held, not emitted"),
+        );
+      }
 
       // The read-only check can fail: a write anywhere under the root has to
       // move it, and undoing the write has to put it back.
@@ -820,6 +862,27 @@ function selfTest() {
     fsMod.rmSync(lean, { recursive: true, force: true });
   }
 
+  // Importing this file must be inert. Without the entry guard, argv[2] is
+  // undefined on import, cmd defaults to "checks", and the whole check pack
+  // is printed into the importer and the process exits — a gate step that
+  // cannot fail (T14). Spawned against this file's own URL, so a mutated copy
+  // under any name is measured for what it is, not for the file it was
+  // copied from. Any output at all is a failure: the guard's job is silence.
+  const importer = spawnSync(
+    process.execPath,
+    ["-e", "import(" + JSON.stringify(import.meta.url) + ")"],
+    { encoding: "utf8" },
+  );
+  const imported = (importer.stdout || "") + (importer.stderr || "");
+  if (importer.status !== 0 || imported.trim()) {
+    errors.push(
+      "importing the module ran its CLI: exit " +
+        importer.status +
+        " " +
+        imported.trim().split(NL)[0],
+    );
+  }
+
   if (errors.length) {
     console.error("alumni self-test failed");
     for (const e of errors) console.error("  " + e);
@@ -829,56 +892,61 @@ function selfTest() {
   process.exit(0);
 }
 
-const cmd = process.argv[2] || "checks";
+// Dispatch only for the entry point. Imported, this file must be inert: a
+// test imports the readers below, and a dispatch that ran would print the
+// check pack and exit the importer (T14).
+if (isEntry) {
+  const cmd = process.argv[2] || "checks";
 
-if (cmd === "--self-test") selfTest();
+  if (cmd === "--self-test") selfTest();
 
-if (cmd === "checks") {
-  console.log(checkPack());
-  process.exit(0);
-}
-
-if (cmd === "provenance") {
-  console.log(provenance());
-  process.exit(0);
-}
-
-if (cmd === "scan" || cmd === "intakes") {
-  const root = process.argv[3];
-  if (!root || !existsSync(root)) {
-    console.error("usage: node factory/tools/alumni.mjs " + cmd + " <path to a working copy>");
-    process.exit(1);
-  }
-  const child = process.argv[4] || basename(root).toLowerCase();
-  const report = scan(root, child);
-  if (cmd === "scan") {
-    printScan(root, report);
+  if (cmd === "checks") {
+    console.log(checkPack());
     process.exit(0);
   }
-  const at = new Date().toISOString().slice(0, 10);
-  // Two sources, one shape: the size signals and the rows of the child's
-  // own TRAPS file. Everything here already cleared the contract's floors.
-  console.log(JSON.stringify([...intakeRows(child, report, at), ...report.traps.rows], null, 2));
-  process.exit(0);
-}
 
-if (cmd === "drop-status") {
-  const id = process.argv[3];
-  const root = process.argv[4];
-  const child = childRow(id);
-  if (!child) {
-    console.error("unknown child: " + id);
-    process.exit(1);
+  if (cmd === "provenance") {
+    console.log(provenance());
+    process.exit(0);
   }
-  if (!root || !existsSync(root)) {
-    console.error("usage: node factory/tools/alumni.mjs drop-status " + id + " <path to that product>");
-    process.exit(1);
-  }
-  const status = dropStatus(child, root);
-  console.log("child     " + child.id + "  " + child.repo);
-  for (const l of status.lines) console.log(l);
-  process.exit(status.ok ? 0 : 2);
-}
 
-console.error("usage: node factory/tools/alumni.mjs scan|intakes|drop-status|checks|provenance|--self-test");
-process.exit(1);
+  if (cmd === "scan" || cmd === "intakes") {
+    const root = process.argv[3];
+    if (!root || !existsSync(root)) {
+      console.error("usage: node factory/tools/alumni.mjs " + cmd + " <path to a working copy>");
+      process.exit(1);
+    }
+    const child = process.argv[4] || basename(root).toLowerCase();
+    const report = scan(root, child);
+    if (cmd === "scan") {
+      printScan(root, report);
+      process.exit(0);
+    }
+    const at = new Date().toISOString().slice(0, 10);
+    // Two sources, one shape: the size signals and the rows of the child's
+    // own TRAPS file. Everything here already cleared the contract's floors.
+    console.log(JSON.stringify([...intakeRows(child, report, at), ...report.traps.rows], null, 2));
+    process.exit(0);
+  }
+
+  if (cmd === "drop-status") {
+    const id = process.argv[3];
+    const root = process.argv[4];
+    const child = childRow(id);
+    if (!child) {
+      console.error("unknown child: " + id);
+      process.exit(1);
+    }
+    if (!root || !existsSync(root)) {
+      console.error("usage: node factory/tools/alumni.mjs drop-status " + id + " <path to that product>");
+      process.exit(1);
+    }
+    const status = dropStatus(child, root);
+    console.log("child     " + child.id + "  " + child.repo);
+    for (const l of status.lines) console.log(l);
+    process.exit(status.ok ? 0 : 2);
+  }
+
+  console.error("usage: node factory/tools/alumni.mjs scan|intakes|drop-status|checks|provenance|--self-test");
+  process.exit(1);
+}
