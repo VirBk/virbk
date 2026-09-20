@@ -359,10 +359,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "Control plane handed off. The board and factory/decisions.json carry everything this tenure learned, including the orchestration model read from Otto and Virbos (D-53) and the governance-maintenance model (D-54); nothing of it is left in the session. X01 is open and is the first exception this repository has taken on purpose rather than by decree."
-    },
-    {
-      "at": "2026-09-20",
       "event": "X01 opened and reverted the same day: it suspended a whole gate step to excuse one cap, switching off F31's prefix guard landed that morning. A suspension must not be wider than its hypothesis. The cap was cleared by compaction, and board.now now carries routing facts only, with the handoff in D-55, because the slice is in every seat's packet."
     },
     {
@@ -404,6 +400,10 @@
     {
       "at": "2026-09-20",
       "event": "Seven ledger rows written this session were plain strings where the schema is {at, event}, so renderBoard printed each as 'function at() { [native code] } undefined' and the whole session's record was invisible on the generated board. Repaired in place at 0295f0b. No check parses a ledger row, which is why twenty green gate steps said nothing: T59's shape exactly, packages.json shipped broken and unread for three landings and board.ledger has now done the same. The archive escaped because rotate had only moved well-formed rows; rotate derives the archive filename from rows[0].at, so one more rotation would have written a file named after a native function. The spark this deserves waits until rotate clears sparks.json, because AGENTS section 4 forbids appending to a live file that is over budget."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F33 correction 1 reviewed at 156f40b: CORRECTIONS NEEDED again, and the correction cap is spent, so the lane splits off this seat. All five items do go red on revert, coverage did not regress and the rebase is proven, but rotate's `at` is an index into the list as it stood at that rotation, so a second productive rotation collides: archiving the live store, absorbing S14, rotating again writes S14 at slot 1 against S02 at slot 1, duplicate slots {1: 2}, and the reconstruction the comment and the archive header both promise is impossible. The control plane's own verification missed it by driving one rotation where the reviewer drove two. The same disease appears in item 2, where the --root order assertion passes even when the flag's value is ignored, because the fixture and the live tree both print packet check ok. Both are the original defect's shape: a property true only in the degenerate case. The issuance is at fault too — the correction envelope offered a choice between carrying position and narrowing the claim, and a sweep-tier envelope should not hand a cheap seat that judgement. The split envelope dictates the narrow claim instead of offering it."
     }
   ]
 }
