@@ -1,5 +1,5 @@
 {
-  "now": "Sitting 9 handing off. Sparks S08 to S12 are all absorbed, as T67 to T71; none is open. The reading path is over budget and that is the first job: the seat packet broke its 26 KB cap while this sitting was booking the measurement of it (D-52), and AGENTS.md is at 97 per cent of 12 KB. Ceilings do not move; compact instead (D-54). The queue is the open lanes below, in order, and F33 runs ALONE because every lane contends on governance surfaces. Orchestration read from Otto and Virbos is in D-53. Nothing is running and no envelope is issued. References Otto and Virbos stay read-only. Overlay still shelf.",
+  "now": "CONTROL PLANE VACANT. Sittings 8 and 9 held by a Claude desktop session, handed off at the owner's word. That tenure: F31 and F32 landed through a writer seat and an independent reviewer, which paid D-45; factory/returns.json holds its first metered row; D-49 adopted and AGENTS section 5 split into the owner's boundaries and the factory's provisional ones; D-50 to D-54 recorded; sparks S08 to S12 all absorbed as T68 to T71; T04 generalised from the host clock to any value not read in the same act as the write. No product code authored, no gate opened, no ceiling raised. FIRST ACTS OF THE SUCCESSOR, IN ORDER. 1. Verify state at the objects: live main by git ls-remote, this checkout's porcelain, node factory/tools/landingGate.mjs, node factory/tools/experiment.mjs list. 2. Read D-52 and D-54, then issue F33 ALONE: it is the only urgent lane, it clears the reading path, and every other lane adds traps. 3. Issue F34 alone after it. 4. Then F35 to F38, F36 after F33 because both hold packet.mjs. LIVE CONSTRAINTS. The seat packet is over its 26 KB cap and X01 suspends that step until 2026-10-11 on the hypothesis that the cap is right and the packet is wrong; F36 closes it, and if the packet is still over after F36 the cap itself is wrong and that is a new dated row. AGENTS.md is at 97 per cent of 12 KB, so it cannot take the orchestration text D-53 adopted until F34 compacts it. Ceilings do not move; compact instead. Nothing is running, no envelope is issued, no seat is up. References Otto and Virbos stay read-only. Overlay still shelf. Writer path is native DeepSeek, DashScope only on peak or outage, qwen3-coder retired.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -359,10 +359,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "F30 landed. factory/tools/experiment.mjs suspends a named landing step for a hypothesis with an expiry, and the gate prints what a suspended step found instead of hiding it. Landed inert: no experiment is open. T66. D-48."
-    },
-    {
-      "at": "2026-09-20",
       "event": "D-49 deferred to the owner word: AGENTS section 5 mixes owner boundaries with engineering guesses, so a session cites a preference as physics. Proposed replacement text is in docs/log/f30.md. The session that proposed it was refused twice by the desktop tool policy for editing its own instruction file, which is the right refusal."
     },
     {
@@ -404,6 +400,10 @@
     {
       "at": "2026-09-20",
       "event": "Sitting 9 absorbed S08 to S12 as T68 to T71 and the seat packet broke its 26 KB cap in the same act, which is D-52 arriving. Ceilings do not move: X01 is the first live experiment, suspending the packet budget step for 21 days on the hypothesis that the cap is right and the packet is wrong, with F36 the scoping lane that closes it. Six lanes queued in order; F33 and F34 run ALONE because every lane contends on governance surfaces (D-54). Envelope tool-call floor is 40. controlPlane is now the generic owner-selected rather than a vendor id."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "Control plane handed off. The board and factory/decisions.json carry everything this tenure learned, including the orchestration model read from Otto and Virbos (D-53) and the governance-maintenance model (D-54); nothing of it is left in the session. X01 is open and is the first exception this repository has taken on purpose rather than by decree."
     }
   ]
 }
