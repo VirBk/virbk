@@ -1,5 +1,5 @@
 {
-  "now": "Sitting 2. F21 issued: shallow checkout for the landing gate. Local DashScope writer; references remain read-only.",
+  "now": "Sitting 3. F21 landed: shallow checkout for the landing gate. Writer idle; references remain read-only. Overlay still shelf. Path dashscope.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -162,7 +162,7 @@
     {
       "id": "F21",
       "title": "Shallow checkout for the landing gate",
-      "state": "issued",
+      "state": "landed",
       "hold": ".github/workflows/landing.yml, docs/log/f21.md"
     }
   ],
@@ -386,6 +386,10 @@
     {
       "at": "2026-09-20",
       "event": "F21 issued after owner review of PR #3. Local qwen-code writer on deepseek-v4.1-flash. Records issuance skips Actions to prevent a duplicate writer; final landing requires the full gate."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F21 landed ff-only after a DeepSeek writer return, fresh approved review, and Ubuntu archive gate (Actions run 35483615467). Envelope retired; usage recorded in docs/log/f21.md. PR #3 closed in favor of #4. Sitting closed."
     }
   ]
 }

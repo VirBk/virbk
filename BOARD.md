@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-Sitting 2. F21 issued: shallow checkout for the landing gate. Local DashScope writer; references remain read-only.
+Sitting 3. F21 landed: shallow checkout for the landing gate. Writer idle; references remain read-only. Overlay still shelf. Path dashscope.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -45,7 +45,7 @@ No envelope opens a gate.
 | F18 | landed | factory/sparks.json, factory/tools/sitting.mjs, factory/traps.yaml, docs/log/f18.md | Close F15; absorb S01 as T49; drop S02 |
 | F19 | landed | .github/workflows/landing.yml, factory/landing-checks.json | Public-repo landing Action |
 | F20 | landed | .github/workflows/writer.yml, factory/tools/ghaWriter.mjs | GitHub Action writer runner |
-| F21 | issued | .github/workflows/landing.yml, docs/log/f21.md | Shallow checkout for the landing gate |
+| F21 | landed | .github/workflows/landing.yml, docs/log/f21.md | Shallow checkout for the landing gate |
 
 ## Holds
 
@@ -113,3 +113,4 @@ No envelope opens a gate.
 - 2026-09-18 F19 landed. Owner: public repo. Landing Action runs the gate on ubuntu. No writer secret. Writer runner stays shelf. D-36.
 - 2026-09-18 F20 landed. Owner placed DASHSCOPE_API_KEY. Writer Action idles green; launches qwen-code on an envelope; never pushes main. D-37 T55.
 - 2026-09-20 F21 issued after owner review of PR #3. Local qwen-code writer on deepseek-v4.1-flash. Records issuance skips Actions to prevent a duplicate writer; final landing requires the full gate.
+- 2026-09-20 F21 landed ff-only after a DeepSeek writer return, fresh approved review, and Ubuntu archive gate (Actions run 35483615467). Envelope retired; usage recorded in docs/log/f21.md. PR #3 closed in favor of #4. Sitting closed.
