@@ -317,22 +317,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "S03 absorbed as T57, S04 as T58, S06 as T56. S05 dropped: T50 already holds it."
-    },
-    {
-      "at": "2026-09-20",
-      "event": "Control plane ran as its own writer for this records sitting on the owner word; no independent reviewer session existed. The gate and the new self-tests are the evidence. D-45."
-    },
-    {
-      "at": "2026-09-20",
-      "event": "Landing gate ran on the control-plane machine for the first time: 19 steps, GATE PASSED, from a fresh archive of the commit under test. The Ubuntu Action runs the same 19."
-    },
-    {
-      "at": "2026-09-20",
-      "event": "Newlines pinned with .gitattributes so the working tree, the gate archive and the runner measure one number. Each alumni drop now names the read-only command the parent uses to measure adoption."
-    },
-    {
-      "at": "2026-09-20",
       "event": "F28 landed. The writer Action and every seat recipe launch on the packet instead of an envelope plus a browse. ghaWriter self-test fails if the packet stops being the prompt. T61. D-38."
     },
     {
