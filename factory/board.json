@@ -1,5 +1,5 @@
 {
-  "now": "Sitting 8 closing. F31 and F32 landed and factory/returns.json holds its first metered row. AGENTS section 5 is split into the owner boundaries and the factory provisional ones (D-49 adopted on the owner word). The writer path is native DeepSeek with DashScope as peak-and-outage fallback, and qwen3-coder is retired (D-51). Five sparks are open at the cap, S08 to S12; sitting 9 cannot close until every one is absorbed or dropped. References Otto and Virbos remain read-only. Overlay still shelf.",
+  "now": "Sitting 9. Four sparks open at age 1, S08 S10 S11 S12; this sitting cannot close until each is absorbed or dropped. Measured and booked: the control-plane packet is 38.3 KB of a 44 KB cap and AGENTS.md is 11.6 KB of 12 KB, and traps.yaml grew twenty rows in three days, so both caps fail in about four days (D-52). The queue in order: F33 packet windowing, urgent and it unblocks the rest; F34 the alumni scan reads a child TRAPS.md (S11, S12); F35 a trap carries an object and a seat packet is scoped to its Holds; F36 Holds proved disjoint with a seat census (S08); F37 a return model checked against the meter (S10). Orchestration learned from Otto and Virbos is in D-53 and the AGENTS section 3 edit it implies waits on F33. T04 now covers any value derived from a session own memory, not only a clock. Nothing is running and no envelope is issued. References Otto and Virbos remain read-only. Overlay still shelf.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -323,10 +323,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "F29 landed. A return that passes validation can be recorded; the row is keyed by its content so recording it twice is refused, and spend sums by lane and by model. The store is empty until the next metered return. S07 absorbed as T65. D-47."
-    },
-    {
-      "at": "2026-09-20",
       "event": "Sitting 5 closed with no open sparks. S07 was the only one minted and it was absorbed as T65 in the same sitting. The board is idle: no lanes, no envelopes, one gate open by design."
     },
     {
@@ -368,6 +364,10 @@
     {
       "at": "2026-09-20",
       "event": "D-49 adopted: AGENTS section 5 split into the owner boundaries and the factory provisional ones, sixteen bullets unchanged, 11896 bytes against a 12288 cap. D-51 adopted: writerPath auto with writerModel deepseek-flash and writerMeter deepseek-native, so the router takes api.deepseek.com off-peak and DashScope only on peak or outage; qwen3-coder retired to the excluded block of factory/writer-paths.json. Owner rotated both API keys; the old pair answers 401 and the new pair 200."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "Onboarding cost measured for the first time: control-plane packet 38.3 KB of a 44 KB cap, AGENTS.md 11.6 KB of 12 KB, traps digest 11.5 KB and 30 per cent of the packet, headroom 24 traps against twenty added in three days. The board is not the grower; traps.yaml and sparks.json are, being the two stores in the reading path with no window. D-52 orders the remedy and D-53 records the orchestration model read from Otto and Virbos. T04 generalised from the host clock to any value not read in the same act as the write, which is the form that would have caught the T67 row."
     }
   ]
 }

@@ -18,8 +18,8 @@
 
 - id: T04
   kind: agent
-  title: Clock derived from the previous stamp
-  rule: Read the host clock every time.
+  title: Value derived from the session own memory
+  rule: Read the value in the same act as the write — the clock from the host, an id from the file that owns it, a count from the command that produced it. A figure carried from a neighbour or from intention compounds, and nothing catches it unless something compares it.
 
 - id: T05
   kind: agent
