@@ -3,355 +3,426 @@
 
 - id: T01
   kind: docs
+  object: "*"
   title: Live files that grow forever
   rule: Hard size budgets. Archive at 80%. Generated board, not a diary.
 
 - id: T02
   kind: docs
+  object: "*"
   title: Copied counts
   rule: Paste from a command, with the command, or omit.
 
 - id: T03
   kind: docs
+  object: "*"
   title: Struck-through archaeology
   rule: Edit in place. History is git.
 
 - id: T04
   kind: agent
+  object: "*"
   title: Value derived from the session own memory
   rule: Read the value in the same act as the write: the clock from the host, an id from the file that owns it, a count from the command that produced it. A figure carried from a neighbour or from intention compounds, and nothing catches it unless something compares it.
 
 - id: T05
   kind: agent
+  object: "*"
   title: Backticks inside double-quoted bash
   rule: Write the script to a file and run the file.
 
 - id: T06
   kind: agent
+  object: "*"
   title: Print-mode seat ends the turn on a background job
   rule: Detached log, rc marker, poll in the foreground.
 
 - id: T07
   kind: agent
+  object: "*"
   title: Recipe remembered, not read
   rule: The envelope names the recipe. A claim of installed is a claim a seat will test.
 
 - id: T08
   kind: portable
+  object: "*"
   title: Gate reads the working tree, tests the commit
   rule: Parse the check list from the git archive of the commit under test.
 
 - id: T09
   kind: portable
+  object: "*"
   title: Permanently red workflow
   rule: A check that cannot pass is removed or skipped loudly.
 
 - id: T10
   kind: portable
+  object: "*"
   title: Exit code thrown away by a pipe
   rule: Capture status before piping.
 
 - id: T11
   kind: portable
+  object: "*"
   title: Conflict resolution is unreviewed code
   rule: Probe the merge before the second sibling launches.
 
 - id: T12
   kind: portable
+  object: "*"
   title: Adversaries share the platform
   rule: A Linux compile of the landed bytes, or the board names why not.
 
 - id: T13
   kind: portable
+  object: "*"
   title: Test that cannot fail
   rule: A new test must fail on revert of the fix.
 
 - id: T14
   kind: portable
+  object: "*"
   title: Switched-off mechanism looks working
   rule: Every gate step runs through bash -e from a file.
 
 - id: T15
   kind: portable
+  object: "*"
   title: Main moves under a landing
   rule: Freeze main between branch push and fast-forward.
 
 - id: T16
   kind: machine
+  object: "*"
   title: Worktree remove follows junctions
   rule: Never junction node_modules into a worktree that will be removed.
 
 - id: T17
   kind: machine
+  object: "*"
   title: npx silently installs
   rule: Run node node_modules/… directly. Abort when absent.
 
 - id: T18
   kind: machine
+  object: "*"
   title: Stop a cluster by process name
   rule: Stop by data directory or port.
 
 - id: T19
   kind: portable
+  object: "*"
   title: Control plane session pointed at a cheap model
   rule: Spawn a writer seat. Do not remap the control-plane session.
 
 - id: T20
   kind: portable
+  object: "*"
   title: Cheap writer reviews itself
   rule: Reviewer is a stronger session. Never the writer.
 
 - id: T21
   kind: portable
+  object: "*"
   title: API keys in git or VITE_
   rule: Seat environment only. Never git. Never a VITE_ variable.
 
 - id: T22
   kind: portable
+  object: "*"
   title: Cloud writer on the owner's disk
   rule: Worktree of the envelope holds. Nothing else.
 
 - id: T23
   kind: portable
+  object: "*"
   title: Child writes the parent kit
   rule: A child never writes VirBk/virbk. Returns arrive as intakes. Absorbing is a Grok envelope.
 
 - id: T24
   kind: portable
+  object: "*"
   title: Intake without a check
   rule: Every absorbed row names the command, gate step, or hold that would catch a repeat. Else reject.
 
 - id: T25
   kind: portable
+  object: "*"
   title: A decaying session was continued
   rule: Git is memory. The session is a fuse. Split on a named decay sign. Successor reads AGENTS, BOARD, envelope.
 
 - id: T26
   kind: docs
+  object: "*"
   title: Compaction or transcript used as briefing
   rule: No SESSION_LOG. No handoff.md. No CONTROL_PLANE_HANDOFF. No compaction.md as live memory.
 
 - id: T27
   kind: portable
+  object: "*"
   title: Session id resumed from prose
   rule: Authoritative id is in the seat's own JSON. Challenge seats are never resumed.
 
 - id: T28
   kind: portable
+  object: "*"
   title: Model shopping mid-envelope because this one got tired
   rule: Fresh same-tier instance. Rising the tier is a new envelope.
 
 - id: T29
   kind: portable
+  object: "*"
   title: Hands that have a model
   rule: The runner does not call a model and does not read API keys. Judgment stays in the control-plane session.
 
 - id: T30
   kind: portable
+  object: "factory/envelopes/"
   title: Envelope stored as an Issue
   rule: Envelope is a git blob under factory/envelopes/. Issues are not the board.
 
 - id: T31
   kind: portable
+  object: "*"
   title: Tokens saved by weakening judgment
   rule: Cut the write. Do not remap the control plane. Do not skip review. Do not put a model on hands.
 
 - id: T32
   kind: portable
+  object: "*"
   title: Token-zero treated as no-scope
   rule: A ZERO names every container, including empty ones. Product source is a container. The board's later sections are a container.
 
 - id: T33
   kind: portable
+  object: "*"
   title: Named issuance asked of the owner
   rule: A named law, circular, IRR, RFC, or PDF is a fetch. Quote it or stamp the miss. Asking the owner is for documents that do not exist.
 
 - id: T34
   kind: portable
+  object: "*"
   title: Collection treated as no statute
   rule: An agency still collecting is a second fact. Transcribe the issuance. Do not collapse practice into "no legal basis."
 
 - id: T35
   kind: portable
+  object: "*"
   title: Tool-policy refusal treated as owner wait
   rule: A refused launch is not an owner ask. Binary underneath, then hands launch, then print the one-line and split. Do not wait.
 
 - id: T36
   kind: portable
+  object: "*"
   title: Ruling that cannot fit the hold
   rule: Before issue, every sentence of the ruling is implementable in the named holds. Split what cannot. Do not issue a lane whose other half is owed.
 
 - id: T37
   kind: portable
+  object: "*"
   title: Green gate quoted as the whole check
   rule: A landing line names which check covered what. A green gate is not evidence about a suite it does not contain.
 
 - id: T38
   kind: portable
+  object: "*"
   title: Negative finding stamped without a drive
   rule: A seat return that looks like a drive is a lead until the control plane runs one command at the objects.
 
 - id: T39
   kind: portable
+  object: "factory/tools/spark.mjs"
   title: Eureka left in the transcript
   rule: Mid-sitting, spark.mjs add. Successor looks at factory/sparks.json. Do not write handoff.md. Absorbing is an envelope with a check.
 
 - id: T40
   kind: portable
+  object: "*"
   title: Session-only waiver inherited as law
   rule: A waiver is the envelope or gitignored factory/.waiver. Sitting close expires it. Landing fails if .waiver is tracked.
 
 - id: T41
   kind: portable
+  object: "factory/drops/*.md"
   title: Absorbed reference treated as a live child
   rule: Alumni take factory/drops/<name>.md after running seats finish. They do not copy factory/ over a live product. Overlay is a later envelope. A child never writes VirBk/virbk.
 
 - id: T42
   kind: portable
+  object: "*"
   title: Uncredited factory author
   rule: Author email must be on a GitHub account, or the message carries Co-authored-by matching one. grok@factory is anonymous on Insights and the graph. Pick commitCredit.
 
 - id: T43
   kind: portable
+  object: "*"
   title: Collaborator treated as contributor
   rule: Write access is not a landed commit. Insights Contributors is default-branch authors. Pick access. Parent live pick is owner-only.
 
 - id: T44
   kind: portable
+  object: "*"
   title: Cursor Cloud Agent treated as a DeepSeek or Qwen seat
   rule: Cursor cloud, background, automations, and CLI do not take BYOK. Local Chat/Agent may. Cloud writer is aider or qwen-code on git-bus or a codespace. Do not remap the control plane. Do not add an Action while the secret is missing.
 
 - id: T45
   kind: portable
+  object: "*"
   title: Clock or UUID in the cached prefix
   rule: Prompt cache is a prefix match. Static bytes first (AGENTS, BOARD, envelope, tools). Variable work last. A timestamp, random id, or shuffled tool list busts the hit. Paste prompt_cache_hit_tokens or cached_tokens with the command. Do not store answers.
 
 - id: T46
   kind: portable
+  object: "*"
   title: Claude Code installed to spend a writer token
   rule: Claude Code absent is the default. A DeepSeek or DashScope token goes in aider or qwen-code. Grok stays judgment. Do not install Claude Code or Cursor to spend the token. Do not remap this session onto it. Token in env or a Codespaces secret, never git.
 
 - id: T47
   kind: portable
+  object: "*"
   title: Overlay factory onto an alumni to help it
   rule: To help Virbos or Otto, copy the kit into a new empty remote. Pick help-fork or help-collab. Name the target in factory/help.json. Isolate is a sibling clone. Product PRs contain no factory files. This factory never lands the target's main. Overlay-pin needs a quiet week, kit SHA, and owner word. Do not run one sitting as control plane of Grok and the target.
 
 - id: T48
   kind: portable
+  object: "*"
   title: Native catalog id sent as a DashScope model
   rule: DashScope API ids are deepseek-v4.1-flash and deepseek-v4-pro-0813. deepseek-flash and deepseek-v4-pro are native names. Unversioned DashScope deepseek-v4-pro is the $2.40/$4.80 alias. Hosted recipes print the mapped id.
 
 - id: T49
   kind: portable
+  object: "factory/tools/sitting.mjs"
   title: Two classes of work in one control-plane sitting
   rule: A sitting is one class of work. helpMode other than none plus a factory envelope (F*.md) is a split. Check is node factory/tools/sitting.mjs check.
 
 - id: T50
   kind: portable
+  object: "*"
   title: Private session notes used as the record
   rule: The repository is the record. Session notes, Claude memory, and handoff files are not. Newest board section, register, git. A fact taken from notes is a diary.
 
 - id: T51
   kind: portable
+  object: "*"
   title: Closed keystone list skipped then cited as precedent
   rule: A closed keystone list is read at issue. Every writer envelope names the keystone or its absence. Recent skips are not the list.
 
 - id: T52
   kind: portable
+  object: "*"
   title: Alumni drop that grows over-cap live files
   rule: Feed a check the alumni gate already parses. Archive at 80% first. Do not append sermons to a rotting live file.
 
 - id: T53
   kind: portable
+  object: "*"
   title: Size archive issued on the product path
   rule: The size script fails; it does not split. Archive at 80% is a CP records commit between landings. First cut is Now-only. Do not issue a writer. A keystone does not wait on a split.
 
 
 - id: T54
   kind: portable
+  object: "factory/tools/landingGate.mjs"
   title: Landing Action that needs a writer secret
   rule: Public landing CI runs landingGate.mjs with no secrets. Check is the landing-checks step Public landing Action stays green.
 
 - id: T55
   kind: portable
+  object: "factory/tools/ghaWriter.mjs"
   title: Writer Action that stays red or pushes main
   rule: Idle is success. Missing secret is a loud skip. Branch is writer/<lane> only. Check is node factory/tools/ghaWriter.mjs --self-test.
 - id: T56
   kind: portable
+  object: "factory/tools/seatReturn.mjs"
   title: Return that says it verified without pasting the command
   rule: A return names the command and what the command printed. A word is not output. Check is node factory/tools/seatReturn.mjs --self-test.
 
 - id: T57
   kind: portable
+  object: "factory/tools/scopeSearch.mjs"
   title: Hosted or private-index search treated as a ZERO
   rule: A search product is not a container. GitHub code search of a private repo returned empty while the objects were not. Open the containers. Check is node factory/tools/scopeSearch.mjs --self-test.
 
 - id: T58
   kind: portable
+  object: "factory/CONTROL_PLANE.md"
   title: Control plane that issues without reading its own derivation
   rule: A session that will issue, stamp, drop or wait reads factory/CONTROL_PLANE.md. Check is factory/sessions.json successorReads naming it, failed by node factory/tools/spark.mjs --self-test.
 
 - id: T59
   kind: portable
+  object: "factory/packages.json"
   title: State file that no check parses
   rule: Every tracked .json parses in the gate. factory/packages.json shipped broken and unread for three landings. Check is node factory/tools/kitCheck.mjs --self-test.
 
 - id: T60
   kind: portable
+  object: "factory/tools/landingGate.mjs"
   title: Gate that only runs on the runner
   rule: The landing gate unpacks its own archive in process and pins newline conversion, so the control plane measures the bytes CI measures. Check is node factory/tools/landingGate.mjs --self-test.
 
 - id: T61
   kind: portable
+  object: "factory/tools/packet.mjs"
   title: History inside the reading path
   rule: The ledger and landed lanes are history; the packet is the reading path and has a byte budget. Check is node factory/tools/packet.mjs --self-test and node factory/tools/ledger.mjs --self-test.
 
 - id: T62
   kind: portable
+  object: "factory/lineage.json"
   title: Drop issued and never measured
   rule: An alumni drop names the script and gate file it expects, in factory/lineage.json; adoption is a command, not a hope. Check is node factory/tools/alumni.mjs drop-status <child> <path>, exit 2 when not adopted.
 
 - id: T63
   kind: portable
+  object: "factory/tools/kitCheck.mjs"
   title: Two files holding the same state
   rule: The board is the board. A plan file, a console page, or a README that restates lane state drifts within a sitting. Check is node factory/tools/kitCheck.mjs --self-test.
 
 - id: T64
   kind: portable
+  object: "factory/tools/seatReturn.mjs"
   title: Contract enum typed once, catalog moved
   rule: A schema listing ids by hand is checked against the catalog that owns them. Check is node factory/tools/seatReturn.mjs --check-contract.
 
 - id: T65
   kind: portable
+  object: "factory/tools/seatReturn.mjs"
   title: Number measured, validated, discarded
   rule: Spend and cache numbers are appended by seatReturn.mjs <return.json> --record and read by spend. The key is the row's content, checked read-first, so recording twice does not double it. Check is node factory/tools/seatReturn.mjs --self-test.
 
 - id: T66
   kind: portable
+  object: "factory/tools/experiment.mjs"
   title: Rule that can only die by decree
   rule: A check that encodes a guess needs a way down on purpose: a hypothesis, a measure, an expiry. The gate still runs a suspended step and prints what it found. Suspend no step wider than the hypothesis. Check is node factory/tools/experiment.mjs --self-test.
 
 - id: T67
   kind: portable
+  object: "factory/tools/seatReturn.mjs"
   title: Meter the seat cannot reach
   rule: The numbers a return needs are in the harness meter, not the seat: the qwen record is appended on session exit, so reading it is the control plane's work. meter <project-path> prints them, and a return may carry tokens in place of spendUsd when the harness reports no cost. Check is node factory/tools/seatReturn.mjs --self-test.
 
 - id: T68
   kind: portable
+  object: "*"
   title: Holds are prose and nothing bounds a running seat
   rule: Holds bind only at the return. Nothing stops a seat mid-run, and a session launched in the control-plane checkout rather than a worktree has no Holds at all: it will land and push. Launch in a worktree, with an explicit tool allowlist.
 
 - id: T69
   kind: portable
+  object: "*"
   title: Seat echoes its stamp, not its model
   rule: A seat cannot see its own model and echoes the envelope Runtime stamp instead. The harness meter records the true id; a return's model is the launcher's string, filled by the control plane.
 
 - id: T70
   kind: machine
+  object: "*"
   title: Command handed over in the wrong shell dialect
   rule: The owner's terminal is PowerShell 5.1, which rejects && as a statement separator. One command per line. Gate steps run through bash from a file and are unaffected; this binds what the control plane types at the owner.
 
 - id: T71
   kind: portable
+  object: "factory/tools/alumni.mjs"
   title: Child's lesson invisible to the parent's scanner
   rule: alumni.mjs scan measures structure and never opens a child's TRAPS.md, so a lesson written in prose reaches the parent only by a person reading it.

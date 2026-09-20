@@ -134,8 +134,11 @@ export function boardSlice(board) {
   return lines.join(NL);
 }
 
-// traps.yaml without the comment lines and the blank lines between rows.
-export function trapsDigest(text) {
+// The one parser for traps.yaml. The digest, the object resolver and the
+// self-test all read a row through this, so no two of them can disagree about
+// what the file says (T04). `object` sits between `kind` and `title`, so it is
+// parsed here rather than being swallowed into the rule as a continuation line.
+export function parseTraps(text) {
   const rows = [];
   let cur = null;
   for (const raw of text.split(NL)) {
@@ -144,10 +147,16 @@ export function trapsDigest(text) {
     const id = /^- id:\s*(\S+)/.exec(line);
     if (id) {
       if (cur) rows.push(cur);
-      cur = { id: id[1], title: "", rule: "" };
+      cur = { id: id[1], object: "", title: "", rule: "" };
       continue;
     }
     if (!cur) continue;
+    const object = /^\s+object:\s*(.+)$/.exec(line);
+    if (object) {
+      // A bare `*` would be a YAML alias, so the file may quote it.
+      cur.object = object[1].trim().replace(/^["']|["']$/g, "");
+      continue;
+    }
     const title = /^\s+title:\s*(.+)$/.exec(line);
     if (title) {
       cur.title = title[1];
@@ -161,10 +170,63 @@ export function trapsDigest(text) {
     if (/^\s+\S/.test(line) && cur.rule) cur.rule += " " + line.trim();
   }
   if (cur) rows.push(cur);
+  return rows;
+}
+
+// Whether a rule carries a sentence that begins "Check is " — the mark that a
+// landing step already enforces the trap. The sentence has to start after a
+// period and a space, or open the rule, so the words inside a longer clause do
+// not count.
+export function ruleNamesACheck(rule) {
+  return /(^|\.\s)Check is /.test(rule);
+}
+
+// The first sentence of a rule: up to and including its first period that ends
+// a sentence. A decimal point (0.5) has no space after it, so it does not split.
+function firstSentence(text) {
+  const m = /^[\s\S]*?\.(?=\s|$)/.exec(text);
+  return m ? m[0] : text;
+}
+
+// traps.yaml without the comment lines and the blank lines between rows, and
+// without the prose of a trap the gate already enforces: a trap whose rule
+// names a check rides in the packet as its id, its title and its first
+// sentence only, so writing a check removes the rest from every future packet
+// (D-52 remedy two). Every row still emits, so the digest count still equals
+// the trap count, and `object` never reaches the packet.
+export function trapsDigest(text) {
   const out = ["# Traps — paid for once. Read once.", ""];
-  for (const r of rows) out.push(r.id + " " + r.title + ": " + r.rule);
+  for (const r of parseTraps(text)) {
+    const rule = ruleNamesACheck(r.rule) ? firstSentence(r.rule) : r.rule;
+    out.push(r.id + " " + r.title + ": " + rule);
+  }
   out.push("");
   return out.join(NL);
+}
+
+function globSegmentToRegExp(segment) {
+  const escaped = segment.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+  return new RegExp("^" + escaped.split("*").join("[^/]*").split("?").join("[^/]") + "$");
+}
+
+// An object resolves when the tree holds what it names: `*` binds everywhere,
+// an exact path exists, or a glob matches at least one file. The tree is the
+// one the packet is measured against, so a fixture drives this too.
+export function objectResolves(root, object) {
+  if (object === "*") return true;
+  const segments = object.split("/").filter((s) => s !== "");
+  const walk = (dir, i) => {
+    if (i === segments.length) return existsSync(dir);
+    const segment = segments[i];
+    if (!/[*?]/.test(segment)) {
+      const next = join(dir, segment);
+      return existsSync(next) && walk(next, i + 1);
+    }
+    if (!existsSync(dir)) return false;
+    const re = globSegmentToRegExp(segment);
+    return readdirSync(dir).some((name) => re.test(name) && walk(join(dir, name), i + 1));
+  };
+  return walk(root, 0);
 }
 
 // Issued envelopes: one per lane the control plane has launched, README out.
@@ -387,12 +449,37 @@ function selfTest(root) {
   if (landed && slice.includes(landed.title)) errors.push("board slice leaked a landed lane");
   if (!slice.includes(String(board.now).slice(0, 20))) errors.push("board slice lost Now");
 
-  const digest = trapsDigest(read(root, "factory/traps.yaml"));
-  const trapIds = (read(root, "factory/traps.yaml").match(/^- id: \S+/gm) || []).length;
+  const trapText = read(root, "factory/traps.yaml");
+  const traps = parseTraps(trapText);
+  const digest = trapsDigest(trapText);
   const digestIds = (digest.match(/^T\d+ /gm) || []).length;
-  if (trapIds !== digestIds) errors.push("traps digest dropped rows: " + trapIds + " to " + digestIds);
-  if (digest.length >= read(root, "factory/traps.yaml").length) {
-    errors.push("traps digest is not smaller than traps.yaml");
+  if (traps.length !== digestIds) {
+    errors.push("traps digest dropped rows: " + traps.length + " to " + digestIds);
+  }
+  if (digest.length >= trapText.length) errors.push("traps digest is not smaller than traps.yaml");
+
+  // Every trap is addressable: it names the artifact it binds to, or the mark
+  // that says it binds everywhere. A trap with no object is a trap no scope can
+  // ever find, and an object pointing at a file that is not there is the shape
+  // this claim exists to stop. Read from the same text as the digest above.
+  for (const t of traps) {
+    if (!t.object) errors.push("trap " + t.id + " has no object");
+    else if (t.object !== "*" && !objectResolves(root, t.object)) {
+      errors.push("trap " + t.id + " object does not resolve: " + t.object);
+    }
+  }
+
+  // A trap whose rule already names a check is enforced by the landing gate, so
+  // the packet carries its id, its title and its first sentence and not the
+  // rest of the prose (D-52 remedy two). Reverting the compression fails here;
+  // a tree where no rule names a check would make the assertion vacuous, so
+  // that fails too.
+  const checked = traps.filter((t) => ruleNamesACheck(t.rule));
+  if (!checked.length) errors.push("no trap rule names a check — the digest compression is untested");
+  for (const t of checked) {
+    const want = t.id + " " + t.title + ": " + firstSentence(t.rule);
+    const got = digest.split(NL).find((l) => l.startsWith(t.id + " "));
+    if (got !== want) errors.push("digest did not compress " + t.id + ": " + JSON.stringify(got));
   }
 
   const seat = seatPacket(root, null);
