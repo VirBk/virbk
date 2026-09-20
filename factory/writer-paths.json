@@ -1,20 +1,32 @@
 {
-  "meter": "dashscope-payg",
+  "meter": "deepseek-native",
   "region": "ap-southeast-1",
   "peak": {
     "provider": "deepseek-native",
     "tz": "UTC",
-    "weekdays": [1, 2, 3, 4, 5],
+    "weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
     "windowsUtc": [
-      ["01:00", "04:00"],
-      ["06:00", "10:00"]
+      [
+        "01:00",
+        "04:00"
+      ],
+      [
+        "06:00",
+        "10:00"
+      ]
     ],
     "note": "Peak hours are 01:00-04:00 and 06:00-10:00 UTC, Monday through Friday. All other hours are off-peak. Source: DeepSeek pricing footnote."
   },
   "paths": {
-    "auto": "Native DeepSeek off-peak if healthy. DashScope PAYG on peak, native timeout, or Qwen.",
+    "auto": "Native DeepSeek off-peak if healthy. DashScope PAYG only on peak hours or a native outage. D-51.",
     "native": "Pin api.deepseek.com. Owner accepts peak rates. Outage still fails over.",
-    "dashscope": "Pin Model Studio PAYG Singapore."
+    "dashscope": "Pin Model Studio PAYG Singapore. Fallback only: peak or native outage."
   },
   "bases": {
     "dashscope": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
@@ -25,5 +37,8 @@
     "timeoutMs": 3000,
     "up": "Any HTTP response, including 401.",
     "down": "Timeout, DNS, or network error."
+  },
+  "excluded": {
+    "qwen3-coder": "Out of consideration. D-51: qwen3-coder-plus burned 4898721 tokens on the F31 envelope over 83 requests and never committed, against 1013608 tokens for a complete correct lane on deepseek-flash."
   }
 }

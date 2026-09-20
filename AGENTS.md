@@ -49,22 +49,29 @@ Two writers at a time is a ceiling, not a target. A seat with no blocker on the 
 - `BOARD.md` is generated from `factory/board.json`. Do not hand-edit the markdown. The ledger there is a window; `node factory/tools/ledger.mjs rotate` moves older rows to `docs/ledger/`.
 - Size budgets in `factory/budgets.json` fail the landing gate. Archive at 80% of cap. Do not append to a live file that is over budget.
 
-## 5. Boundaries that never move
+## 5. Boundaries
+
+Two kinds, and they are not the same kind. The owner’s do not move. The rest are this factory’s current best guess: they hold until evidence replaces them, and `factory/tools/experiment.mjs` is how one comes down on purpose — a hypothesis, a measure, an expiry — instead of by decree or by a waiver nobody can read later.
+
+**The owner’s.**
 
 - Never commit real people, pay, client, or credential data. Fixtures are synthetic and obviously so.
 - One private remote. No second remote, no sync client, no deployment without the owner’s word.
 - Merge, release, deployment, destructive action, and protected-data access are the owner’s acts.
 - Every route declares its permission or its authenticated-only status; a route with neither is refused.
 - No envelope opens a gate. Gates live on the board. The owner closes them with a word.
+- API keys live in a seat's environment, never in git, never in a `VITE_` variable.
+- A cloud writer receives a worktree of the envelope holds, not the owner's disk.
+- GitHub write access is not a contributor. A contributor is a commit that landed on the default branch with an email on a GitHub account. Parent `access` is `owner-only`.
+
+**The factory’s, and provisional.** Each has paid for itself so far. An experiment may suspend the check that enforces one. None of them is a reason to refuse an idea outright.
+
 - Do not point the control-plane session at DeepSeek or Qwen. Spawn a writer seat. Cursor Cloud Agents cannot take that token. Cloud isolate is `git-bus` or `codespace` (`factory/HANDS.md`).
 - Do not invent a third seat with a model. Claude Code absent is the default. A DeepSeek or DashScope token is the writer; the topologies are in `factory/runtimes.json`. Do not install Claude Code to spend it.
 - Envelopes live as git blobs in `factory/envelopes/`. Issues are not the board.
 - A writer never fast-forwards main and never reviews its own branch.
 - A reviewer is never a weaker model than the writer.
-- API keys live in a seat's environment, never in git, never in a `VITE_` variable.
-- A cloud writer receives a worktree of the envelope holds, not the owner's disk.
 - A child never writes VirBk/virbk. Returns arrive as intakes. Absorbing is a Grok envelope.
-- GitHub write access is not a contributor. A contributor is a commit that landed on the default branch with an email on a GitHub account. Parent `access` is `owner-only`.
 - An intake without a check is refused. A trap without a check is a diary.
 - An absorbed reference is not a live child. It takes a drop from `factory/drops/` after its running seats finish, not the kit. Helping it is a sidecar factory, not an overlay, and not this sitting as its control plane.
 

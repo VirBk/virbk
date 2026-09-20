@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-Sitting 8. F31 and F32 landed. The packet prefix is checked, and a return can carry token counts the control plane read from the harness meter after the seat closed; factory/returns.json holds its first real row, unpriced by design. Five sparks are open at the cap: S08 the Holds are prose, S09 the meter is the control plane’s to read, S10 a seat echoes its stamp not its model, S11 the host shell dialect, S12 the alumni scan never opens a child TRAPS.md. Next sitting adjudicates all five before anything is minted. D-49 still needs the owner word. References Otto and Virbos remain read-only. Overlay still shelf. Path dashscope.
+Sitting 8 closing. F31 and F32 landed and factory/returns.json holds its first metered row. AGENTS section 5 is split into the owner boundaries and the factory provisional ones (D-49 adopted on the owner word). The writer path is native DeepSeek with DashScope as peak-and-outage fallback, and qwen3-coder is retired (D-51). Five sparks are open at the cap, S08 to S12; sitting 9 cannot close until every one is absorbed or dropped. References Otto and Virbos remain read-only. Overlay still shelf.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -93,7 +93,6 @@ No envelope opens a gate.
 
 Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.
 
-- 2026-09-20 A feedback-loop handoff was assessed against live main and nothing was landed from it. The checks it would have turned red are named in D-46. The one gap it found is open as S07: no command sums spend or cache hits across returns.
 - 2026-09-20 F29 landed. A return that passes validation can be recorded; the row is keyed by its content so recording it twice is refused, and spend sums by lane and by model. The store is empty until the next metered return. S07 absorbed as T65. D-47.
 - 2026-09-20 Sitting 5 closed with no open sparks. S07 was the only one minted and it was absorbed as T65 in the same sitting. The board is idle: no lanes, no envelopes, one gate open by design.
 - 2026-09-20 F30 landed. factory/tools/experiment.mjs suspends a named landing step for a hypothesis with an expiry, and the gate prints what a suspended step found instead of hiding it. Landed inert: no experiment is open. T66. D-48.
@@ -105,3 +104,4 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 Sitting 7 closed. F31 was the only lane and it landed; D-45 is paid. D-49 still needs the owner word — carried again. Nothing is running and no experiment is open.
 - 2026-09-20 Five seat runs measured on one envelope. deepseek-flash direct produced a complete correct lane for USD 0.02 over 1,013,608 tokens; deepseek-v4.1-flash did the same over 3,140,038; qwen3-coder-plus burned 4,898,721 and never committed; claude-sonnet-5 cost USD 1.29 over two runs and wrote no product code. Cache hit rates 92.8 to 98.1 per cent, which is the span F31 now checks. S08, S09 and S10 minted.
 - 2026-09-20 F32 landed. node factory/tools/seatReturn.mjs meter <project> reads the qwen usage record, and a return may carry tokens in place of spendUsd when the harness reports no cost. The first row is F32 itself: 1704644 in, 75513 out, 1567488 cached over 27 requests on deepseek-flash. The seat could not paste those numbers because the record is appended on session exit, which is the case the lane was built for. T67. D-50.
+- 2026-09-20 D-49 adopted: AGENTS section 5 split into the owner boundaries and the factory provisional ones, sixteen bullets unchanged, 11896 bytes against a 12288 cap. D-51 adopted: writerPath auto with writerModel deepseek-flash and writerMeter deepseek-native, so the router takes api.deepseek.com off-peak and DashScope only on peak or outage; qwen3-coder retired to the excluded block of factory/writer-paths.json. Owner rotated both API keys; the old pair answers 401 and the new pair 200.

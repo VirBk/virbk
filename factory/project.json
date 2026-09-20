@@ -2,7 +2,7 @@
   "controlPlane": "grok-cloud",
   "hands": "hands.mjs",
   "writerHarness": "qwen-code",
-  "writerModel": "deepseek-v4.1-flash",
+  "writerModel": "deepseek-flash",
   "isolate": "worktree",
   "land": "ff-only",
   "envelopeStore": "git-blob",
@@ -10,6 +10,6 @@
   "commitCredit": "owner-account",
   "promptCache": "provider-prefix",
   "helpMode": "none",
-  "writerMeter": "dashscope-payg",
-  "writerPath": "dashscope"
+  "writerMeter": "deepseek-native",
+  "writerPath": "auto"
 }
