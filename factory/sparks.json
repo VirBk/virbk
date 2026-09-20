@@ -139,6 +139,15 @@
       "whyNotLaw": "On F33 the cloud seat started headless with yolo on writer/F33 and was stopped only by a 401 on a stale DashScope secret. The F31 sitting knew this and wrote it as a ledger sentence, not a check.",
       "status": "open",
       "openedOn": 10
+    },
+    {
+      "id": "S15",
+      "kind": "trap",
+      "claim": "A router exists and one caller ignores it: ghaWriter.mjs hardcodes the DashScope base URL and maps the model through its own HOSTED table, so the cloud seat cannot take the native path route.mjs resolves for the local seat.",
+      "object": "factory/tools/ghaWriter.mjs",
+      "whyNotLaw": "It also counts DEEPSEEK_API_KEY as having a writer secret but never passes it to the call, so a repo holding only that secret stops idling and then fails on an empty key, which is the loud skip T55 requires turned into a loud failure.",
+      "status": "open",
+      "openedOn": 10
     }
   ]
 }
