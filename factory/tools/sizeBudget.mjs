@@ -44,6 +44,17 @@ function total(parts) {
 // envelope issued, which is the binding one.
 export function measures(root) {
   const budgets = JSON.parse(readFileSync(join(root, "factory/budgets.json"), "utf8"));
+  // A cap that is not a number is a missing cap, not a smaller one. `"10" * 1024`
+  // coerces in banded() and pct() while Number.isFinite refuses it in the report,
+  // so one run would band a row at 10 KB and print `n/a` for it: one run, two
+  // answers. Normalize at the read, so every reader sees the same cap, and a
+  // non-number cap lands in the failure column with a name.
+  const capOf = (v) => (Number.isFinite(v) ? v : undefined);
+  for (const f of budgets.files || []) f.capKb = capOf(f.capKb);
+  for (const g of budgets.globs || []) g.capKb = capOf(g.capKb);
+  for (const k of ["seatPacketKb", "cpPacketKb", "envelopeKb"]) {
+    if (budgets.context) budgets.context[k] = capOf(budgets.context[k]);
+  }
   const rows = [];
   for (const file of budgets.files || []) {
     const full = join(root, file.path);
@@ -240,11 +251,20 @@ function selfTest() {
     writeFileSync(
       join(dir, "factory/budgets.json"),
       JSON.stringify({
-        files: [{ path: "probes/band.md", capKb: 10 }, { path: "probes/nocap.md" }],
+        files: [
+          { path: "probes/band.md", capKb: 10 },
+          { path: "probes/nocap.md" },
+          // A cap that is a string, not a number: 4 KB is under the 10 it says,
+          // so a tool that coerces the string measures it against 10 KB and
+          // passes it, while the report line prints `n/a` and `no cap`. One run,
+          // two answers. It is a missing cap, and it must be named as one.
+          { path: "probes/strcap.md", capKb: "10" },
+        ],
         globs: [],
         context: { seatPacketKb: 100, cpPacketKb: 100, envelopeKb: 1 },
       }) + NL,
     );
+    writeFileSync(join(dir, "probes/strcap.md"), Buffer.alloc(4096, 97));
     const nocap = spawnSync(process.execPath, [cli, "--root", dir], { encoding: "utf8" });
     const nocapOut = (nocap.stdout || "") + (nocap.stderr || "");
     if (nocap.status === 0) errors.push("a row with no capKb exited 0");
@@ -260,6 +280,12 @@ function selfTest() {
     }
     if (/TypeError|Cannot read propert/.test(nocapOut)) {
       errors.push("a row with no capKb threw instead of printing the message: " + nocapOut.trim());
+    }
+    const strcapLine = nocapOut
+      .split(NL)
+      .find((l) => l.includes("probes/strcap.md") && l.includes("no capKb in the file being measured"));
+    if (!strcapLine) {
+      errors.push("a cap that is a string was not treated as a missing one: " + nocapOut.trim());
     }
   } finally {
     rmSync(dir, { recursive: true, force: true });

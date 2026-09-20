@@ -315,14 +315,15 @@ function cmdClose(root) {
 }
 
 // A closed spark is history and leaves the file every control-plane packet
-// reads. Oldest first is the order the file held them in, which is the order
-// they were opened in. Each row leaves carrying `at`, the slot it held in the
-// list it left, so the archive read back into the live rows' slots rebuilds
-// that list in its own order — a partition that dropped position could only
-// rebuild a file whose closed rows all precede its open ones, which is not a
-// property of this file. Read the archive before appending to it: a spark
-// whose row is already there is not written twice (T65). The month is the host
-// clock, read in the same act as the write (T04).
+// reads. The archive holds the closed rows in the order the file held them,
+// which is the order they were opened in; the live file holds the open ones in
+// that same order. Rotation is not a reversible transform. The two files are
+// windows over one append-only list, and a row carries no slot, because a
+// second rotation numbers the list it is left with: a slot written by the
+// first rotation would name a different row in the second. Read the archive
+// before appending to it: a spark whose row is already there is not written
+// twice (T65). The month is the host clock, read in the same act as the write
+// (T04).
 function rotate(root, { write = true, now = new Date() } = {}) {
   const data = loadSparks(root);
   const items = Array.isArray(data.items) ? data.items : [];
@@ -340,7 +341,8 @@ function rotate(root, { write = true, now = new Date() } = {}) {
     NL +
     NL +
     "Archived from factory/sparks.json. History, not the reading path. One JSON line per spark, " +
-    "in the order the file held them, plus `at`, the slot the row held in the file it left." +
+    "in the order the file held them. Rotation is not reversible: this file holds the closed rows, " +
+    "the live file the open ones, and neither rebuilds the other." +
     NL +
     NL;
   const prev = existsSync(abs) ? readFileSync(abs, "utf8") : head;
@@ -354,13 +356,10 @@ function rotate(root, { write = true, now = new Date() } = {}) {
       // Not a row this file wrote. Leave it where it is.
     }
   }
-  const fresh = [];
-  items.forEach((it, at) => {
-    if (CLOSED.has(it.status) && !seen.has(it.id)) fresh.push({ at, it });
-  });
+  const fresh = items.filter((it) => CLOSED.has(it.status) && !seen.has(it.id));
   if (fresh.length) {
     const body = prev.endsWith(NL) ? prev : prev + NL;
-    writeFileSync(abs, body + fresh.map((e) => JSON.stringify({ ...e.it, at: e.at })).join(NL) + NL);
+    writeFileSync(abs, body + fresh.map((it) => JSON.stringify(it)).join(NL) + NL);
   }
   data.items = open;
   saveSparks(root, data);
@@ -445,17 +444,14 @@ function selfTest() {
   }
 
   // Rotate: the window is the status. Absorbed and dropped leave the file the
-  // packet reads, open stays, a second run moves nothing, and the archive read
-  // back into the live rows' slots rebuilds the item list as it was, in the
-  // order it was in.
+  // packet reads and open stays, each in the order the file held it, and a
+  // second run with nothing closed moves nothing and touches no open spark.
   const dir3 = mkdtempSync(join(tmpdir(), "grok-spark3-"));
   try {
-    // Two things about the order below are on purpose. The ids are not in
-    // ascending order — the file is append-only, so the order it holds is
-    // opening order, and a rotate that sorted its rows would pass a set
-    // comparison and fail this one. And S01, open, sits between S04 and S02,
-    // both closed: a rotate that partitioned without carrying position would
-    // rebuild this list wrongly, so the assertion below can fail.
+    // The ids below are not in ascending order on purpose. The file is
+    // append-only, so the order it holds is opening order, and a rotate that
+    // sorted its rows would pass a set comparison and fail the order
+    // assertion (a) below.
     const items = [
       {
         id: "S04",
@@ -497,7 +493,6 @@ function selfTest() {
         because: "fixture",
       },
     ];
-    const before = items.map((it) => JSON.stringify(it));
     const rel = ARCHIVE_DIR + "/2026-09.md";
     const archived = () =>
       readFileSync(join(dir3, rel), "utf8")
@@ -524,43 +519,18 @@ function selfTest() {
     if (check(dir3).length) {
       errors.push("rotate left the live file failing its own check: " + check(dir3).join("; "));
     }
-    // The archive is the closed rows byte-exact and in file order; the live
-    // file is the open rows byte-exact. Each archived row also carries `at`,
-    // so reading the archive back into the live rows' slots rebuilds the list
-    // this rotation read. That is the whole claim — `at` is the position, not
-    // part of the row — and it is why the fixture interleaves.
     const closed = items.filter((it) => CLOSED.has(it.status));
     const open = items.filter((it) => it.status === "open");
     const asRows = (list) => JSON.stringify(list.map((it) => JSON.stringify(it)));
-    const withoutAt = ({ at, ...rest }) => rest;
+    // (a) The archive is the closed rows, byte-exact, in the order the file
+    // held them. A rotate that sorted its rows fails this.
     const archivedRows = archived();
-    if (archivedRows.some((r) => !Number.isInteger(r.at))) {
-      errors.push("a rotated row left without `at`, the slot it held: " + asRows(archivedRows));
+    if (asRows(archivedRows) !== asRows(closed)) {
+      errors.push("the archive does not hold the closed rows in file order: " + asRows(archivedRows));
     }
-    if (asRows(archivedRows.map(withoutAt)) !== asRows(closed)) {
-      errors.push(
-        "the archive does not hold the closed rows in file order: " + asRows(archivedRows.map(withoutAt)),
-      );
-    }
+    // (b) The live file is the open rows, byte-exact, in that same order.
     if (asRows(live.items) !== asRows(open)) {
       errors.push("the live file does not hold the open rows byte-exact");
-    }
-    const slots = new Map(archivedRows.map((r) => [r.at, withoutAt(r)]));
-    const spilled = open.slice();
-    const rebuilt = [];
-    for (let i = 0; i < items.length; i++) {
-      rebuilt.push(slots.has(i) ? slots.get(i) : spilled.shift());
-    }
-    if (asRows(rebuilt) !== JSON.stringify(before)) {
-      errors.push("archive plus live file do not rebuild the item list in its original order");
-    }
-    // And the fixture has to be able to fail that. With every closed row
-    // before every open one the slots are a prefix, so a rotate that dropped
-    // position rebuilds correctly and this whole block asserts nothing.
-    if (asRows(archivedRows.map(withoutAt).concat(live.items)) === JSON.stringify(before)) {
-      errors.push(
-        "the fixture holds every closed row before every open one — it cannot fail a rotate that drops position",
-      );
     }
 
     const again = rotate(dir3, { now: new Date("2026-09-20T00:00:00Z") });
@@ -596,6 +566,72 @@ function selfTest() {
     }
   } finally {
     rmSync(dir3, { recursive: true, force: true });
+  }
+
+  // (c) Two productive rotations with a close between. The first moves the
+  // closed rows out, a spark closes, the second moves that one too: both move
+  // rows, which a rotation with nothing closed cannot do. The archive holds
+  // every id exactly once, and no position — the second rotation numbers the
+  // list the first left, so a slot written by the first (S02 at 1) would name
+  // another row in the second (S14 at 1). That is what retired the slot claim.
+  const dir4 = mkdtempSync(join(tmpdir(), "grok-spark4-"));
+  try {
+    const rel4 = ARCHIVE_DIR + "/2026-09.md";
+    const rowsOf = () =>
+      readFileSync(join(dir4, rel4), "utf8")
+        .split(NL)
+        .filter((row) => row.startsWith("{"))
+        .map((row) => JSON.parse(row));
+    const idsUnique = (label) => {
+      const ids = rowsOf().map((r) => r.id);
+      if (new Set(ids).size !== ids.length) {
+        errors.push("the archive holds a duplicate id after " + label + ": " + ids.join(", "));
+      }
+    };
+    const spark = (id, status, extra) => ({
+      id,
+      kind: "trap",
+      claim: "Fixture " + id + " is one sentence long.",
+      object: "factory/tools/spark.mjs",
+      whyNotLaw: "fixture, no check yet",
+      status,
+      openedOn: 1,
+      ...extra,
+    });
+    writeFixture(
+      dir4,
+      {
+        sitting: 5,
+        note: "Look, not law. Absorb or drop next sitting.",
+        items: [
+          spark("S01", "open", { openedOn: 4 }),
+          spark("S02", "absorbed", { absorbedAs: "T97" }),
+          spark("S14", "open", { openedOn: 3 }),
+          spark("S03", "dropped", { because: "fixture" }),
+        ],
+      },
+      null,
+    );
+    const one = rotate(dir4, { now: new Date("2026-09-20T00:00:00Z") });
+    if (one.moved !== 2) {
+      errors.push("the first of two productive rotations moved " + one.moved + " rows, not 2");
+    }
+    cmdSetStatus(dir4, "S14", "absorbed", { absorbedAs: "T96" });
+    const two = rotate(dir4, { now: new Date("2026-09-20T00:00:00Z") });
+    if (two.moved !== 1) {
+      errors.push("the second of two productive rotations moved " + two.moved + " rows, not 1");
+    }
+    idsUnique("the second rotation");
+    // A row the archive already holds, back in the live file, is not written a
+    // second time (T65).
+    const back4 = loadSparks(dir4);
+    back4.items.push(spark("S02", "absorbed", { absorbedAs: "T97" }));
+    saveSparks(dir4, back4);
+    const three = rotate(dir4, { now: new Date("2026-09-20T00:00:00Z") });
+    if (three.moved !== 0) errors.push("rotate appended a spark the archive already held");
+    idsUnique("a row already in the archive came back");
+  } finally {
+    rmSync(dir4, { recursive: true, force: true });
   }
 
   // Spawn-based never-move and second-close, so process.exit is observed.

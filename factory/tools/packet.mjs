@@ -316,13 +316,22 @@ export function landingStepErrors(root) {
 }
 
 // A tree this test wrote, so the two assertions about `--root` are about the
-// dispatch and not about this repository's own numbers drifting.
+// dispatch and not about this repository's own numbers drifting. It is over its
+// own seat-packet cap on purpose: this repository's `--check` passes, so a tree
+// that passed too would let a run that parsed `--root` and threw its value away
+// print the live verdict and satisfy both assertions (T13).
 function fixture() {
   const dir = mkdtempSync(join(tmpdir(), "grok-packet-"));
   mkdirSync(join(dir, "factory/envelopes"), { recursive: true });
   writeFileSync(
     join(dir, "AGENTS.md"),
-    "# AGENTS.md" + NL + "The reading path is factory/tools/packet.mjs." + NL,
+    "# AGENTS.md" +
+      NL +
+      "The reading path is factory/tools/packet.mjs." +
+      NL +
+      NL +
+      "Filler, so the seat packet is over the cap below. ".repeat(40) +
+      NL,
   );
   writeFileSync(
     join(dir, "factory/board.json"),
@@ -352,7 +361,7 @@ function fixture() {
     JSON.stringify({
       files: [],
       globs: [],
-      context: { seatPacketKb: 100, cpPacketKb: 100, envelopeKb: 1 },
+      context: { seatPacketKb: 1, cpPacketKb: 100, envelopeKb: 1 },
     }) + NL,
   );
   writeFileSync(
@@ -432,17 +441,23 @@ function selfTest(root) {
   try {
     const cli = fileURLToPath(import.meta.url);
     // `--root <tree>` before and after the command, both against a tree this
-    // test wrote. The check passes on it, so a non-zero exit is the dispatch
-    // and not the budget.
+    // test wrote. That tree is over its seat-packet cap, so the verdict has to
+    // be this tree's and not this repository's: a run that parsed `--root` and
+    // threw the value away reads the kit, which passes, prints `packet check
+    // ok`, and fails here. The status and the message are the fixture's own cap.
     for (const args of [
       ["--root", dir, "--check"],
       ["--check", "--root", dir],
     ]) {
       const r = spawnSync(process.execPath, [cli, ...args], { encoding: "utf8" });
       const out = (r.stdout || "") + (r.stderr || "");
-      if (r.status !== 0 || !out.includes("packet check ok")) {
+      if (r.status === 0 || !out.includes("packet check failed") || !out.includes("over 1 KB")) {
         errors.push(
-          args.join(" ") + " did not reach the check: exit " + r.status + " " + out.trim().split(NL)[0],
+          args.join(" ") +
+            " did not measure the tree it was pointed at: exit " +
+            r.status +
+            " " +
+            out.trim().split(NL).join(" / "),
         );
       }
     }
