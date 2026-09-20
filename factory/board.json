@@ -1,5 +1,5 @@
 {
-  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33 and F34 landed. Next: F36 (packet.mjs, after F33), then absorb S13 to S16, then F35, F37, F38. Handoff and the first acts in order: D-55. Ceilings do not move; compact instead (D-52, D-54). Orchestration model now in AGENTS section 3; its derivation and the full index are in factory/OPERATING_MODEL.md. This session's tool policy refuses a seat launch about three times in four, so the owner is the reliable launcher. Nothing is running, no envelope is issued, no experiment is open. Four sparks open: S13 to S16. Otto and Virbos stay read-only. Overlay still shelf.",
+  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33 and F34 landed. F36 ISSUED and running alone. Then absorb S13 to S16, then F35, F37, F38. Handoff and first acts: D-55. Ceilings do not move; compact instead (D-52, D-54, D-57). Orchestration model is AGENTS section 3; its derivation and the full index are in factory/OPERATING_MODEL.md. Per-lane trap scoping is deferred with a trigger (D-58). While an envelope is live the gate is red on Writer Action by design and every push to main carries a skip-ci marker. Four sparks open: S13 to S16. Otto and Virbos stay read-only. Overlay still shelf.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -251,9 +251,9 @@
     },
     {
       "id": "F36",
-      "title": "A trap names its object; a seat packet is scoped to its Holds",
-      "state": "queued",
-      "hold": "factory/traps.yaml, factory/tools/packet.mjs"
+      "title": "A trap names its object (scoping deferred, D-58)",
+      "state": "issued",
+      "hold": "factory/traps.yaml, factory/tools/packet.mjs, docs/log/f36.md"
     },
     {
       "id": "F37",
@@ -359,10 +359,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "F33's seat could not be launched from the control-plane session. The worktree is cut at C:/Users/acces/virbk-seats/F33 on branch writer/F33 from c9c277b and the packet is rendered at 33400 bytes, but the first launch returned 'Argument list too long': seat.mjs prescribes passing the packet as an argv string and a packet at cap size exceeds the Windows command-line limit, so the seat died before reading a byte. S13 minted. Stdin is the carrier the harness documents, and the relaunch was refused twice by this session's own tool policy. T35 and CONTROL_PLANE section 3 order the remaining act: run the binary underneath, launch from this session, then hand over the one line and leave, treating the refusal as neither an owner ask nor a reason to wait. The first two were tried; docs/log/f33.md carries the third. F33 stays issued, nothing is running."
-    },
-    {
-      "at": "2026-09-20",
       "event": "The F33 issuance commit was pushed to main without the skip-ci marker the F31 issuance carried, and both Actions ran. The landing gate went red, correctly: ghaWriter --self-test asserts idle against the live envelopes directory, so the gate is red for as long as any envelope is issued, which is why an issuance skips CI and a landing runs it. The writer Action did not idle. It launched a cloud seat headless with yolo on branch writer/F33, the same branch the local worktree holds, and was stopped by 'API Error: 401 Incorrect API key' from DashScope, not by design: the repository secret still holds the key D-51 retired when the owner rotated the pair. Two things follow. S14 holds the missing check. The stale GitHub secret is an owner ask under writer API keys, and until it is replaced the writer Action is a loud failure rather than the loud skip T55 requires."
     },
     {
@@ -404,6 +400,10 @@
     {
       "at": "2026-09-20",
       "event": "seatPacketKb returned to 26 by D-57, and F36 narrowed by D-58, both before F36 was issued rather than after it failed. D-56 raised the cap to 27 under protest and named the condition for the pressure coming off, F36 bringing the packet under 26; F34 did it by another route, so node factory/tools/packet.mjs cost now prints the seat packet at 25.3 KB and the band prints 97.4 per cent of 26. Leaving the cap at 27 would have kept a concession whose reason had expired. F36's method also collided with F31: a per-lane traps digest makes the bytes before the envelope differ by lane, which is the assertion X01 was reverted for nearly switching off, and it would silently retire the proof F34 rested on, that every provisional bullet is enforced by a trap in the digest every packet carries. So F36 keeps the half that is safe and still changes the slope, a trap naming its object plus compressing the traps that already name a check, and per-lane scoping is deferred with a trigger rather than dropped: the seat packet reaching 90 per cent again with no duplicate left to shed."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "F36 issued at base 2c1159c, alone, narrowed by D-58. Three things: every trap gains an object naming the file or glob it binds to or a star meaning it binds everywhere; packet.mjs --self-test asserts every trap has one and that every non-star object resolves in the tree, so a trap pointing at a file that is not there fails the gate; and trapsDigest emits only the first sentence of a trap that already names a check, which is D-52's second remedy at about 2.7 KB and makes writing a check remove a trap's prose from every future packet. The envelope names what is NOT in scope and why, because the board's title still promises the deferred half. Envelope is 5877 bytes against a 6144 cap."
     }
   ]
 }
