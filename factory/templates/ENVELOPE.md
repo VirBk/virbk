@@ -34,6 +34,7 @@ Runtime
   Prefix: AGENTS, BOARD, this envelope, tools — byte-stable, first. Variable work last. Paste prompt_cache_hit_tokens or cached_tokens. Do not store answers.
 
 Spend cap
+  Tool calls: 40 for a lane of up to three files, more if the envelope says so (owner, 2026-09-20). A cap that a lane's own Holds cannot be satisfied within is a badly drawn cap, not a violation.
   <USD or turns, then stop and return>
   Hitting the cap is a return, not a hang. Escalation is a new envelope on a stronger seat.
 

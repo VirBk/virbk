@@ -19,6 +19,11 @@
   "catalog": {
     "controlPlane": [
       {
+        "id": "owner-selected",
+        "recommended": true,
+        "note": "The session the owner selects. AGENTS section 8. Generic by design: naming a vendor here dates the kit and every envelope stamped from it."
+      },
+      {
         "id": "grok-cloud",
         "recommended": true,
         "note": "Grok chat. Fuse. Successor is AGENTS, BOARD, envelope."

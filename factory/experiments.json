@@ -1,4 +1,17 @@
 {
   "rule": "An experiment suspends a named landing step for a stated hypothesis and a stated number of days. The gate still runs the step and still prints the result; it does not fail the landing on it. An expired open experiment fails the gate. Owner boundaries are not suspendable here: money, credentials, real people's data, and destructive acts stay the owner's.",
-  "experiments": []
+  "experiments": [
+    {
+      "id": "X01",
+      "claim": "The 26 KB seat-packet cap was set at F24 when traps.yaml held about 55 rows, and it bounds an unscoped packet that carries every trap to every seat.",
+      "suspends": [
+        "Reading path under its context budget"
+      ],
+      "hypothesis": "The cap is sound and the packet is wrong: scoping a seat's traps to the traps whose object meets its Holds (F36) brings the packet back under 26 KB without moving the ceiling. If F36 lands and the packet is still over, the cap itself is wrong and that is a separate dated row.",
+      "measure": "node factory/tools/packet.mjs cost",
+      "opened": "2026-09-20",
+      "expires": "2026-10-11",
+      "status": "open"
+    }
+  ]
 }

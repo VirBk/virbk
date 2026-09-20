@@ -164,6 +164,36 @@
       "id": "F32",
       "title": "The control plane reads the meter into the return",
       "status": "landed"
+    },
+    {
+      "id": "F33",
+      "title": "Packet windowing and growth bands",
+      "status": "queued"
+    },
+    {
+      "id": "F34",
+      "title": "AGENTS carries the orchestration model and sheds the provisional group",
+      "status": "queued"
+    },
+    {
+      "id": "F35",
+      "title": "Alumni scan reads a child TRAPS.md",
+      "status": "queued"
+    },
+    {
+      "id": "F36",
+      "title": "A trap names its object; a seat packet is scoped to its Holds",
+      "status": "queued"
+    },
+    {
+      "id": "F37",
+      "title": "Holds proved disjoint, and a seat census from the process table",
+      "status": "queued"
+    },
+    {
+      "id": "F38",
+      "title": "A return's model is checked against the meter",
+      "status": "queued"
     }
   ]
 }

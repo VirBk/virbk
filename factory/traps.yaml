@@ -324,14 +324,34 @@
 - id: T65
   kind: portable
   title: Number measured, validated, discarded
-  rule: A return's spendUsd and cachedTokens are appended to factory/returns.json by node factory/tools/seatReturn.mjs <return.json> --record and read by spend. The key is the row's content, checked read-first, so recording twice does not double the spend. The lane log keeps the prose; the rows outlive the twelve-row ledger window. Check is node factory/tools/seatReturn.mjs --self-test.
+  rule: A return's spend and cache numbers are appended to factory/returns.json by node factory/tools/seatReturn.mjs <return.json> --record and read by spend. The key is the row's content, checked read-first, so recording twice does not double the spend. Check is node factory/tools/seatReturn.mjs --self-test.
 
 - id: T66
   kind: portable
   title: Rule that can only die by decree
-  rule: A check that encodes a guess needs a way to be suspended on purpose, with a hypothesis, a measure and an expiry, recorded in factory/experiments.json. The gate still runs a suspended step and still prints what it found; an expired open experiment fails the gate. An untracked waiver leaves no evidence and teaches nothing. Check is node factory/tools/experiment.mjs --self-test.
+  rule: A check that encodes a guess needs a way to come down on purpose: node factory/tools/experiment.mjs opens a row with a hypothesis, a measure and an expiry. The gate still runs a suspended step and still prints what it found; an expired open experiment fails the gate. Check is node factory/tools/experiment.mjs --self-test.
 
 - id: T67
   kind: portable
   title: Meter the seat cannot reach
-  rule: The numbers a return needs are in the harness meter, not in the seat. A qwen usage record is appended on session exit, so a seat can never paste its own tokens; reading it afterwards is the control plane's work. node factory/tools/seatReturn.mjs meter <project-path> prints requests, input, output and cached from that record, and a return may carry a tokens block in place of spendUsd when the harness reports no cost. A zero stands for a measurement that was taken; write no number a command did not print. Check is node factory/tools/seatReturn.mjs --self-test.
+  rule: The numbers a return needs are in the harness meter, not in the seat: a qwen usage record is appended on session exit, so reading it is the control plane's work. node factory/tools/seatReturn.mjs meter <project-path> prints them, and a return may carry a tokens block in place of spendUsd when the harness reports no cost. Write no number a command did not print. Check is node factory/tools/seatReturn.mjs --self-test.
+
+- id: T68
+  kind: portable
+  title: Holds are prose and nothing bounds a running seat
+  rule: Holds bind only at the return, where the control plane compares the changed file set. Nothing stops a seat mid-run, and a session launched in the control-plane checkout instead of a worktree has no Holds at all: it will land and push. Launch in a worktree, with an explicit tool allowlist, never a blanket accept.
+
+- id: T69
+  kind: portable
+  title: Seat echoes its stamp, not its model
+  rule: A seat cannot see its own model and echoes the envelope Runtime stamp instead. The harness meter records the true id; a return's model is the launcher's string, filled by the control plane.
+
+- id: T70
+  kind: machine
+  title: Command handed over in the wrong shell dialect
+  rule: The owner's terminal is PowerShell 5.1, which rejects && as a statement separator. One command per line. Gate steps run through bash from a file and are unaffected; this binds what the control plane types at the owner.
+
+- id: T71
+  kind: portable
+  title: Child's lesson invisible to the parent's scanner
+  rule: alumni.mjs scan measures structure and never opens a child's TRAPS.md, so a lesson written in prose reaches the parent only by a person reading it. Otto carried the shell rule for three days while the scan reported three structural signals and missed it.

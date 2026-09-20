@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-Sitting 9. Four sparks open at age 1, S08 S10 S11 S12; this sitting cannot close until each is absorbed or dropped. Measured and booked: the control-plane packet is 38.3 KB of a 44 KB cap and AGENTS.md is 11.6 KB of 12 KB, and traps.yaml grew twenty rows in three days, so both caps fail in about four days (D-52). The queue in order: F33 packet windowing, urgent and it unblocks the rest; F34 the alumni scan reads a child TRAPS.md (S11, S12); F35 a trap carries an object and a seat packet is scoped to its Holds; F36 Holds proved disjoint with a seat census (S08); F37 a return model checked against the meter (S10). Orchestration learned from Otto and Virbos is in D-53 and the AGENTS section 3 edit it implies waits on F33. T04 now covers any value derived from a session own memory, not only a clock. Nothing is running and no envelope is issued. References Otto and Virbos remain read-only. Overlay still shelf.
+Sitting 9 handing off. Sparks S08 to S12 are all absorbed, as T67 to T71; none is open. The reading path is over budget and that is the first job: the seat packet broke its 26 KB cap while this sitting was booking the measurement of it (D-52), and AGENTS.md is at 97 per cent of 12 KB. Ceilings do not move; compact instead (D-54). The queue is the open lanes below, in order, and F33 runs ALONE because every lane contends on governance surfaces. Orchestration read from Otto and Virbos is in D-53. Nothing is running and no envelope is issued. References Otto and Virbos stay read-only. Overlay still shelf.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -57,6 +57,12 @@ No envelope opens a gate.
 | F30 | landed | factory/tools/experiment.mjs, factory/experiments.json, factory/tools/landingGate.mjs, docs/log/f30.md | A rule can be suspended on purpose, with an expiry |
 | F31 | landed | factory/tools/packet.mjs, docs/log/f31.md | The packet prefix is byte-stable, and a check proves it |
 | F32 | landed | factory/tools/seatReturn.mjs, contracts/seat-return.v1.json, docs/log/f32.md | The control plane reads the meter into the return |
+| F33 | queued | factory/tools/spark.mjs, factory/tools/packet.mjs, factory/tools/sizeBudget.mjs, factory/budgets.json | Packet windowing and growth bands |
+| F34 | queued | AGENTS.md, factory/OPERATING_MODEL.md | AGENTS carries the orchestration model and sheds the provisional group |
+| F35 | queued | factory/tools/alumni.mjs, contracts/intake.v1.json | Alumni scan reads a child TRAPS.md |
+| F36 | queued | factory/traps.yaml, factory/tools/packet.mjs | A trap names its object; a seat packet is scoped to its Holds |
+| F37 | queued | factory/tools/seat.mjs, factory/landing-checks.json | Holds proved disjoint, and a seat census from the process table |
+| F38 | queued | factory/tools/seatReturn.mjs, contracts/seat-return.v1.json | A return's model is checked against the meter |
 
 ## Holds
 
@@ -93,7 +99,6 @@ No envelope opens a gate.
 
 Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.
 
-- 2026-09-20 Sitting 5 closed with no open sparks. S07 was the only one minted and it was absorbed as T65 in the same sitting. The board is idle: no lanes, no envelopes, one gate open by design.
 - 2026-09-20 F30 landed. factory/tools/experiment.mjs suspends a named landing step for a hypothesis with an expiry, and the gate prints what a suspended step found instead of hiding it. Landed inert: no experiment is open. T66. D-48.
 - 2026-09-20 D-49 deferred to the owner word: AGENTS section 5 mixes owner boundaries with engineering guesses, so a session cites a preference as physics. Proposed replacement text is in docs/log/f30.md. The session that proposed it was refused twice by the desktop tool policy for editing its own instruction file, which is the right refusal.
 - 2026-09-20 Sitting 6 closed. Two open items carried to the next control plane: D-49 needs the owner word, D-45 needs a writer seat. Nothing is running and no experiment is open.
@@ -105,3 +110,4 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 F32 landed. node factory/tools/seatReturn.mjs meter <project> reads the qwen usage record, and a return may carry tokens in place of spendUsd when the harness reports no cost. The first row is F32 itself: 1704644 in, 75513 out, 1567488 cached over 27 requests on deepseek-flash. The seat could not paste those numbers because the record is appended on session exit, which is the case the lane was built for. T67. D-50.
 - 2026-09-20 D-49 adopted: AGENTS section 5 split into the owner boundaries and the factory provisional ones, sixteen bullets unchanged, 11896 bytes against a 12288 cap. D-51 adopted: writerPath auto with writerModel deepseek-flash and writerMeter deepseek-native, so the router takes api.deepseek.com off-peak and DashScope only on peak or outage; qwen3-coder retired to the excluded block of factory/writer-paths.json. Owner rotated both API keys; the old pair answers 401 and the new pair 200.
 - 2026-09-20 Onboarding cost measured for the first time: control-plane packet 38.3 KB of a 44 KB cap, AGENTS.md 11.6 KB of 12 KB, traps digest 11.5 KB and 30 per cent of the packet, headroom 24 traps against twenty added in three days. The board is not the grower; traps.yaml and sparks.json are, being the two stores in the reading path with no window. D-52 orders the remedy and D-53 records the orchestration model read from Otto and Virbos. T04 generalised from the host clock to any value not read in the same act as the write, which is the form that would have caught the T67 row.
+- 2026-09-20 Sitting 9 absorbed S08 to S12 as T68 to T71 and the seat packet broke its 26 KB cap in the same act, which is D-52 arriving. Ceilings do not move: X01 is the first live experiment, suspending the packet budget step for 21 days on the hypothesis that the cap is right and the packet is wrong, with F36 the scoping lane that closes it. Six lanes queued in order; F33 and F34 run ALONE because every lane contends on governance surfaces (D-54). Envelope tool-call floor is 40. controlPlane is now the generic owner-selected rather than a vendor id.

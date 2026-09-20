@@ -1,5 +1,5 @@
 {
-  "controlPlane": "grok-cloud",
+  "controlPlane": "owner-selected",
   "hands": "hands.mjs",
   "writerHarness": "qwen-code",
   "writerModel": "deepseek-flash",
