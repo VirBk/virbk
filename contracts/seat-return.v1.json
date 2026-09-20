@@ -4,6 +4,18 @@
   "title": "SeatReturn",
   "type": "object",
   "additionalProperties": false,
+  "anyOf": [
+    {
+      "required": [
+        "spendUsd"
+      ]
+    },
+    {
+      "required": [
+        "tokens"
+      ]
+    }
+  ],
   "required": [
     "lane",
     "runtime",
@@ -12,8 +24,7 @@
     "branch",
     "changed",
     "verify",
-    "measured",
-    "spendUsd"
+    "measured"
   ],
   "properties": {
     "lane": {
@@ -62,7 +73,43 @@
     },
     "spendUsd": {
       "type": "number",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Dollars from the meter. Required unless tokens.source names the meter the numbers were pasted from: the usage record carries no cost, so a zero here would be a durable false measurement."
+    },
+    "tokens": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "in",
+        "out",
+        "cached",
+        "requests",
+        "source"
+      ],
+      "description": "Token counts pasted from the meter: node factory/tools/seatReturn.mjs meter <project-path>.",
+      "properties": {
+        "in": {
+          "type": "number",
+          "minimum": 0
+        },
+        "out": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cached": {
+          "type": "number",
+          "minimum": 0
+        },
+        "requests": {
+          "type": "number",
+          "minimum": 0
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The meter the numbers were pasted from, e.g. qwen usage_record.jsonl."
+        }
+      }
     },
     "note": {
       "type": "string"
