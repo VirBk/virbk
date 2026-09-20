@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-Sitting 6. F29 and F30 landed: a return records its spend and cache hits, and a landing step can be suspended on purpose by a dated experiment with an expiry. Both stores are empty: nothing is suspended and nothing metered has returned. Open question for the next control plane: D-49, splitting AGENTS section 5 into the owner boundaries and the provisional ones. It needs the owner word. Nothing is running. References Otto and Virbos remain read-only and untouched. Overlay still shelf. Path dashscope.
+Sitting 6 closed. F29 and F30 landed: a return records its spend and cache hits, and a landing step can be suspended on purpose by a dated experiment with an expiry. Both stores are empty: nothing is suspended and nothing metered has returned. Open for the next control plane: D-49, splitting AGENTS section 5 into the owner boundaries and the provisional ones, proposed text in docs/log/f30.md, needs the owner word. Also open: D-45, a code lane owed to a writer seat with a fresh reviewer. Nothing is running. References Otto and Virbos remain read-only and untouched. Overlay still shelf. Path dashscope.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -91,7 +91,6 @@ No envelope opens a gate.
 
 Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.
 
-- 2026-09-20 F27 landed. A seat return names the command and what it printed; the seat-return runtime enum is the live topology list, which had omitted pc-dashscope. T56 T64. D-44.
 - 2026-09-20 S03 absorbed as T57, S04 as T58, S06 as T56. S05 dropped: T50 already holds it.
 - 2026-09-20 Control plane ran as its own writer for this records sitting on the owner word; no independent reviewer session existed. The gate and the new self-tests are the evidence. D-45.
 - 2026-09-20 Landing gate ran on the control-plane machine for the first time: 19 steps, GATE PASSED, from a fresh archive of the commit under test. The Ubuntu Action runs the same 19.
@@ -103,3 +102,4 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 Sitting 5 closed with no open sparks. S07 was the only one minted and it was absorbed as T65 in the same sitting. The board is idle: no lanes, no envelopes, one gate open by design.
 - 2026-09-20 F30 landed. factory/tools/experiment.mjs suspends a named landing step for a hypothesis with an expiry, and the gate prints what a suspended step found instead of hiding it. Landed inert: no experiment is open. T66. D-48.
 - 2026-09-20 D-49 deferred to the owner word: AGENTS section 5 mixes owner boundaries with engineering guesses, so a session cites a preference as physics. Proposed replacement text is in docs/log/f30.md. The session that proposed it was refused twice by the desktop tool policy for editing its own instruction file, which is the right refusal.
+- 2026-09-20 Sitting 6 closed. Two open items carried to the next control plane: D-49 needs the owner word, D-45 needs a writer seat. Nothing is running and no experiment is open.
