@@ -100,13 +100,15 @@ same scan on itself before its first landing, and copies the check pack
 
 AGENTS section 5 splits boundaries in two. The owner's do not move and stay in AGENTS. These are the factory's own, and they are this repository's current best guess: each has paid for itself so far, each holds until evidence replaces it, and `factory/tools/experiment.mjs` is how one comes down on purpose — a hypothesis, a measure, an expiry — rather than by decree or by a waiver nobody can read later. None of them is a reason to refuse an idea outright.
 
+This justification rests on a seat reading every trap. F36 scopes a seat's digest to the traps whose object meets its Holds, and when it lands, some of the rows below can be absent from a given seat's digest and the reason these moved stops holding silently. F36's acceptance carries that.
+
 They live here rather than in AGENTS because every one is already enforced where a seat actually meets it: by a trap in the digest every packet carries, or by a rule in AGENTS section 3. Carrying a second copy in AGENTS bought nothing and cost 1174 bytes of a 12 KB cap, and forty-one copies of one rule is how a governance file drifts (D-54).
 
 What pays for each, checked at the objects when this moved:
 
 | Boundary | Enforced by |
 | --- | --- |
-| Control plane not pointed at a cheap model | T19 |
+| Control plane not pointed at a cheap model; Cursor cloud cannot take the token; cloud isolate is git-bus or codespace | T19, T44 |
 | No third seat with a model | T29, T46 |
 | Envelopes are git blobs | T30 |
 | A writer never reviews its own branch | T20 |
@@ -114,7 +116,7 @@ What pays for each, checked at the objects when this moved:
 | A reviewer is never weaker than the writer | T20 |
 | A child never writes the parent kit | T23 |
 | An intake without a check is refused | T24 |
-| An absorbed reference is not a live child | T41 |
+| An absorbed reference is not a live child; not this sitting as its control plane | T41, T47 |
 
 - Do not point the control-plane session at DeepSeek or Qwen. Spawn a writer seat. Cursor Cloud Agents cannot take that token. Cloud isolate is `git-bus` or `codespace` (`factory/HANDS.md`).
 - Do not invent a third seat with a model. Claude Code absent is the default. A DeepSeek or DashScope token is the writer; the topologies are in `factory/runtimes.json`. Do not install Claude Code to spend it.

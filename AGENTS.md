@@ -35,8 +35,8 @@ Two writers at a time is a ceiling, not a target. A seat with no blocker on the 
 - Corrections stay with the writer. Sweep-tier: one correction, then split. Keystone: two, then split. No third round.
 - A session is a fuse. Split on envelope done, correction cap, spend cap, or a named decay sign (`factory/sessions.json`). A successor reads this file, BOARD, the envelope — never a transcript, never a compaction. It looks at `factory/sparks.json`; it does not obey it.
 - The control plane lands: it verifies the return at the objects, proves any rebase with `git range-diff` and a blob sweep, runs the landing gate from a fresh archive of the commit, fast-forwards main, restamps the board, deletes `factory/envelopes/<lane>.md`.
-- Nothing is issued from an unlanded tip. A lane carries a wave and a depends-on; order is derived from that graph, not judged. A lane whose work another running lane would invalidate is held back on purpose, with the reason on the board.
-- Siblings only on holds proved disjoint at the files, at the issue, and written down. A free slot is not a proof. One review slot stays reserved, so a returned lane never waits for a review.
+- Nothing is issued from an unlanded tip. Order follows the dependency the board states, not the issuer's judgement, and a lane whose work another running lane would invalidate is held back on purpose with the reason on the board. The board states that dependency in prose; a field on the lane that a check could read is not yet built.
+- Siblings only on holds proved disjoint at the files, at the issue, and written down. A free slot is not a proof. Review slots are reserved, so a returned lane never waits for a review.
 - A seat census is read from the process table, not from the scheduler. A dead seat is resumed on its own session id, never relaunched blind.
 - Shared files are single-writer holds: `contracts/` and any generated client, the package manifest and lockfile, the app shell and routes, `factory/board.json`, this file.
 - Every writer envelope carries a self-check: drive the list a reviewer of the lane would be given, fix what it finds, record what changed in the lane log.
@@ -108,6 +108,7 @@ The repository is memory. The session is a fuse: every model rots if it stays. D
 | Need | File |
 |---|---|
 | Live state | `BOARD.md` (generated) / `factory/board.json` (source) |
+| Work packages, one row per lane | `factory/packages.json` |
 | Traps | `factory/traps.yaml` |
 | Decisions | `factory/decisions.json` |
 | Size budgets | `factory/budgets.json` |

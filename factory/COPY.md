@@ -10,7 +10,7 @@ The kit is the thing you copy. The product is not. Grok stays the parent.
 4. Keep `factory/lineage.json` as the parent register. Do not append this child's board to it.
 5. Copy `factory/project.json`. Pick writer harness, isolate, `access`, `commitCredit`, `promptCache`. The control plane launches the writer (D-04, D-33). A `hands.mjs` check is not a copy gate. Claude Code absent is the default. Token-only is `pc-token` or `cloud-grok`. A child never writes VirBk/virbk.
 6. Fill AGENTS §1 with one product paragraph whose acceptance is an owner walk of a closed loop.
-7. Add the product’s never-move rules to AGENTS §5. Keep: a child never writes VirBk/virbk.
+7. Add the product’s never-move rules to AGENTS §5, which holds the owner’s boundaries. The factory’s provisional ones live in `factory/OPERATING_MODEL.md`; keep “a child never writes VirBk/virbk”, which T23 enforces.
 8. Name keystones and single-writer holds on the board. Closed lists.
 9. Name gates. G0 is synthetic only. No envelope opens a gate.
 10. Point `factory/landing-checks.json` at this stack’s real commands.
