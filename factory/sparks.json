@@ -121,6 +121,24 @@
       "status": "absorbed",
       "openedOn": 8,
       "absorbedAs": "T71"
+    },
+    {
+      "id": "S13",
+      "kind": "trap",
+      "claim": "The qwen-code seat recipe passes the packet as an argv string, and on Windows a 33 KB packet exceeds the command-line limit: the seat dies with 'Argument list too long' before it reads a byte.",
+      "object": "factory/tools/seat.mjs",
+      "whyNotLaw": "Observed once on F33's launch. The fix is stdin rather than argv, but no check yet proves a recipe can carry a packet of cap size on the platform the control plane sits on.",
+      "status": "open",
+      "openedOn": 10
+    },
+    {
+      "id": "S14",
+      "kind": "trap",
+      "claim": "An issuance commit pushed to main without a skip-ci marker turns the gate red and launches the GHA writer on the lane just issued, onto the same branch a local worktree already holds.",
+      "object": ".github/workflows/writer.yml",
+      "whyNotLaw": "On F33 the cloud seat started headless with yolo on writer/F33 and was stopped only by a 401 on a stale DashScope secret. The F31 sitting knew this and wrote it as a ledger sentence, not a check.",
+      "status": "open",
+      "openedOn": 10
     }
   ]
 }

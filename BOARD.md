@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33 is ISSUED and runs ALONE; no sibling until it lands (D-54). Handoff and the first acts in order: D-55. Queue after F33: F34 alone, then F35 to F38, F36 after F33. Reading path sits at the D-56 cap with about a KB of headroom; F33 then F36 restore it. Ceilings do not move; compact instead (D-52, D-54). Orchestration model: D-53. No experiment is open. Otto and Virbos stay read-only. Overlay still shelf.
+CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33 is ISSUED and runs ALONE; no sibling until it lands (D-54). Handoff and the first acts in order: D-55. Queue after F33: F34 alone, then F35 to F38, F36 after F33. Reading path sits at the D-56 cap with about a KB of headroom; F33 then F36 restore it. Ceilings do not move; compact instead (D-52, D-54). Orchestration model: D-53. No experiment is open. While F33 is issued the landing gate is red by design and every push to main carries a skip-ci marker. Otto and Virbos stay read-only. Overlay still shelf.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -99,8 +99,6 @@ No envelope opens a gate.
 
 Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.
 
-- 2026-09-20 kitCheck rule B was red on the F31 issuance commit: factory/packages.json carried no row for board lane F31. Control-plane oversight from issuance, not the writer's — F31 was not in the lane's holds, so the writer correctly left it alone and named it in docs/log/f31.md. Fixed in the landing commit.
-- 2026-09-20 Sitting 7 closed. F31 was the only lane and it landed; D-45 is paid. D-49 still needs the owner word — carried again. Nothing is running and no experiment is open.
 - 2026-09-20 Five seat runs measured on one envelope. deepseek-flash direct produced a complete correct lane for USD 0.02 over 1,013,608 tokens; deepseek-v4.1-flash did the same over 3,140,038; qwen3-coder-plus burned 4,898,721 and never committed; claude-sonnet-5 cost USD 1.29 over two runs and wrote no product code. Cache hit rates 92.8 to 98.1 per cent, which is the span F31 now checks. S08, S09 and S10 minted.
 - 2026-09-20 F32 landed. node factory/tools/seatReturn.mjs meter <project> reads the qwen usage record, and a return may carry tokens in place of spendUsd when the harness reports no cost. The first row is F32 itself: 1704644 in, 75513 out, 1567488 cached over 27 requests on deepseek-flash. The seat could not paste those numbers because the record is appended on session exit, which is the case the lane was built for. T67. D-50.
 - 2026-09-20 D-49 adopted: AGENTS section 5 split into the owner boundaries and the factory provisional ones, sixteen bullets unchanged, 11896 bytes against a 12288 cap. D-51 adopted: writerPath auto with writerModel deepseek-flash and writerMeter deepseek-native, so the router takes api.deepseek.com off-peak and DashScope only on peak or outage; qwen3-coder retired to the excluded block of factory/writer-paths.json. Owner rotated both API keys; the old pair answers 401 and the new pair 200.
@@ -109,5 +107,7 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 Control plane handed off. The board and factory/decisions.json carry everything this tenure learned, including the orchestration model read from Otto and Virbos (D-53) and the governance-maintenance model (D-54); nothing of it is left in the session. X01 is open and is the first exception this repository has taken on purpose rather than by decree.
 - 2026-09-20 X01 opened and reverted the same day: it suspended a whole gate step to excuse one cap, switching off F31's prefix guard landed that morning. A suspension must not be wider than its hypothesis. The cap was cleared by compaction, and board.now now carries routing facts only, with the handoff in D-55, because the slice is in every seat's packet.
 - 2026-09-20 Seat-packet cap raised 26 to 27 KB by D-56 after compaction failed to close a 0.5 KB gap, held at one KB headroom so the pressure stays. X01 was reverted first: a suspension must not be wider than its hypothesis. F36 brings the packet back under 26 by scoping a seat's traps to its Holds; the cap is not nudged again.
+- function at() { [native code] } undefined
+- function at() { [native code] } undefined
 - function at() { [native code] } undefined
 - function at() { [native code] } undefined
