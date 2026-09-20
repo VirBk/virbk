@@ -8,8 +8,9 @@
       "claim": "The qwen-code seat recipe passes the packet as an argv string, and on Windows a 33 KB packet exceeds the command-line limit: the seat dies with 'Argument list too long' before it reads a byte.",
       "object": "factory/tools/seat.mjs",
       "whyNotLaw": "Observed once on F33's launch. The fix is stdin rather than argv, but no check yet proves a recipe can carry a packet of cap size on the platform the control plane sits on.",
-      "status": "open",
-      "openedOn": 10
+      "status": "absorbed",
+      "openedOn": 10,
+      "absorbedAs": "T72"
     },
     {
       "id": "S14",
@@ -35,6 +36,16 @@
       "claim": "A writer key read from a process environment is a value carried from an earlier act, not read from the store that owns it: after a rotation the User scope answers 200 and every already-open shell keeps answering 401.",
       "object": "factory/tools/seat.mjs",
       "whyNotLaw": "Cost this sitting two wrong diagnoses and nearly a handover command that could not work. T04 names the shape and no recipe reads the key from its store in the same act as the launch.",
+      "status": "absorbed",
+      "openedOn": 10,
+      "absorbedAs": "T73"
+    },
+    {
+      "id": "S17",
+      "kind": "trap",
+      "claim": "The seat census matches any command line containing qwen, aider, goose or opencode as a word, so an unrelated process reads as a running writer seat.",
+      "object": "factory/tools/seat.mjs",
+      "whyNotLaw": "Caught live during F37's review: the reviewer's own 'pip show aider-chat' was reported as two running aider seats. A census that over-reports is a census that gets ignored, and no check distinguishes a harness process from a mention of one.",
       "status": "open",
       "openedOn": 10
     }

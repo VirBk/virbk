@@ -1,5 +1,5 @@
 {
-  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33, F34 and F36 landed. F37 ISSUED and running alone; no experiment open. Order, and it is not id order: F37 next, then F39, then F35 and F38. F37 and F39 carry the checks that four open sparks need before they can be absorbed, and a spark must be absorbed or dropped before sitting 11 closes, which is the dependency that moves them ahead. S13 and S16 are seat.mjs and land in F37; S14 and S15 are the cloud writer path and land in F39. A trap without a check is a diary (T24), so absorbing is those lanes, not a records commit. Handoff and first acts: D-55. Ceilings do not move; compact instead (D-52, D-54, D-57). Per-lane trap scoping deferred with a trigger (D-58). The sweep tier writes checks that pin the implementation, not the property: D-59. While an envelope is live the gate is red on Writer Action by design and every push to main carries a skip-ci marker. Otto and Virbos stay read-only. Overlay still shelf.",
+  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33, F34, F36 and F37 landed. Nothing running, no envelope issued, no experiment open. Order, not id order: F39 next, then F35, then F38. F39 carries the checks S14 and S15 need before they can be absorbed, and a spark must be absorbed or dropped before sitting 11 closes. node factory/tools/seat.mjs disjoint <LANE> <LANE> proves a sibling pair at the files; it reports F37 and F39 overlapping on factory/traps.yaml, so any lane touching traps runs alone. Handoff and first acts: D-55. Ceilings do not move; compact instead (D-52, D-54, D-57). Per-lane trap scoping deferred with a trigger (D-58). The sweep tier pins the implementation, not the property: D-59. Reviewer is Sonnet for this sitting by the owner's word, which AGENTS allows because it is not weaker than a deepseek-flash writer. Three sparks open: S14, S15, S17. Otto and Virbos stay read-only. Overlay still shelf.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -258,7 +258,7 @@
     {
       "id": "F37",
       "title": "The seat launch is checked: disjoint holds, a process-table census, a cap-sized packet, a key from its store",
-      "state": "issued",
+      "state": "landed",
       "hold": "factory/tools/seat.mjs, factory/landing-checks.json, factory/traps.yaml"
     },
     {
@@ -365,10 +365,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "F33 returned at 860237e and the review says CORRECTIONS NEEDED. Two independent reviewers, a fresh in-session agent and a separate claude -p process in its own worktree, agreed on the blocking finding and each caught something the other missed. Blocking: spark.mjs's reconstruction assertion is satisfied by construction, because rotate partitions closed from open without carrying position, so archive-then-live equals the original only when every closed row precedes every open one, and the fixture is built exactly that way; the comment stating it as a general property is a false sentence. Closing S14 while S13 stays open rebuilds S12 S14 S13 S15 S16 against an original S12 S13 S14 S15 S16, which is what the next sitting does to S13 through S16. Also: packet.mjs takes --root only after the command word, and nothing pins the new gate step, since kitCheck rule G asks only that some step name each tool. Correction 1 issued, and at sweep tier it is the only one. What both reviewers confirmed: coverage did not drop, checkErrors is byte-identical across the split, and the two steps fail independently in both directions. The separate process is the review of record; the in-session agent reaches the owner only through the party that wrote the envelope, which is weaker independence than a review of that envelope deserves."
-    },
-    {
-      "at": "2026-09-20",
       "event": "Seven ledger rows written this session were plain strings where the schema is {at, event}, so renderBoard printed each as 'function at() { [native code] } undefined' and the whole session's record was invisible on the generated board. Repaired in place at 0295f0b. No check parses a ledger row, which is why twenty green gate steps said nothing: T59's shape exactly, packages.json shipped broken and unread for three landings and board.ledger has now done the same. The archive escaped because rotate had only moved well-formed rows; rotate derives the archive filename from rows[0].at, so one more rotation would have written a file named after a native function. The spark this deserves waits until rotate clears sparks.json, because AGENTS section 4 forbids appending to a live file that is over budget."
     },
     {
@@ -410,6 +406,10 @@
     {
       "at": "2026-09-21",
       "event": "F37 issued at base ae28aa9, alone, and it is the first envelope written to D-59's rule: every acceptance item names the mutation that must turn its check red, and the return pastes that mutation going red, because a check this tier cannot break on purpose is not done. Four claims about launching a seat. The packet reaches a seat on stdin rather than as an argv string, which is S13, measured when a 33 KB packet killed F33's first launch before it read a byte. A writer key is read from the store that owns it in the same act as the launch, which is S16, measured when both keys answered 401 in an open shell and 200 in the User scope after a rotation that never reached the terminal. Holds are proved disjoint by a command rather than assumed from a free slot, which AGENTS section 3 has required since F34 with nothing implementing it. A seat census comes from the process table through an injected lister, so the claim is testable instead of shelling out unconditionally. The two traps that pay for the first two are written in this lane; absorbing S13 and S16 is the control plane's act at landing, because factory/sparks.json is not the seat's file. Envelope is 6029 bytes against a 6144 cap."
+    },
+    {
+      "at": "2026-09-21",
+      "event": "F37 landed from writer/F37 at 1e67ae8, fast-forward, approved on the first return with no correction, which is a first for this sitting and the first lane written to D-59's rule that every acceptance item names the mutation that must turn its check red. Four checks, each driven red by the control plane and again by the reviewer on faithful mutations: a recipe that hands the packet over as an argv string, a Windows line that takes the key from a bare env rather than the user store, a disjointReport whose overlap is always empty, and a census that ignores its injected lister. S13 absorbed as T72 and S16 as T73. The disjoint command earned itself immediately by reporting F37 and F39 overlapping on factory/traps.yaml, an overlap the control plane created when it booked F39 and would have hit had it run them as siblings; AGENTS has required holds proved disjoint since F34 with nothing implementing it. Two findings the control plane could not settle and the reviewer did, by running the objects rather than reasoning about them. The rewritten qwen recipe line -p - < packet.txt was suspected of being an invention; the reviewer read the installed CLI source and ran the literal line against an unreachable port, and stdin is prepended to the prompt so the form works and the suspicion was wrong. The census over-reports: the reviewer's own pip show aider-chat was listed as two running aider seats, caught live, now S17. Not covered, and flagged rather than guessed: the aider and opencode carrier lines, neither harness being installed."
     }
   ]
 }
