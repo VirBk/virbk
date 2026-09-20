@@ -11,7 +11,9 @@
       "measure": "node factory/tools/packet.mjs cost",
       "opened": "2026-09-20",
       "expires": "2026-10-11",
-      "status": "open"
+      "status": "reverted",
+      "result": "Too coarse for its own claim. The row names the 26 KB seat-packet cap; the step it suspends is one command carrying about a dozen unrelated assertions, including F31's prefix-stability guard landed the same day, the board-slice leak checks and the 6 KB envelope cap. A suspension must not be wider than the hypothesis it tests. The packet is brought under cap by compaction instead, which is D-52's own remedy.",
+      "closed": "2026-09-20"
     }
   ]
 }

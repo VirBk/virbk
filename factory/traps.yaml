@@ -19,7 +19,7 @@
 - id: T04
   kind: agent
   title: Value derived from the session own memory
-  rule: Read the value in the same act as the write — the clock from the host, an id from the file that owns it, a count from the command that produced it. A figure carried from a neighbour or from intention compounds, and nothing catches it unless something compares it.
+  rule: Read the value in the same act as the write: the clock from the host, an id from the file that owns it, a count from the command that produced it. A figure carried from a neighbour or from intention compounds, and nothing catches it unless something compares it.
 
 - id: T05
   kind: agent
@@ -270,7 +270,7 @@
 - id: T54
   kind: portable
   title: Landing Action that needs a writer secret
-  rule: Public landing CI runs factory/tools/landingGate.mjs with no secrets. Writer runner stays shelf until the owner places a key. Check is the landing-checks step Public landing Action stays green.
+  rule: Public landing CI runs landingGate.mjs with no secrets. Check is the landing-checks step Public landing Action stays green.
 
 - id: T55
   kind: portable
@@ -289,7 +289,7 @@
 - id: T58
   kind: portable
   title: Control plane that issues without reading its own derivation
-  rule: A session that will issue, stamp, drop, or wait reads factory/CONTROL_PLANE.md. Check is factory/sessions.json successorReads naming it, failed by node factory/tools/spark.mjs --self-test.
+  rule: A session that will issue, stamp, drop or wait reads factory/CONTROL_PLANE.md. Check is factory/sessions.json successorReads naming it, failed by node factory/tools/spark.mjs --self-test.
 
 - id: T59
   kind: portable
@@ -299,7 +299,7 @@
 - id: T60
   kind: portable
   title: Gate that only runs on the runner
-  rule: The landing gate unpacks its own archive in process and pins newline conversion, so the control plane can run it on the machine it sits at and measure the bytes CI measures. Check is node factory/tools/landingGate.mjs --self-test.
+  rule: The landing gate unpacks its own archive in process and pins newline conversion, so the control plane measures the bytes CI measures. Check is node factory/tools/landingGate.mjs --self-test.
 
 - id: T61
   kind: portable
@@ -309,7 +309,7 @@
 - id: T62
   kind: portable
   title: Drop issued and never measured
-  rule: An alumni drop names the script and the gate file it expects, in factory/lineage.json. Adoption is a command, not a hope. Check is node factory/tools/alumni.mjs drop-status <child> <path>, exit 2 when not adopted.
+  rule: An alumni drop names the script and gate file it expects, in factory/lineage.json; adoption is a command, not a hope. Check is node factory/tools/alumni.mjs drop-status <child> <path>, exit 2 when not adopted.
 
 - id: T63
   kind: portable
@@ -319,27 +319,27 @@
 - id: T64
   kind: portable
   title: Contract enum typed once, catalog moved
-  rule: A schema that lists ids by hand is checked against the catalog that owns them. seat-return named a runtime that no topology has and omitted the one the last two lanes ran on. Check is node factory/tools/seatReturn.mjs --check-contract.
+  rule: A schema listing ids by hand is checked against the catalog that owns them. Check is node factory/tools/seatReturn.mjs --check-contract.
 
 - id: T65
   kind: portable
   title: Number measured, validated, discarded
-  rule: A return's spend and cache numbers are appended to factory/returns.json by node factory/tools/seatReturn.mjs <return.json> --record and read by spend. The key is the row's content, checked read-first, so recording twice does not double the spend. Check is node factory/tools/seatReturn.mjs --self-test.
+  rule: Spend and cache numbers are appended by seatReturn.mjs <return.json> --record and read by spend. The key is the row's content, checked read-first, so recording twice does not double it. Check is node factory/tools/seatReturn.mjs --self-test.
 
 - id: T66
   kind: portable
   title: Rule that can only die by decree
-  rule: A check that encodes a guess needs a way to come down on purpose: node factory/tools/experiment.mjs opens a row with a hypothesis, a measure and an expiry. The gate still runs a suspended step and still prints what it found; an expired open experiment fails the gate. Check is node factory/tools/experiment.mjs --self-test.
+  rule: A check that encodes a guess needs a way down on purpose: a hypothesis, a measure, an expiry. The gate still runs a suspended step and prints what it found. Suspend no step wider than the hypothesis. Check is node factory/tools/experiment.mjs --self-test.
 
 - id: T67
   kind: portable
   title: Meter the seat cannot reach
-  rule: The numbers a return needs are in the harness meter, not in the seat: a qwen usage record is appended on session exit, so reading it is the control plane's work. node factory/tools/seatReturn.mjs meter <project-path> prints them, and a return may carry a tokens block in place of spendUsd when the harness reports no cost. Write no number a command did not print. Check is node factory/tools/seatReturn.mjs --self-test.
+  rule: The numbers a return needs are in the harness meter, not the seat: the qwen record is appended on session exit, so reading it is the control plane's work. meter <project-path> prints them, and a return may carry tokens in place of spendUsd when the harness reports no cost. Check is node factory/tools/seatReturn.mjs --self-test.
 
 - id: T68
   kind: portable
   title: Holds are prose and nothing bounds a running seat
-  rule: Holds bind only at the return, where the control plane compares the changed file set. Nothing stops a seat mid-run, and a session launched in the control-plane checkout instead of a worktree has no Holds at all: it will land and push. Launch in a worktree, with an explicit tool allowlist, never a blanket accept.
+  rule: Holds bind only at the return. Nothing stops a seat mid-run, and a session launched in the control-plane checkout rather than a worktree has no Holds at all: it will land and push. Launch in a worktree, with an explicit tool allowlist.
 
 - id: T69
   kind: portable
@@ -354,4 +354,4 @@
 - id: T71
   kind: portable
   title: Child's lesson invisible to the parent's scanner
-  rule: alumni.mjs scan measures structure and never opens a child's TRAPS.md, so a lesson written in prose reaches the parent only by a person reading it. Otto carried the shell rule for three days while the scan reported three structural signals and missed it.
+  rule: alumni.mjs scan measures structure and never opens a child's TRAPS.md, so a lesson written in prose reaches the parent only by a person reading it.

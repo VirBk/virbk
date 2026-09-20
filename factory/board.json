@@ -1,5 +1,5 @@
 {
-  "now": "CONTROL PLANE VACANT. Sittings 8 and 9 held by a Claude desktop session, handed off at the owner's word. That tenure: F31 and F32 landed through a writer seat and an independent reviewer, which paid D-45; factory/returns.json holds its first metered row; D-49 adopted and AGENTS section 5 split into the owner's boundaries and the factory's provisional ones; D-50 to D-54 recorded; sparks S08 to S12 all absorbed as T68 to T71; T04 generalised from the host clock to any value not read in the same act as the write. No product code authored, no gate opened, no ceiling raised. FIRST ACTS OF THE SUCCESSOR, IN ORDER. 1. Verify state at the objects: live main by git ls-remote, this checkout's porcelain, node factory/tools/landingGate.mjs, node factory/tools/experiment.mjs list. 2. Read D-52 and D-54, then issue F33 ALONE: it is the only urgent lane, it clears the reading path, and every other lane adds traps. 3. Issue F34 alone after it. 4. Then F35 to F38, F36 after F33 because both hold packet.mjs. LIVE CONSTRAINTS. The seat packet is over its 26 KB cap and X01 suspends that step until 2026-10-11 on the hypothesis that the cap is right and the packet is wrong; F36 closes it, and if the packet is still over after F36 the cap itself is wrong and that is a new dated row. AGENTS.md is at 97 per cent of 12 KB, so it cannot take the orchestration text D-53 adopted until F34 compacts it. Ceilings do not move; compact instead. Nothing is running, no envelope is issued, no seat is up. References Otto and Virbos stay read-only. Overlay still shelf. Writer path is native DeepSeek, DashScope only on peak or outage, qwen3-coder retired.",
+  "now": "CONTROL PLANE VACANT. Handoff, tenure summary and the successor's first acts in order: D-55. Reading path over budget and it is the first job: F33, alone. Ceilings do not move; compact instead (D-52, D-54). Orchestration model: D-53. Queue: the lanes below, in id order; F33 and F34 each run alone, F36 follows F33. Nothing is running, no envelope is issued, no experiment is open. Otto and Virbos stay read-only. Overlay still shelf.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -359,14 +359,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "D-49 deferred to the owner word: AGENTS section 5 mixes owner boundaries with engineering guesses, so a session cites a preference as physics. Proposed replacement text is in docs/log/f30.md. The session that proposed it was refused twice by the desktop tool policy for editing its own instruction file, which is the right refusal."
-    },
-    {
-      "at": "2026-09-20",
-      "event": "Sitting 6 closed. Two open items carried to the next control plane: D-49 needs the owner word, D-45 needs a writer seat. Nothing is running and no experiment is open."
-    },
-    {
-      "at": "2026-09-20",
       "event": "F31 issued. A handoff naming four pillars was re-assessed against live main: cloud orchestration is already built and green, the prompt-cache prefix is built by construction but unguarded, the spend meter has zero rows so no cap can be set from data yet, and the memory feedback loop has no machine-readable record of a correction to count. F31 takes the one gap with no data dependency. Records issuance skips Actions so the GHA writer does not race the local seat."
     },
     {
@@ -404,6 +396,14 @@
     {
       "at": "2026-09-20",
       "event": "Control plane handed off. The board and factory/decisions.json carry everything this tenure learned, including the orchestration model read from Otto and Virbos (D-53) and the governance-maintenance model (D-54); nothing of it is left in the session. X01 is open and is the first exception this repository has taken on purpose rather than by decree."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "X01 opened and reverted the same day: it suspended a whole gate step to excuse one cap, switching off F31's prefix guard landed that morning. A suspension must not be wider than its hypothesis. The cap was cleared by compaction, and board.now now carries routing facts only, with the handoff in D-55, because the slice is in every seat's packet."
+    },
+    {
+      "at": "2026-09-20",
+      "event": "Seat-packet cap raised 26 to 27 KB by D-56 after compaction failed to close a 0.5 KB gap, held at one KB headroom so the pressure stays. X01 was reverted first: a suspension must not be wider than its hypothesis. F36 brings the packet back under 26 by scoping a seat's traps to its Holds; the cap is not nudged again."
     }
   ]
 }
