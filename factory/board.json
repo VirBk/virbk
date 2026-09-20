@@ -1,5 +1,5 @@
 {
-  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33, F34, F36, F37 and F39 landed. Nothing running, no envelope issued, no experiment open. Next: F35, then F38. node factory/tools/seat.mjs disjoint <LANE> <LANE> proves a sibling pair at the files before either is issued. The cloud writer is opt-in: no CLOUD_WRITER repository variable means no cloud seat, so issuing a lane no longer fires one (T74). The gate is 21 of 21 green with an envelope live; step 13 no longer goes red at issuance, so a push during a lane does not need a skip-ci marker for that reason. Handoff and first acts: D-55. Ceilings do not move; compact instead (D-52, D-54, D-57). Per-lane trap scoping deferred with a trigger (D-58). Checks test what ships, not a plan or an unreached branch: D-59. Reviewer is Sonnet this sitting by the owner's word. One spark open: S17. Otto and Virbos stay read-only. Overlay still shelf.",
+  "now": "CONTROL PLANE HELD — Claude Code desktop, sitting 10. F33, F34, F36, F37 and F39 landed. F35 and F38 ISSUED and running as SIBLINGS, the first pair this sitting: node factory/tools/seat.mjs disjoint F35 F38 printed 2 and 2 holds, none shared, before either was issued, which is what AGENTS section 3 requires and a free slot does not prove. Two writers is a ceiling, not a target. No experiment open. The cloud writer is opt-in: no CLOUD_WRITER repository variable means no cloud seat (T74). The gate is 21 of 21 green with an envelope live. Handoff and first acts: D-55. Ceilings do not move; compact instead (D-52, D-54, D-57). Per-lane trap scoping deferred with a trigger (D-58). Checks test what ships, not a plan or an unreached branch: D-59. Reviewer is Sonnet this sitting by the owner's word. One spark open and it has no lane: S17, the census that reads any mention of a harness as a running seat. Otto and Virbos stay read-only. Overlay still shelf.",
   "remote": "VirBk/virbk",
   "references": [
     "VirBk/Otto",
@@ -246,7 +246,7 @@
     {
       "id": "F35",
       "title": "Alumni scan reads a child TRAPS.md",
-      "state": "queued",
+      "state": "issued",
       "hold": "factory/tools/alumni.mjs, contracts/intake.v1.json"
     },
     {
@@ -264,7 +264,7 @@
     {
       "id": "F38",
       "title": "A return's model is checked against the meter",
-      "state": "queued",
+      "state": "issued",
       "hold": "factory/tools/seatReturn.mjs, contracts/seat-return.v1.json"
     },
     {
@@ -365,10 +365,6 @@
   "ledger": [
     {
       "at": "2026-09-20",
-      "event": "F33 landed from writer/F33 at 8da5e53, fast-forward, after one correction and a split to a fresh seat on the same cheap tier. What it built: the reading-path gate step is two steps, so a suspension can be narrower than its hypothesis and F31's prefix guard survives one that targets the budget, which is what X01 got wrong; sizeBudget prints a percentage of cap for every budgeted file and the three context budgets and bands at 80, implementing the rule AGENTS section 4 has carried since F0 with nothing enforcing it; and spark.mjs rotate windows the store as ledger.mjs windows the ledger. Measured at landing: node factory/tools/spark.mjs rotate printed moved 12 kept 4, factory/sparks.json went 8332 to 2457 bytes, and node factory/tools/packet.mjs cost puts the control-plane packet at 36.3 KB against a 44 KB cap, down from 42.1. Three independent reviews ran, two of them separate claude -p processes; each of the first two found a blocking defect the control plane's own verification had missed, both of the same shape, an assertion satisfied by construction. docs/sparks/*.md now carries a 48 KB glob cap, which the lane named and could not add."
-    },
-    {
-      "at": "2026-09-20",
       "event": "F34 landed as a control-plane records commit, not a writer envelope. AGENTS section 8 has the control plane write documentation directly, section 3 gives a records envelope no review, and T53 makes an archive-at-80-per-cent cut a records commit that does not issue a writer. A voluntary review ran anyway, because the commit edits the constitution, and it found the blocking defect described below. Three changes. AGENTS section 3 carries D-53's orchestration model: order follows the dependency the board states rather than the issuer's judgement, siblings run only on holds proved disjoint at the files and written down with a free slot not counting as proof, review slots are reserved so a returned lane never waits, and a seat census is read from the process table with a dead seat resumed on its own session id. The provisional group of D-49 moved to factory/OPERATING_MODEL.md under a table naming what enforces each bullet, checked at the objects: eight of the nine rows name a trap in the digest every packet carries, and the ninth, a writer never fast-forwards main, is already AGENTS section 3's push the branch only, never main. A duplicate moved, not a law. Section 9's index kept the rows a seat or an issuing control plane reaches for constantly and the rest moved verbatim, thirty-seven rows byte-identical. The review caught the control plane writing a rule with no object into the file every seat reads: the first draft said a lane carries a wave and a depends-on and order is derived from that graph, while no lane carries either field, nothing renders them and nothing checks them. That is D-54's own charge, a rule with no check is a diary, committed into the constitution by the session that had just read D-54. The sentence now states what the board supports and names F37 as the lane that would derive order from a field. It also caught One review slot as a threshold no dated row carries, against AGENTS section 6, and three numbers in this row that did not reproduce, which is why the sizes here are a command rather than digits: node factory/tools/sizeBudget.mjs prints AGENTS.md at 86.6 per cent of its 12 KB cap against 96.8 before, and the control-plane packet out of the band. The seat-packet and control-plane figures move when this row is written, so they are not pasted here (T04). factory/COPY.md pointed a child at a part of section 5 that moved and was corrected. factory/OPERATING_MODEL.md gained a 16 KB cap: a file that receives what a capped file sheds while being unmeasured itself is T01."
     },
     {
@@ -410,6 +406,10 @@
     {
       "at": "2026-09-21",
       "event": "F39 landed from writer/F39 at b9cf594, fast-forward, after one correction. The GitHub writer Action is opt-in at job level, so an unset CLOUD_WRITER leaves it idle and issuing a lane can no longer fire a headless cloud seat onto a branch a local worktree holds; on F33 exactly that happened and a stale key stopped it rather than design. It asks route.mjs for the path, base, key name and provider id instead of hardcoding DashScope and its own map, the router's answer being byte-identical at base and HEAD with only a providerModel field added, and it counts the key its own call passes. A missing secret exits 0 with a reason naming the key and the path. The packet arrives on stdin. Five mutations were driven red by the control plane on the corrected branch, each with a property-level message: the child's OPENAI_BASE_URL, its OPENAI_API_KEY, its OPENAI_MODEL, an argv element carrying the packet, and watch printing idle while a lane is issued. S14 absorbed as T74 and S15 as T75, which empties every spark that had a lane. The T09 finding is the one worth carrying: the assertion that no envelope is live had been red at every landing of every lane, because AGENTS section 3 takes the gate archive before the envelope is deleted, and it is now a property driven both directions against a fixture. node factory/tools/landingGate.mjs prints GATE PASSED at 21 of 21 with an envelope live, which it has not done in this repository before."
+    },
+    {
+      "at": "2026-09-21",
+      "event": "F35 and F38 issued together at base ecf24e8, the first siblings of this sitting and the first pair proved disjoint by a command rather than by a free slot: node factory/tools/seat.mjs disjoint F35 F38 printed 2 and 2 holds, none shared, run before either envelope was written. AGENTS section 3 has required that proof since F34 and F37 built the tool that gives it. F35 makes the alumni scan open the TRAPS file it already detects, so a lesson a child wrote in prose stops reaching the parent only when a person reads it, which is T71; it must split rows that name a check from rows that do not, emit only the former as candidate intakes, and count the rest, because an intake without a check is refused and a refused intake is noise the owner learns to skip. F38 stops the factory believing a seat about which model wrote the lane: a seat echoes the envelope's Runtime stamp because it cannot see its own id, the harness meter records what actually answered, and recording a return now checks one against the other through the id map that owns the relation rather than by string equality, since deepseek-flash and deepseek-v4.1-flash are one model at two vendors while an unversioned DashScope id is a different price. F38 is the first lane this sitting to name a keystone: it is the spend-pasted-in-the-lane-log step of the dual-runtime loop, and it makes that step checkable rather than trusted."
     }
   ]
 }
