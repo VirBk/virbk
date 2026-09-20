@@ -12,11 +12,21 @@
 // leaves through stdout. Otto and Virbos stay alumni (T41); a drop that
 // nobody adopted is a drop nobody measured (T62).
 //
-// Sizes come from stat, never from reading a file in. Scanning a repo
-// must not cost what the repo costs to read.
+// A TRAPS file the scan finds is opened and read row by row: the file is
+// capped by A-TRAPS at 48 KB, and opening it is the point of the tool
+// (T71 — structure alone never carried a child's lesson to the parent).
+// Every other size comes from stat, never from reading a file in.
+//
+// A row that names a check becomes a candidate intake. A row that names
+// none is counted and printed by id and emitted as nothing, because the
+// gate refuses a checkless intake and a refused intake is noise the owner
+// learns to skip (T24). Nothing leaves here that intake.mjs would refuse:
+// the floors are the contract's, read from contracts/intake.v1.json rather
+// than carried as a copy.
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { dirname, join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -41,6 +51,291 @@ const BANNED = [
   { id: "A-COMPACTION", match: (p) => /(^|\/)compaction\.md$/i.test(p), trap: "T26" },
   { id: "A-WAIVER", match: (p) => /(^|\/)\.waiver$/.test(p), trap: "T40" },
 ];
+
+// ---------------------------------------------------------------- TRAPS rows
+//
+// The probe above matches a TRAPS path and reports its size. Nothing opened
+// the file, so a lesson a child wrote in prose reached the parent only when
+// a person read it (T71). These functions open it.
+//
+// Row shapes accepted, and nothing else:
+//   yaml   a "- id: T71" list item, keys title/rule/charged/cost/check/kind
+//          on indented lines, wrapped values joined with a space
+//   md     a col-0 bullet "- T71 text", or an ATX heading "## T71 text"
+// A row id is a letter-led token carrying digits (T71, O12, OTTO-3). A
+// bullet that does not start with one is prose and is not a row.
+const TRAPS_FILE = /TRAPS\.(md|yaml|yml)$/i;
+const ROW_ID = /^([A-Za-z][A-Za-z0-9]{0,5}[-_]?[0-9]{1,4})(?:[\s:.)\u2014-]|$)/;
+
+// A row names a check or it does not, and one function decides, so the two
+// cases cannot blur. An em dash before "Check:" is not a boundary: an
+// unrecognised spelling reads as "names no check", which is the safe way to
+// be wrong. The check runs to the end of its line, so trailing prose on a
+// later line stays in the rule.
+function splitCheck(body) {
+  const text = String(body || "").replace(/\r\n/g, NL);
+  const m = /(^|[.;][ \t]+|\n[ \t]*)Check(?:[ \t]+is|:)[ \t]+([^\n]+)/i.exec(text);
+  if (!m) return { rule: text, check: "" };
+  const cut = m.index + m[1].length;
+  return {
+    rule: text.slice(0, cut).trim().replace(/[.;]$/, ""),
+    check: m[2].trim().replace(/[.;]$/, ""),
+  };
+}
+
+let floorsCache = null;
+// The floors are the contract's own numbers, read from the contract, so the
+// rule that decides what leaves here is the rule the gate enforces (T02).
+function floors() {
+  if (floorsCache) return floorsCache;
+  const contract = JSON.parse(readFileSync(join(kitRoot, "contracts/intake.v1.json"), "utf8"));
+  const out = {};
+  for (const name of ["title", "charged", "rule", "check"]) {
+    const min = contract.properties && contract.properties[name] && contract.properties[name].minLength;
+    if (!Number.isInteger(min)) {
+      throw new Error("contracts/intake.v1.json declares no minLength for " + name);
+    }
+    out[name] = min;
+  }
+  floorsCache = out;
+  return out;
+}
+
+function collapse(text) {
+  return String(text || "").replace(/\s+/g, " ").trim();
+}
+
+export function parseTrapsYaml(text) {
+  const rows = [];
+  const noid = [];
+  let cur = null;
+  let key = null;
+  text.replace(/\r\n/g, NL).split(NL).forEach((raw, i) => {
+    if (!raw.trim() || /^\s*#/.test(raw)) return;
+    const item = /^-\s*(.*)$/.exec(raw);
+    if (item) {
+      cur = { line: i + 1, keys: {} };
+      rows.push(cur);
+      key = null;
+      const m = /^([A-Za-z][A-Za-z0-9_-]*):[ \t]?(.*)$/.exec(item[1]);
+      if (m) {
+        cur.keys[m[1]] = m[2];
+        key = m[1];
+      }
+      return;
+    }
+    const kv = /^\s+([A-Za-z][A-Za-z0-9_-]*):[ \t]?(.*)$/.exec(raw);
+    if (kv && cur) {
+      cur.keys[kv[1]] = kv[2];
+      key = kv[1];
+      return;
+    }
+    if (cur && key) cur.keys[key] += " " + raw.trim();
+  });
+  const out = [];
+  for (const r of rows) {
+    const id = String(r.keys.id || "").trim();
+    if (!id) {
+      noid.push(r.line);
+      continue;
+    }
+    out.push({
+      line: r.line,
+      id,
+      title: collapse(r.keys.title),
+      body: collapse(r.keys.rule || r.keys.charged || r.keys.cost),
+      check: collapse(r.keys.check),
+      kind: collapse(r.keys.kind),
+    });
+  }
+  return { rows: out, noid };
+}
+
+export function parseTrapsMarkdown(text) {
+  const lines = text.replace(/\r\n/g, NL).split(NL);
+  const starts = [];
+  lines.forEach((raw, i) => {
+    const h = /^#{1,6}[ \t]+(.*)$/.exec(raw);
+    const b = h ? null : /^[-*][ \t]+(.*)$/.exec(raw);
+    const head = (h ? h[1] : b ? b[1] : "").trim();
+    const m = head ? ROW_ID.exec(head) : null;
+    if (!m) return;
+    starts.push({
+      line: i + 1,
+      mode: h ? "heading" : "bullet",
+      id: m[1],
+      rest: head.slice(m[0].length).replace(/^[\s:.\u2014\u2013-]+/, ""),
+    });
+  });
+  const rows = [];
+  for (const s of starts) {
+    let body = s.rest;
+    if (s.mode === "heading") {
+      // The body ends at the next heading of any level, so a sub-heading
+      // starts a new section rather than swelling the row above it.
+      for (let i = s.line; i < lines.length; i++) {
+        if (/^#{1,6}[ \t]/.test(lines[i]) || /^[-*][ \t]+/.test(lines[i])) break;
+        body += NL + lines[i];
+      }
+    } else {
+      for (let i = s.line; i < lines.length; i++) {
+        if (!/^\s+\S/.test(lines[i])) break;
+        body += NL + lines[i];
+      }
+    }
+    rows.push({ line: s.line, id: s.id, title: "", body: body.trim(), check: "", kind: "" });
+  }
+  return { rows, noid: [] };
+}
+
+function titleOf(body) {
+  const first = collapse(body).split(/ [\u2014\u2013] /)[0];
+  const sentence = /^[^.]+\./.exec(first);
+  const t = collapse(sentence ? sentence[0] : first).replace(/[.;]$/, "");
+  return t.length >= 4 ? t : collapse(body).slice(0, 80);
+}
+
+function mintId(child, rowId) {
+  const clean = (s) => String(s).replace(/[^A-Za-z0-9._-]/g, "_");
+  return "C-" + clean(child).toUpperCase() + "-" + clean(rowId);
+}
+
+function trapsCandidate(row, child, rel, at) {
+  const split = splitCheck(row.body);
+  const check = row.check || split.check;
+  const rule = collapse(split.rule) || collapse(row.body);
+  const title = row.title || titleOf(row.body) || row.id;
+  return {
+    id: mintId(child, row.id),
+    child,
+    at,
+    kind: "trap",
+    // The row's own id and the file it sits in travel in the title, and the
+    // charged line repeats both: that is the provenance that finds the row
+    // again, and the contract carries no field for it. Adding one is not
+    // enough — intake.mjs holds its own field list and refuses an unknown
+    // key, so a new field would fail every candidate at the gate.
+    title: row.id + " " + rel + " \u2014 " + title,
+    charged: "Charged in " + child + " at " + rel + " row " + row.id + ": " + rule,
+    rule,
+    check,
+    portable: row.kind === "machine" ? "machine" : "portable",
+  };
+}
+
+// One row, two outcomes, and never a third that blurs them: emitted with
+// its check, or held with the reason it cannot be.
+export function trapsReport(root, child, at) {
+  const f = floors();
+  const day = at || new Date().toISOString().slice(0, 10);
+  const files = tracked(root)
+    .filter((x) => TRAPS_FILE.test(x.path))
+    .map((x) => x.path)
+    .sort();
+  const report = { files: [], rows: [] };
+  for (const rel of files) {
+    const text = readFileSync(join(root, rel), "utf8");
+    const parsed = /\.ya?ml$/i.test(rel) ? parseTrapsYaml(text) : parseTrapsMarkdown(text);
+    const file = { path: rel, total: parsed.rows.length, named: 0, held: [], noid: parsed.noid };
+    const seen = new Set();
+    for (const row of parsed.rows) {
+      const candidate = trapsCandidate(row, child, rel, day);
+      let why = "";
+      if (!candidate.check) why = "names no check";
+      else if (candidate.check.length < f.check) why = "check under " + f.check;
+      else if (candidate.rule.length < f.rule) why = "rule under " + f.rule;
+      else if (seen.has(candidate.id)) why = "row id repeated in this file";
+      if (why) file.held.push({ id: row.id, why });
+      else {
+        seen.add(candidate.id);
+        file.named += 1;
+        report.rows.push(candidate);
+      }
+    }
+    report.files.push(file);
+  }
+  return report;
+}
+
+// Renders parsed rows back to the markdown shape. The live traps.yaml is
+// turned into a TRAPS.md this way, so the markdown reader is measured
+// against rows a person wrote instead of only against a fixture written to
+// agree with the parser.
+export function trapsToMarkdown(parsed) {
+  const out = [];
+  for (const row of parsed.rows) {
+    let text = collapse(row.body);
+    if (row.title) text = collapse(row.title) + ". " + text;
+    // A row that named its check in its own key gets it back as prose, so the
+    // markdown reader sees every check the yaml reader saw.
+    if (row.check) text = collapse(text) + " Check is " + collapse(row.check) + ".";
+    out.push("- " + row.id + " " + text);
+  }
+  return out.join(NL) + NL;
+}
+
+// What a reviewer of a scanned tree would be handed: both counts, every held
+// id, and the shape of everything emitted. Every mutant in the self-test runs
+// through this one function, so nothing here is a check that cannot fail
+// (D-59).
+export function trapsProblems(report, want) {
+  const problems = [];
+  const rows = report.files.reduce((n, f) => n + f.total, 0);
+  const named = report.files.reduce((n, f) => n + f.named, 0);
+  const noid = report.files.reduce((n, f) => n + f.noid.length, 0);
+  if (rows !== want.rows) problems.push("rows " + rows + ", expected " + want.rows);
+  if (named !== want.named) problems.push("rows with a check " + named + ", expected " + want.named);
+  if (noid !== want.noid) problems.push("rows with no id " + noid + ", expected " + want.noid);
+  if (report.rows.length !== want.emit) {
+    problems.push("emitted " + report.rows.length + " candidate(s), expected " + want.emit);
+  }
+  const held = [];
+  for (const f of report.files) for (const h of f.held) held.push(h);
+  for (const id of want.held) {
+    if (!held.some((h) => h.id === id)) problems.push("held row " + id + " is not reported by id");
+  }
+  for (const h of held) {
+    if (want.whyNoCheck.includes(h.id) && h.why !== "names no check") {
+      problems.push("held row " + h.id + " says " + h.why + ", not that it names no check");
+    }
+  }
+  for (const row of report.rows) {
+    const named2 = / at (\S+) row (\S+):/.exec(row.charged || "");
+    if (!row.check) problems.push("emitted " + row.id + " with no check");
+    if (!row.child) problems.push("emitted " + row.id + " with no child");
+    if (!named2) problems.push("emitted " + row.id + " names no file and row in its provenance");
+    else if (!row.title.startsWith(named2[2] + " " + named2[1] + " ")) {
+      problems.push("emitted " + row.id + " does not carry its row id and file in the title");
+    }
+  }
+  return problems;
+}
+
+// Read-only is proved, not asserted. A path, its size and a hash of its
+// bytes: a write anywhere under the root changes this string.
+function snapshot(root) {
+  const rows = [];
+  const stack = [""];
+  while (stack.length) {
+    const rel = stack.pop();
+    for (const name of readdirSync(rel ? join(root, rel) : root)) {
+      if (SKIP_DIR.has(name)) continue;
+      const childRel = rel ? rel + "/" + name : name;
+      const st = statSync(join(root, childRel));
+      if (st.isDirectory()) stack.push(childRel);
+      else {
+        rows.push(
+          childRel +
+            " " +
+            st.size +
+            " " +
+            createHash("sha1").update(readFileSync(join(root, childRel))).digest("hex").slice(0, 12),
+        );
+      }
+    }
+  }
+  return rows.sort().join(NL);
+}
 
 function walk(dir, root, acc) {
   for (const name of readdirSync(dir)) {
@@ -79,7 +374,7 @@ function kb(bytes) {
   return (bytes / 1024).toFixed(1);
 }
 
-export function scan(root) {
+export function scan(root, child) {
   const files = tracked(root);
   const signals = [];
 
@@ -140,7 +435,11 @@ export function scan(root) {
     });
   }
 
-  return { files: files.length, signals };
+  // The rows, not only the size of the file they are in. This is the read
+  // that T71 was about.
+  const traps = trapsReport(root, child || basename(root).toLowerCase());
+
+  return { files: files.length, signals, traps };
 }
 
 function childRow(id) {
@@ -257,6 +556,37 @@ function printScan(root, report) {
   const hard = report.signals.filter((s) => s.kind !== "note");
   console.log("");
   console.log(hard.length ? hard.length + " signals worth an intake" : "no signals");
+
+  const traps = report.traps;
+  const total = traps.files.reduce((n, f) => n + f.total, 0);
+  const named = traps.files.reduce((n, f) => n + f.named, 0);
+  console.log("");
+  const col = Math.max(4, ...traps.files.map((f) => f.path.length));
+  console.log("TRAPS rows    " + "file".padEnd(col + 2) + "rows  with a check  without");
+  for (const f of traps.files) {
+    console.log(
+      " ".padEnd(14) + f.path.padEnd(col + 2) + String(f.total).padEnd(6) + String(f.named).padEnd(14) + (f.total - f.named),
+    );
+  }
+  console.log(
+    "rows " +
+      total +
+      ", with a check " +
+      named +
+      ", without a check " +
+      (total - named) +
+      (traps.files.length ? "" : "  (no TRAPS file in this tree)"),
+  );
+  console.log("emit " + traps.rows.length + " candidate intake(s)");
+  for (const f of traps.files) {
+    if (!f.noid.length) continue;
+    console.log("  " + f.path + " line(s) " + f.noid.join(", ") + " — a list item with no id is not a row");
+  }
+  const held = [];
+  for (const f of traps.files) {
+    for (const h of f.held) held.push(h.id + " (" + h.why + ")");
+  }
+  if (held.length) console.log("held, not emitted: " + held.join(", "));
 }
 
 function fixture(tree) {
@@ -315,6 +645,157 @@ function selfTest() {
     }
     fsMod.rmSync(tmpFile, { force: true });
 
+    // ------------------------------------------- the rows of a TRAPS file
+    // Two shapes of the same rows, and a third shape of the live file. The
+    // markdown row that names no check and the yaml row that names none are
+    // held by id, never emitted: the gate refuses a checkless intake, and a
+    // refused intake is noise the owner learns to skip (T24).
+    const mdRows = [
+      "- T1 Keep the seat under its cap. Check is node factory/tools/size.mjs reports ok.",
+      "- T2 A rule with no check is a diary, and this row is one.",
+      "- T7 A check that is too short is refused. Check: TODO.",
+      "",
+      "Prose in a TRAPS file is not a row: it is not a bullet, and it carries no id.",
+    ].join(NL) + NL;
+    const yamlRows =
+      "- id: T3" + NL +
+      "  kind: machine" + NL +
+      "  title: The harness eats the exit code" + NL +
+      "  rule: A wrapped rule that" + NL +
+      "    continues on the next line, and names its check inside." + NL +
+      "  Check is node factory/tools/seat.mjs --self-test goes green." + NL +
+      "- id: T4" + NL +
+      "  title: A row that names nothing to run" + NL +
+      "  rule: This rule is long enough to clear the floor, and stops there." + NL +
+      "-" + NL +
+      "  title: A list item with no id is not a row" + NL;
+    const ymlRows =
+      "- id: T5" + NL +
+      "  title: The second yaml extension reaches the same reader" + NL +
+      "  rule: One rule and one check, written as an explicit key." + NL +
+      "  check: node factory/tools/kitCheck.mjs exits zero." + NL;
+
+    const liveTraps = readFileSync(join(kitRoot, "factory/traps.yaml"), "utf8");
+    const rowsTree = fixture({
+      "docs/TRAPS.md": mdRows,
+      "docs/TRAPS.yaml": yamlRows,
+      "ops/TRAPS.yml": ymlRows,
+      "src/app.js": "ok",
+    });
+    const corpusTree = fixture({
+      "docs/TRAPS.md": trapsToMarkdown(parseTrapsYaml(liveTraps)),
+      "factory/TRAPS.yaml": liveTraps,
+    });
+    try {
+      const want = {
+        rows: 6,
+        named: 3,
+        noid: 1,
+        emit: 3,
+        held: ["T2", "T7", "T4"],
+        whyNoCheck: ["T2", "T4"],
+      };
+      const before = snapshot(rowsTree);
+      const traps = trapsReport(rowsTree, "otto", "2026-09-21");
+      if (snapshot(rowsTree) !== before) errors.push("reading a TRAPS file wrote into the scanned tree");
+      const problems = trapsProblems(traps, want);
+      if (problems.length) errors.push("traps report: " + problems.join("; "));
+
+      // The read-only check can fail: a write anywhere under the root has to
+      // move it, and undoing the write has to put it back.
+      fsMod.writeFileSync(join(rowsTree, "docs/TRAPS.md"), mdRows + NL);
+      if (snapshot(rowsTree) === before) errors.push("the read-only snapshot did not notice a write");
+      fsMod.writeFileSync(join(rowsTree, "docs/TRAPS.md"), mdRows);
+      if (snapshot(rowsTree) !== before) errors.push("the read-only snapshot did not come back when the write was undone");
+
+      // D-59: each mutant is a report this code could have produced, and each
+      // one runs through the same assertion the green run above used.
+      const mutants = [
+        [
+          "the parser returns no rows for a TRAPS file that has some",
+          { rows: [], files: traps.files.map((f) => ({ ...f, total: 0, named: 0, held: [] })) },
+        ],
+        [
+          "a checkless row is emitted as an intake",
+          { ...traps, rows: traps.rows.concat([{ ...traps.rows[0], id: "C-OTTO-T2", check: "" }]) },
+        ],
+        [
+          "an emitted candidate carries no child",
+          { ...traps, rows: traps.rows.map((r, i) => (i === 0 ? { ...r, child: "" } : r)) },
+        ],
+      ];
+      for (const [name, mutant] of mutants) {
+        if (!trapsProblems(mutant, want).length) errors.push("mutant not caught: " + name);
+      }
+
+      // Everything emitted passes the parent's own gate with no hand-editing.
+      traps.rows.forEach((row, i) => {
+        const f = join(rowsTree, "..", "trap-cand-" + i + ".json");
+        fsMod.writeFileSync(f, JSON.stringify(row, null, 2));
+        const run = spawnSync(process.execPath, [join(kitRoot, "factory/tools/intake.mjs"), f], {
+          encoding: "utf8",
+        });
+        if (run.status !== 0) {
+          errors.push("emitted trap intake fails the gate: " + (run.stderr || run.stdout || "").trim());
+        }
+        fsMod.rmSync(f, { force: true });
+      });
+
+      // Two fields the gate refuses, driven so that the refusal is the gate's
+      // and not this file's opinion.
+      const bad = join(rowsTree, "..", "trap-cand-bad.json");
+      for (const [field, empty, wants] of [
+        ["check", "", /check/],
+        ["child", "", /child/],
+      ]) {
+        fsMod.writeFileSync(bad, JSON.stringify({ ...traps.rows[0], [field]: empty }, null, 2));
+        const run = spawnSync(process.execPath, [join(kitRoot, "factory/tools/intake.mjs"), bad], {
+          encoding: "utf8",
+        });
+        const said = run.stderr || run.stdout || "";
+        if (run.status === 0 || !wants.test(said)) {
+          errors.push("intake.mjs did not refuse an empty " + field + ": " + said.trim());
+        }
+      }
+      fsMod.rmSync(bad, { force: true });
+
+      // The live rows, in two shapes, read by two readers. A markdown reader
+      // that only agreed with the fixture written for it would agree here too
+      // and still be wrong, so the same file is parsed as yaml and as
+      // markdown and the two readings are compared to each other.
+      const seen = trapsReport(corpusTree, "corpus", "2026-09-21");
+      const byRel = new Map(seen.files.map((f) => [f.path, f]));
+      const asMd = byRel.get("docs/TRAPS.md");
+      const asYaml = byRel.get("factory/TRAPS.yaml");
+      if (!asMd || !asYaml) errors.push("the corpus drive did not read both shapes of the live rows");
+      else {
+        if (asMd.total !== asYaml.total) {
+          errors.push("live rows: markdown reads " + asMd.total + ", yaml reads " + asYaml.total);
+        }
+        if (asMd.named !== asYaml.named) {
+          errors.push("live rows: markdown names " + asMd.named + " checks, yaml names " + asYaml.named);
+        }
+        if (seen.rows.length !== asMd.named + asYaml.named) {
+          errors.push(
+            "live rows: emitted " +
+              seen.rows.length +
+              " candidates for " +
+              (asMd.named + asYaml.named) +
+              " rows naming a check across two files",
+          );
+        }
+        // The same rows, written both ways, mint the same ids: the two
+        // readers did not merely agree on a count.
+        const distinct = new Set(seen.rows.map((r) => r.id)).size;
+        if (distinct !== asYaml.named) {
+          errors.push("live rows: " + distinct + " distinct candidates for " + asYaml.named + " rows naming a check");
+        }
+      }
+    } finally {
+      fsMod.rmSync(rowsTree, { recursive: true, force: true });
+      fsMod.rmSync(corpusTree, { recursive: true, force: true });
+    }
+
     const status = dropStatus(
       { id: "x", drop: { file: "f", at: "2026-09-17", expect: { script: "tools/sizeBudget.js", gate: "tools/check.yml" } } },
       lean,
@@ -368,14 +849,16 @@ if (cmd === "scan" || cmd === "intakes") {
     console.error("usage: node factory/tools/alumni.mjs " + cmd + " <path to a working copy>");
     process.exit(1);
   }
-  const report = scan(root);
+  const child = process.argv[4] || basename(root).toLowerCase();
+  const report = scan(root, child);
   if (cmd === "scan") {
     printScan(root, report);
     process.exit(0);
   }
-  const child = process.argv[4] || basename(root).toLowerCase();
   const at = new Date().toISOString().slice(0, 10);
-  console.log(JSON.stringify(intakeRows(child, report, at), null, 2));
+  // Two sources, one shape: the size signals and the rows of the child's
+  // own TRAPS file. Everything here already cleared the contract's floors.
+  console.log(JSON.stringify([...intakeRows(child, report, at), ...report.traps.rows], null, 2));
   process.exit(0);
 }
 
