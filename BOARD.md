@@ -4,7 +4,7 @@ Generated from `factory/board.json`. Do not hand-edit this file. Restamp with `n
 
 ## Now
 
-Sitting 6 closed. F29 and F30 landed: a return records its spend and cache hits, and a landing step can be suspended on purpose by a dated experiment with an expiry. Both stores are empty: nothing is suspended and nothing metered has returned. Open for the next control plane: D-49, splitting AGENTS section 5 into the owner boundaries and the provisional ones, proposed text in docs/log/f30.md, needs the owner word. Also open: D-45, a code lane owed to a writer seat with a fresh reviewer. Nothing is running. References Otto and Virbos remain read-only and untouched. Overlay still shelf. Path dashscope.
+Sitting 7. F31 issued: the packet already orders static bytes first for a provider prefix cache, and nothing fails if that order changes. A local DashScope writer seat holds factory/tools/packet.mjs and docs/log/f31.md; a fresh Claude reviewer follows. D-45 is being paid: a writer seat with an independent reviewer. D-49 still needs the owner word. References Otto and Virbos remain read-only. Overlay still shelf. Path dashscope.
 
 Remote: VirBk/virbk. References: VirBk/Otto, VirBk/virbos.
 
@@ -55,6 +55,7 @@ No envelope opens a gate.
 | F28 | landed | factory/tools/ghaWriter.mjs, factory/tools/seat.mjs, docs/log/f28.md | The seat is launched with the packet |
 | F29 | landed | factory/tools/seatReturn.mjs, factory/returns.json, docs/log/f29.md | Spend and cache hits survive as rows |
 | F30 | landed | factory/tools/experiment.mjs, factory/experiments.json, factory/tools/landingGate.mjs, docs/log/f30.md | A rule can be suspended on purpose, with an expiry |
+| F31 | issued | factory/tools/packet.mjs, docs/log/f31.md | The packet prefix is byte-stable, and a check proves it |
 
 ## Holds
 
@@ -103,3 +104,4 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 F30 landed. factory/tools/experiment.mjs suspends a named landing step for a hypothesis with an expiry, and the gate prints what a suspended step found instead of hiding it. Landed inert: no experiment is open. T66. D-48.
 - 2026-09-20 D-49 deferred to the owner word: AGENTS section 5 mixes owner boundaries with engineering guesses, so a session cites a preference as physics. Proposed replacement text is in docs/log/f30.md. The session that proposed it was refused twice by the desktop tool policy for editing its own instruction file, which is the right refusal.
 - 2026-09-20 Sitting 6 closed. Two open items carried to the next control plane: D-49 needs the owner word, D-45 needs a writer seat. Nothing is running and no experiment is open.
+- 2026-09-20 F31 issued. A handoff naming four pillars was re-assessed against live main: cloud orchestration is already built and green, the prompt-cache prefix is built by construction but unguarded, the spend meter has zero rows so no cap can be set from data yet, and the memory feedback loop has no machine-readable record of a correction to count. F31 takes the one gap with no data dependency. Records issuance skips Actions so the GHA writer does not race the local seat.
