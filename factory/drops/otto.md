@@ -121,6 +121,20 @@ At `3c52a90`: session notes are not the record; a search that finds
 nothing is the search; keystone and challenge are D-72 and D-132 at
 issue. Those have TRAPS lines. They do not get another paragraph.
 
+## Adoption check (parent side, read-only)
+
+The parent measures this drop instead of assuming it landed:
+
+```
+node factory/tools/alumni.mjs drop-status otto <path to this working copy>
+node factory/tools/alumni.mjs scan <path to this working copy>
+```
+
+The first names the script and the gate file above and exits 2 while the
+gate does not name the script. The second lists every over-cap live file
+and the bytes every seat reads before any work, each mapped to the trap
+that paid for it. Neither writes to this repository.
+
 ## Do not feed
 
 - `factory/` overlay, or replace `AGENTS.md` with Grok’s

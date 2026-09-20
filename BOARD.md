@@ -88,7 +88,6 @@ No envelope opens a gate.
 
 Live window. Older rows are in `docs/ledger/`, which is history, not the reading path.
 
-- 2026-09-20 F21 landed ff-only after a DeepSeek writer return, fresh approved review, and Ubuntu archive gate (Actions run 35483615467). Envelope retired; usage recorded in docs/log/f21.md. PR #3 closed in favor of #4. Sitting closed.
 - 2026-09-20 F22 landed. Every tracked .json parses in the gate; factory/packages.json had been invalid since F19 and no step read it. Plan and board are checked against each other. T59 T63. D-41.
 - 2026-09-20 Parent remote named in live law is VirBk/virbk; the help-target guard reads factory/lineage.json instead of a literal. Older rows keep the previous name as history. D-42.
 - 2026-09-20 F23 landed. The landing gate unpacks its own archive in process, with autocrlf off, so it runs on the Windows control plane and measures the bytes the Ubuntu runner measures. Before this the local gate exited on archive failed. T60. D-40.
@@ -100,3 +99,4 @@ Live window. Older rows are in `docs/ledger/`, which is history, not the reading
 - 2026-09-20 S03 absorbed as T57, S04 as T58, S06 as T56. S05 dropped: T50 already holds it.
 - 2026-09-20 Control plane ran as its own writer for this records sitting on the owner word; no independent reviewer session existed. The gate and the new self-tests are the evidence. D-45.
 - 2026-09-20 Landing gate ran on the control-plane machine for the first time: 19 steps, GATE PASSED, from a fresh archive of the commit under test. The Ubuntu Action runs the same 19.
+- 2026-09-20 Newlines pinned with .gitattributes so the working tree, the gate archive and the runner measure one number. Each alumni drop now names the read-only command the parent uses to measure adoption.
