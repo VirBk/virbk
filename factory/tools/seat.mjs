@@ -647,6 +647,19 @@ if (cmd === "--self-test") {
       [cen.stdout],
     );
     ok("census reported a row no lister emitted", !(cen.stdout || "").includes("4242"), [cen.stdout]);
+    // The harness label is the one field of a counted row that nothing above
+    // reaches: a hardcoded label still gives the right count, the right pids
+    // and the right exclusions. Read it off the CLI's own rendering, per pid.
+    const label = {};
+    for (const line of (cen.stdout || "").split(/\r?\n/)) {
+      const m = /^\s*(\d+)\s+(\S+)\s/.exec(line);
+      if (m) label[m[1]] = m[2];
+    }
+    ok(
+      "a row's harness label was wrong",
+      label["8324"] === "qwen" && label["4521"] === "goose" && label["17"] === "goose",
+      [JSON.stringify(label)],
+    );
     const emptyLister = join(fixture, "empty-lister.mjs");
     writeFileSync(emptyLister, "process.stdout.write('');" + NL);
     const cenEmpty = runSeat(["census", "--lister", '"' + process.execPath + '" "' + emptyLister + '"'], fixture);
