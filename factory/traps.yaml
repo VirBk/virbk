@@ -450,3 +450,9 @@
   object: "factory/tools/ghaWriter.mjs"
   title: Cloud seat that keeps its own copy of the route
   rule: A cloud runner asks the router for the path, the base, the key NAME and the id that base expects, instead of hardcoding a hosted base or carrying its own id map, and it counts the key its own call passes so a key for the other path cannot buy a launch. Check is node factory/tools/ghaWriter.mjs --self-test.
+
+- id: T76
+  kind: portable
+  object: "factory/tools/kitCheck.mjs"
+  title: Record that cites what does not resolve, or dates what UTC has not reached
+  rule: A citation in a record is checked rather than trusted, because the evidence for a claim can be invented while the claim itself is true, and that is what a reviewer reading for plausibility waves through. A backticked path a lane log cites resolves in the commit under test or sits in a named allowlist with a one-line reason, and an allowlist entry that does resolve fails too, since a stale exemption is a lie. A date FIELD, decisions at and board ledger at, is never ahead of the UTC date read in the same act as the comparison (T04); prose is not scanned, so a record may narrate a date it does not claim. The rule sees only backticked tokens that contain a slash and end in one of seven source extensions: a path with a line suffix, an unbackticked path, or another extension is outside it. Check is node factory/tools/kitCheck.mjs --self-test.

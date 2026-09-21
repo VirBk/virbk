@@ -57,8 +57,9 @@
       "claim": "A seat cited evidence that does not exist: a lane log named a git ref as the source of a price claim, and the ref appears nowhere in the repository except the sentence claiming it.",
       "object": "docs/log",
       "whyNotLaw": "The underlying claim was true and derivable from route.mjs, so a reviewer reading for plausibility passes it. T02 covers a copied number and T56 a missing command; neither covers an invented reference, and nothing checks that a ref or path a log cites resolves.",
-      "status": "open",
-      "openedOn": 10
+      "status": "absorbed",
+      "openedOn": 10,
+      "absorbedAs": "T76"
     },
     {
       "id": "S19",
@@ -84,6 +85,15 @@
       "claim": "The gated 'seat packet' band measures seatPacket(root, null), the packet with no lane and so without the envelope: with F40 issued sizeBudget prints 99.7 per cent of 26 KB while packet.mjs seat F40 prints 31.6 KB.",
       "object": "factory/tools/sizeBudget.mjs",
       "whyNotLaw": "Two readings, and the control plane could not settle it from the objects. Either the band measures a different object than the one that reaches a writer, which is D-59's family in the gate's own hand, or it is deliberately the byte-stable cacheable prefix at 26 with the envelope budgeted separately at 6, total about 32, in which case one label for two numbers 5.7 KB apart is what needs fixing. budgets.json's note and D-57 both speak of 'the packet' at 25.3 KB, which is the prefix reading. Settle it before the next ceiling argument: a control plane reading 99.7 per cent green can hand a seat 22 per cent more context than the number it just checked.",
+      "status": "open",
+      "openedOn": 11
+    },
+    {
+      "id": "S22",
+      "kind": "trap",
+      "claim": "The census counts processes, not seats: two qwen-code launches produced six rows, a cli-entry wrapper plus --expose-gc children each, and it printed 6 running writer seat(s) when the true number was two.",
+      "object": "factory/tools/seat.mjs",
+      "whyNotLaw": "Observed live when sitting 11's two siblings were launched, with the real number known. F40 does NOT fix this: that lane puts the harness token in program position, and every one of the six rows has it there, so the count stays wrong by the process tree after F40 lands. The two-writer ceiling and the dead-seat resume both read this number. A seat is a process group, or the row a launch recorded, not a matching command line.",
       "status": "open",
       "openedOn": 11
     }

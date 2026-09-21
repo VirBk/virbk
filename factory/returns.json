@@ -16,6 +16,23 @@
         "requests": 27,
         "source": "qwen usage_record.jsonl session 811fde75-c617-4b65-86b0-d6695a10df73"
       }
+    },
+    {
+      "at": "2026-09-21T00:27:46.416Z",
+      "key": "a89b727587deab5d",
+      "lane": "F41",
+      "runtime": "desktop-qwen",
+      "model": "deepseek-flash",
+      "base": "0d3fe6fdc373c63c8280081234be841bbb94bfd9",
+      "branch": "writer/F41",
+      "tokens": {
+        "in": 3177103,
+        "out": 44461,
+        "cached": 3095296,
+        "requests": 45,
+        "source": "qwen usage_record.jsonl"
+      },
+      "meterModel": "deepseek-flash"
     }
   ]
 }
