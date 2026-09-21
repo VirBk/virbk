@@ -431,25 +431,25 @@
   kind: machine
   object: "factory/tools/seat.mjs"
   title: Packet handed to a seat as one argv string
-  rule: A recipe hands the packet over on stdin, never as one argv string, because a cap-sized packet is over the command-line limit and the harness dies with Argument list too long before it reads a byte. Check is node factory/tools/seat.mjs --self-test.
+  rule: A recipe hands the packet over on stdin, never as one argv string. A cap-sized packet is over the command-line limit, and the harness dies with Argument list too long before it reads a byte. Check is node factory/tools/seat.mjs --self-test.
 
 - id: T73
   kind: machine
   object: "factory/tools/seat.mjs"
   title: Writer key read from whichever shell is open
-  rule: A Windows recipe line reads the writer key from the user store with [Environment]::GetEnvironmentVariable("NAME","User") in the same act as the launch, never from a bare $env:NAME, which is whatever was true when that terminal opened. Check is node factory/tools/seat.mjs --self-test.
+  rule: A Windows recipe line reads the writer key from the user store in the same act as the launch. The form is [Environment]::GetEnvironmentVariable("NAME","User"), never a bare $env:NAME, which is whatever was true when that terminal opened. Check is node factory/tools/seat.mjs --self-test.
 
 - id: T74
   kind: portable
   object: ".github/workflows/writer.yml"
   title: Cloud writer that is on by default
-  rule: A job that launches a paid writer is opt-in, so an unset repository variable leaves it idle and idle is a success; a job that fires on the event alone spends every push, and a secret that was never placed reads as a broken Action rather than an absent one. Check is node factory/tools/ghaWriter.mjs --self-test.
+  rule: A job that launches a paid writer is opt-in, and idle is a success. An unset repository variable leaves it idle; a job that fires on the event alone spends every push, and a secret that was never placed reads as a broken Action rather than an absent one. Check is node factory/tools/ghaWriter.mjs --self-test.
 
 - id: T75
   kind: portable
   object: "factory/tools/ghaWriter.mjs"
   title: Cloud seat that keeps its own copy of the route
-  rule: A cloud runner asks the router for the path, the base, the key NAME and the id that base expects, instead of hardcoding a hosted base or carrying its own id map, and it counts the key its own call passes so a key for the other path cannot buy a launch. Check is node factory/tools/ghaWriter.mjs --self-test.
+  rule: A cloud runner asks the router for the path, the base, the key NAME and the id that base expects. It hardcodes no hosted base and carries no id map of its own, and it counts the key its own call passes, so a key for the other path cannot buy a launch. Check is node factory/tools/ghaWriter.mjs --self-test.
 
 - id: T76
   kind: portable

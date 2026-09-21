@@ -219,6 +219,16 @@
       "id": "F43",
       "title": "A print-mode recipe names its approval mode, or the seat writes nothing",
       "status": "landed"
+    },
+    {
+      "id": "F44",
+      "title": "The census counts seats, not the processes one launch spawns (S22)",
+      "status": "issued"
+    },
+    {
+      "id": "F45",
+      "title": "A seat packet refuses a stale envelope the worktree still holds (S23)",
+      "status": "issued"
     }
   ]
 }
