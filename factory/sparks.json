@@ -37,8 +37,9 @@
       "claim": "T70 says gate steps run through bash from a file and are unaffected by shell dialect. On this machine that is false: a seat whose bash resolves to the WSL launcher gets GATE FAILED on all 21 steps, at any commit.",
       "object": "factory/traps.yaml",
       "whyNotLaw": "Hit by two seats this sitting, F40 and F43, each spending calls proving the red was not its own; the F43 seat ran a control at live main's tip, got the same 21 reds and correctly handed classification to the control plane. The same gate passes 21 of 21 from git-bash at the same commit. A trap that states a hazard does not apply is worse than no trap, because a seat reads it and trusts it, and the gate prints step names rather than stderr so the cause is invisible from inside a seat.",
-      "status": "open",
-      "openedOn": 11
+      "status": "absorbed",
+      "openedOn": 11,
+      "absorbedAs": "T70"
     },
     {
       "id": "S25",
@@ -64,6 +65,15 @@
       "claim": "The seat packet is at 99.9 per cent of cap with four trap rows due, but D-58's trigger has NOT fired: AGENTS sections 4 and 8 still restate what the digest carries in the same packet - T01, T02, T03, T25, T26, T27, T39 - about 700 bytes.",
       "object": "AGENTS.md",
       "whyNotLaw": "This is the shed D-58 says to make BEFORE firing its trigger, found by the sixth board-prose cap fight in two sittings. It was not taken on the spot for a reason worth recording: two seats were running against a byte-stable prefix that carried 96.8 per cent of input on cache last sitting, and rewriting AGENTS mid-flight busts that prefix for both seats and for any correction round. Order: land F47 and F48, shed second, absorb third. What keeps it a spark is that the shed and the four rows roughly cancel. If the packet is back over 90 with nothing left to cut, D-58's trigger HAS fired and scoping becomes a lane that also owns F31's byte-stable assertion and must price the prefix change at the measured cache rates.",
+      "status": "open",
+      "openedOn": 12
+    },
+    {
+      "id": "S28",
+      "kind": "trap",
+      "claim": "The qwen seat keeps a memory store OUTSIDE git at ~/.qwen/memories, read into every later seat. Its note on this machine's bash first claimed the gate always reds 21, which is false; F47's seat found that at the objects and corrected it.",
+      "object": "factory/sessions.json",
+      "whyNotLaw": "Two readings and the control plane cannot settle it from the objects. One: this is T50 and T26 with a new carrier. The fuse model says the repository is memory and a successor reads AGENTS, BOARD and its envelope and never a transcript, and sessions.json lists what a successor never reads. A store that survives session death and is injected into every later seat makes a fresh seat not fresh, sits in no packet, under no size budget, in no gate, and is reviewed by nobody. The false version of this very note would have been read as fact by every seat after it. Two: it demonstrably paid. F47's seat diagnosed the WSL launcher by the -e versus -c pair, which is what its own note taught, and it CORRECTED the note at the objects rather than trusting it. Measure before ruling: how many bytes reach a seat, whether they sit ahead of the byte-stable prefix and cost the 95 per cent cache hit measured on F47, and whether a note can be made a return the control plane reviews instead of a file nobody owns.",
       "status": "open",
       "openedOn": 12
     }

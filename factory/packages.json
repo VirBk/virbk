@@ -238,7 +238,7 @@
     {
       "id": "F47",
       "title": "The gate names a shell that cannot run it, instead of 21 false reds (S24)",
-      "status": "issued"
+      "status": "landed"
     },
     {
       "id": "F48",
@@ -248,6 +248,11 @@
     {
       "id": "F49",
       "title": "A correction envelope authorises the force its own rebase forces (S26)",
+      "status": "queued"
+    },
+    {
+      "id": "F50",
+      "title": "The entry-point fixture runs where the gate runs, not only from a checkout",
       "status": "queued"
     }
   ]

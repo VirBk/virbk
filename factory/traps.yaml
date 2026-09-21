@@ -419,7 +419,7 @@
   kind: machine
   object: "*"
   title: Command handed over in the wrong shell dialect
-  rule: The owner's terminal is PowerShell 5.1, which rejects && as a statement separator. One command per line. Gate steps run through bash from a file and are unaffected; this binds what the control plane types at the owner.
+  rule: The owner's terminal is PowerShell 5.1, which rejects && as a statement separator, so a command handed to the owner is one per line. Gate steps are NOT exempt: they spawn bash with a Windows script path and cwd, and a bash that resolves to the WSL launcher cannot read either, so every step reds at any commit. Check is the gate probing its shell in a step's own form before the first step and exiting 2 with one diagnostic naming the shell, added by F47. A probe shaped `bash -c true` passes under that launcher and closes nothing.
 
 - id: T71
   kind: portable
