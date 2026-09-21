@@ -152,6 +152,23 @@
         "source": "qwen usage_record.jsonl"
       },
       "meterModel": "deepseek-v4.1-flash"
+    },
+    {
+      "at": "2026-09-21T12:46:44.649Z",
+      "key": "55f936a241ed4fe4",
+      "lane": "F46",
+      "runtime": "desktop-qwen",
+      "model": "deepseek-flash",
+      "base": "0cfba0b",
+      "branch": "writer/F46",
+      "tokens": {
+        "in": 3244224,
+        "out": 93836,
+        "cached": 3112064,
+        "requests": 51,
+        "source": "qwen usage_record.jsonl"
+      },
+      "meterModel": "deepseek-flash"
     }
   ]
 }

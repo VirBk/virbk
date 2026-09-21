@@ -8,8 +8,9 @@
       "claim": "The gated 'seat packet' band measures seatPacket(root, null), the packet with no lane and so without the envelope: with F40 issued sizeBudget prints 99.7 per cent of 26 KB while packet.mjs seat F40 prints 31.6 KB.",
       "object": "factory/tools/sizeBudget.mjs",
       "whyNotLaw": "Two readings, and the control plane could not settle it from the objects. Either the band measures a different object than the one that reaches a writer, which is D-59's family in the gate's own hand, or it is deliberately the byte-stable cacheable prefix at 26 with the envelope budgeted separately at 6, total about 32, in which case one label for two numbers 5.7 KB apart is what needs fixing. budgets.json's note and D-57 both speak of 'the packet' at 25.3 KB, which is the prefix reading. Settle it before the next ceiling argument: a control plane reading 99.7 per cent green can hand a seat 22 per cent more context than the number it just checked.",
-      "status": "open",
-      "openedOn": 11
+      "status": "absorbed",
+      "openedOn": 11,
+      "absorbedAs": "T82"
     },
     {
       "id": "S26",

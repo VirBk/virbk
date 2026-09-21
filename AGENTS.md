@@ -31,7 +31,6 @@ Two writers at a time is a ceiling, not a target. A seat with no blocker on the 
 - A writer works on a branch in its own worktree taken from live main, never from a checkout that may be behind.
 - Before pushing, read live main again. If it moved, rebase onto it and push again. Push the branch only, never main.
 - A code envelope gets one review that covers behaviour and coherence together. A records envelope gets none.
-- The reviewer is never the author, and is never a weaker model than the writer.
 - Corrections stay with the writer. Sweep-tier: one correction, then split. Keystone: two, then split. No third round.
 - A session is a fuse. Split on envelope done, correction cap, spend cap, or a named decay sign (`factory/sessions.json`). A successor reads this file, BOARD, the envelope — never a transcript, never a compaction. It looks at `factory/sparks.json`; it does not obey it.
 - The control plane lands: it verifies the return at the objects, proves any rebase with `git range-diff` and a blob sweep, runs the landing gate from a fresh archive of the commit, fast-forwards main, restamps the board, deletes `factory/envelopes/<lane>.md`.
@@ -87,7 +86,7 @@ A writer that meets a product-changing choice mid-lane prints the decision, the 
 
 ## 8. The control plane and the board
 
-The control plane is the session the owner selects. It reads returns, verifies them at the objects, issues envelopes, keeps the board, and writes documentation directly. It does not write product code. Derivation: `factory/CONTROL_PLANE.md`. A ZERO that did not name its containers is not a finding. A named issuance is a fetch, not an ask.
+The control plane is the session the owner selects. It reads returns, verifies them at the objects, issues envelopes, keeps the board, and writes documentation directly. It does not write product code. Derivation: `factory/CONTROL_PLANE.md`.
 
 On every return, before anything else is issued:
 
