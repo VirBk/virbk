@@ -58,8 +58,14 @@ const LIVE_DOCS = [
 const STATE_WORD = /\b(landed|dropped|issued|queued|split)\b/i;
 const LANE_ID = /\bF\d+\b/;
 
-// A path citation is a backticked token that names a file. Globs and
-// placeholders are not citations, and neither is prose.
+// A citation is a backticked token that names a file. Globs and
+// placeholders are not citations, and neither is prose. It is held with
+// its KIND (S25): no colon is a plain tree path; a colon is split at the
+// FIRST colon, and a remainder opening with two slashes is a URL and not a
+// citation at all, otherwise the left side is a revision spec and the
+// right side is the path into this tree. Rule H resolves the path part and
+// never the whole token, and never with git: the gate runs where no
+// repository exists.
 const CITATION_EXT = /\.(mjs|json|yaml|yml|md|js|ts)$/;
 
 // The five paths a record cites that do not resolve in this tree, each
@@ -79,8 +85,16 @@ function pathCitations(text) {
     if (!tok.includes("/")) continue;
     if (/\s/.test(tok)) continue;
     if (/[*<>?]/.test(tok)) continue;
-    if (!CITATION_EXT.test(tok)) continue;
-    out.push(tok);
+    const colon = tok.indexOf(":");
+    if (colon === -1) {
+      if (!CITATION_EXT.test(tok)) continue;
+      out.push({ kind: "path", token: tok, path: tok });
+      continue;
+    }
+    const rest = tok.slice(colon + 1);
+    if (rest.startsWith("//")) continue;
+    if (!CITATION_EXT.test(rest)) continue;
+    out.push({ kind: "revspec", token: tok, path: rest });
   }
   return out;
 }
@@ -268,10 +282,10 @@ export function check(root) {
     for (const name of readdirSync(logDir)) {
       if (!name.endsWith(".md")) continue;
       const rel = "docs/log/" + name;
-      for (const tok of pathCitations(read(root, rel))) {
-        if (allow.has(tok)) continue;
-        if (!existsSync(join(root, tok))) {
-          errors.push("H " + rel + " cites " + tok + ", which is not in the tree");
+      for (const cite of pathCitations(read(root, rel))) {
+        if (allow.has(cite.path)) continue;
+        if (!existsSync(join(root, cite.path))) {
+          errors.push("H " + rel + " cites " + cite.path + ", which is not in the tree");
         }
       }
     }
@@ -383,6 +397,68 @@ function selfTest() {
       errors.push("case " + letter + " did not fail: " + found.join("; "));
     }
   }
+
+  // Rule H holds three kinds of token apart (S25). One fixture per
+  // property, and a fixture proves a property only if the fixture COULD
+  // fail it: each tree below is the one that makes its own property red.
+  const held = pathCitations(
+    "`HEAD:factory/tools/packet.mjs` `https://example.invalid/x.md` `docs/log/f45.md`",
+  );
+  const wantHeld = [
+    { kind: "revspec", token: "HEAD:factory/tools/packet.mjs", path: "factory/tools/packet.mjs" },
+    { kind: "path", token: "docs/log/f45.md", path: "docs/log/f45.md" },
+  ];
+  if (JSON.stringify(held) !== JSON.stringify(wantHeld)) {
+    errors.push("the extractor held the wrong kinds: " + JSON.stringify(held));
+  }
+  const H_DOC = "docs/log/h-cite.md";
+  const RESOLVES = { "factory/tools/packet.mjs": "// fixture" + NL };
+  const hFixture = (name, doc, extra, want) => {
+    const all = fixture({ ...base, ...extra, [H_DOC]: doc });
+    const other = all.filter((e) => !e.startsWith("H "));
+    if (other.length) errors.push(name + " reds for another reason: " + other.join("; "));
+    const got = all.filter((e) => e.startsWith("H "));
+    if (got.join("|") !== want.join("|")) {
+      errors.push(name + " expected [" + want.join("; ") + "], got [" + got.join("; ") + "]");
+    }
+  };
+
+  hFixture(
+    "H1 a rev spec whose path part resolves",
+    "rev `HEAD:factory/tools/packet.mjs`" + NL,
+    RESOLVES,
+    [],
+  );
+  hFixture(
+    "H2 a rev spec whose path part is absent",
+    "rev `HEAD:factory/nope.mjs`" + NL,
+    {},
+    ["H " + H_DOC + " cites factory/nope.mjs, which is not in the tree"],
+  );
+  hFixture(
+    "H3 a rev whose own name holds a slash",
+    "rev `writer/F45:docs/log/f45.md`" + NL,
+    { "docs/log/f45.md": "" },
+    [],
+  );
+  hFixture(
+    "H4 a URL is not a tree path",
+    "url `https://example.invalid/not-in-tree.md`" + NL,
+    {},
+    [],
+  );
+  hFixture(
+    "H5 a plain path citation that resolves",
+    "plain `factory/tools/packet.mjs`" + NL,
+    RESOLVES,
+    [],
+  );
+  hFixture(
+    "H6 a plain path citation that does not resolve, beside an allow row",
+    "plain `factory/absent-by-design.md` beside `factory/help.json`" + NL,
+    {},
+    ["H " + H_DOC + " cites factory/absent-by-design.md, which is not in the tree"],
+  );
 
   const live = check(kitRoot);
   for (const e of live) errors.push("live: " + e);
