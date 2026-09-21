@@ -455,4 +455,16 @@
   kind: portable
   object: "factory/tools/kitCheck.mjs"
   title: Record that cites what does not resolve, or dates what UTC has not reached
-  rule: A citation in a record is checked rather than trusted, because the evidence for a claim can be invented while the claim itself is true, and that is what a reviewer reading for plausibility waves through. A backticked path a lane log cites resolves in the commit under test or sits in a named allowlist with a one-line reason, and an allowlist entry that does resolve fails too, since a stale exemption is a lie. A date FIELD, decisions at and board ledger at, is never ahead of the UTC date read in the same act as the comparison (T04); prose is not scanned, so a record may narrate a date it does not claim. The rule sees only backticked tokens that contain a slash and end in one of seven source extensions: a path with a line suffix, an unbackticked path, or another extension is outside it. Check is node factory/tools/kitCheck.mjs --self-test.
+  rule: A record's citation is checked, not trusted. Evidence can be invented while the claim it supports is true, which a reviewer reading for plausibility waves through. A backticked path a log cites resolves in the commit under test or sits in an allowlist with a one-line reason, and an entry that does resolve fails too, a stale exemption being a lie. A date FIELD, decisions at and ledger at, is never ahead of the UTC date read in the same act (T04); prose is unscanned, so a record may narrate a date it does not claim. Uncovered: a path with a line suffix, an unbackticked path, an extension outside the seven, and a claim attributed to a document that the document never makes. Check is node factory/tools/kitCheck.mjs --self-test.
+
+- id: T77
+  kind: portable
+  object: "factory/tools/seat.mjs"
+  title: Census that counts a mention of a harness as a running seat
+  rule: A row is a running seat only where the harness token is the PROGRAM run, never a mention in a later argument, and each counted row's LABEL is asserted and not only the count. The program is the first token, or the first after an interpreter; a reviewer's own pip show aider-chat once read as two running aider seats, and a hardcoded label still gives the right count, pids and exclusions, which is how that field shipped unasserted. The two-writer ceiling and the dead-seat resume read this number, so over-reporting gets it ignored. Two limits stand uncovered: a program merely living inside a harness install directory still counts, and one launch is several processes (S22). Check is node factory/tools/seat.mjs --self-test.
+
+- id: T78
+  kind: portable
+  object: "factory/tools/seat.mjs"
+  title: Answering command that silently answers about fewer objects than it was given
+  rule: A command comparing a fixed number of things refuses a call that names more. Answering about the first two and exiting 0 is worse than a wrong answer, because the caller asked a question the command never answered and nothing said so. disjoint took two lanes and dropped the rest, so proving three siblings gave a green covering one pair of three, and a board claim rested on it. Check is node factory/tools/seat.mjs --self-test.

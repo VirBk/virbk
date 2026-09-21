@@ -48,8 +48,9 @@
       "claim": "The seat census matches any command line containing qwen, aider, goose or opencode as a word, so an unrelated process reads as a running writer seat.",
       "object": "factory/tools/seat.mjs",
       "whyNotLaw": "Caught live during F37's review: the reviewer's own 'pip show aider-chat' was reported as two running aider seats. A census that over-reports is a census that gets ignored, and no check distinguishes a harness process from a mention of one.",
-      "status": "open",
-      "openedOn": 10
+      "status": "absorbed",
+      "openedOn": 10,
+      "absorbedAs": "T77"
     },
     {
       "id": "S18",
@@ -76,8 +77,9 @@
       "claim": "seat.mjs disjoint is pairwise and silently drops every argument past the second: 'disjoint F40 F41 F42' prints a verdict about F40/F41 and exits 0, so a control plane proving three siblings gets a green that covers one pair of the three.",
       "object": "factory/tools/seat.mjs",
       "whyNotLaw": "Caught on the first act of sitting 11, by a control plane running the command the board's Now line cites for a mutual-disjointness claim about three lanes. The claim is true here - all three pairs were run by hand and each printed none shared - but the named command cannot mean what the sentence says. No check drives an extra argument, and the tool's own doc comment says 'disjoint <LANE> <LANE>' while the CLI accepts more without complaint.",
-      "status": "open",
-      "openedOn": 11
+      "status": "absorbed",
+      "openedOn": 11,
+      "absorbedAs": "T78"
     },
     {
       "id": "S21",
