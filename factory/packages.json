@@ -233,7 +233,7 @@
     {
       "id": "F46",
       "title": "The packet band names the context that reaches a writer (S21)",
-      "status": "queued"
+      "status": "issued"
     },
     {
       "id": "F47",
@@ -253,7 +253,7 @@
     {
       "id": "F50",
       "title": "The entry-point fixture runs where the gate runs, not only from a checkout",
-      "status": "queued"
+      "status": "issued"
     }
   ]
 }

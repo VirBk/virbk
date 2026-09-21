@@ -12,46 +12,6 @@
       "openedOn": 11
     },
     {
-      "id": "S22",
-      "kind": "trap",
-      "claim": "The census counts processes, not seats: two qwen-code launches produced six rows, a cli-entry wrapper plus --expose-gc children each, and it printed 6 running writer seat(s) when the true number was two.",
-      "object": "factory/tools/seat.mjs",
-      "whyNotLaw": "Observed live when sitting 11's two siblings were launched, with the real number known. F40 does NOT fix this: that lane puts the harness token in program position, and every one of the six rows has it there, so the count stays wrong by the process tree after F40 lands. The two-writer ceiling and the dead-seat resume both read this number. A seat is a process group, or the row a launch recorded, not a matching command line.",
-      "status": "absorbed",
-      "openedOn": 11,
-      "absorbedAs": "T77"
-    },
-    {
-      "id": "S23",
-      "kind": "trap",
-      "claim": "A correction envelope is written to main, but a seat reads its envelope from its own worktree, which still holds the superseded page; git fetch does not touch the working tree, so the seat runs the old envelope silently.",
-      "object": "factory/tools/seat.mjs",
-      "whyNotLaw": "Caught live this sitting by reading the envelope's first line after launching: the F42 correction seat was started against the original envelope, stopped, and relaunched only after the worktree was rebased onto main. packet.mjs reads factory/envelopes/<LANE>.md from the tree it runs in, so the failure is invisible and looks like a seat ignoring its instructions. Nothing in seat.mjs, the recipe or the packet warns that a correction launch must rebase the worktree first, and the cost is a whole paid session spent against a stale page.",
-      "status": "absorbed",
-      "openedOn": 11,
-      "absorbedAs": "T81"
-    },
-    {
-      "id": "S24",
-      "kind": "trap",
-      "claim": "T70 says gate steps run through bash from a file and are unaffected by shell dialect. On this machine that is false: a seat whose bash resolves to the WSL launcher gets GATE FAILED on all 21 steps, at any commit.",
-      "object": "factory/traps.yaml",
-      "whyNotLaw": "Hit by two seats this sitting, F40 and F43, each spending calls proving the red was not its own; the F43 seat ran a control at live main's tip, got the same 21 reds and correctly handed classification to the control plane. The same gate passes 21 of 21 from git-bash at the same commit. A trap that states a hazard does not apply is worse than no trap, because a seat reads it and trusts it, and the gate prints step names rather than stderr so the cause is invisible from inside a seat.",
-      "status": "absorbed",
-      "openedOn": 11,
-      "absorbedAs": "T70"
-    },
-    {
-      "id": "S25",
-      "kind": "trap",
-      "claim": "T76 reads any backticked token with a slash and a source extension as a TREE PATH, so a git revision spec like HEAD:factory/tools/packet.mjs fails the gate although it resolves - git rev-parse prints its blob.",
-      "object": "factory/tools/kitCheck.mjs",
-      "whyNotLaw": "It blocked F45 at landing on a record whose claim was true and whose citation resolved, costing a control-plane documentation fix because the lane's one correction was already spent. T76 was written this sitting to catch invented evidence and it is now rejecting real evidence in a form the factory uses often, since a lane log pinning a blob is exactly the kind of citation T76 wants. A path citation and a rev spec are different objects and the rule cannot tell them apart.",
-      "status": "absorbed",
-      "openedOn": 11,
-      "absorbedAs": "T76"
-    },
-    {
       "id": "S26",
       "kind": "trap",
       "claim": "A correction launch rebases the worktree (T81), which diverges the lane branch from its pushed tip, and 'push the branch only' does not authorise the force-with-lease that then needs.",
@@ -59,15 +19,6 @@
       "whyNotLaw": "Hit on F44's correction: the seat finished the work, was rejected non-fast-forward, correctly refused to rewrite a shared ref on its own authority and handed the call up. It was right to, and the cost was a stalled return the control plane finished by hand. T81's own remedy creates this, so the two belong together: a correction envelope should name the force-with-lease on its OWN lane branch as authorised, and say that main is never forced.",
       "status": "open",
       "openedOn": 11
-    },
-    {
-      "id": "S27",
-      "kind": "trap",
-      "claim": "The seat packet is at 99.9 per cent of cap with four trap rows due, but D-58's trigger has NOT fired: AGENTS sections 4 and 8 still restate what the digest carries in the same packet - T01, T02, T03, T25, T26, T27, T39 - about 700 bytes.",
-      "object": "AGENTS.md",
-      "whyNotLaw": "This is the shed D-58 says to make BEFORE firing its trigger, found by the sixth board-prose cap fight in two sittings. It was not taken on the spot for a reason worth recording: two seats were running against a byte-stable prefix that carried 96.8 per cent of input on cache last sitting, and rewriting AGENTS mid-flight busts that prefix for both seats and for any correction round. Order: land F47 and F48, shed second, absorb third. What keeps it a spark is that the shed and the four rows roughly cancel. If the packet is back over 90 with nothing left to cut, D-58's trigger HAS fired and scoping becomes a lane that also owns F31's byte-stable assertion and must price the prefix change at the measured cache rates.",
-      "status": "open",
-      "openedOn": 12
     },
     {
       "id": "S28",

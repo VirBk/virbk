@@ -46,10 +46,9 @@ Two writers at a time is a ceiling, not a target. A seat with no blocker on the 
 
 - One-line commit subject. The body may add a few lines.
 - Each lane writes `docs/log/<lane>.md`: what changed, the command that measured it. No essays, no review transcripts, no commit id of its own (rebase rewrites it).
-- Live documents are edited in place. History lives in git. No struck-through corrections, no dated correction blocks, no `SESSION_LOG.md`.
-- No copied numbers. A count is pasted from the command that produced it, with the command, or omitted.
+- Live documents are edited in place; no dated correction blocks (T03, T26).
 - `BOARD.md` is generated from `factory/board.json`. Do not hand-edit the markdown. The ledger there is a window; `node factory/tools/ledger.mjs rotate` moves older rows to `docs/ledger/`.
-- Size budgets in `factory/budgets.json` fail the landing gate. Archive at 80% of cap. Do not append to a live file that is over budget.
+- Size budgets in `factory/budgets.json` fail the landing gate; never append to a file already over budget (T01).
 
 ## 5. Boundaries
 
@@ -99,9 +98,9 @@ On every return, before anything else is issued:
 
 Keystones are a closed named list on the board. A challenge pass runs only on one of those, only with the owner’s word, and produces leads rather than a verdict. Never Fable.
 
-A handoff is this file plus `BOARD.md`. There is no handoff document. A eureka lands as a spark (`factory/sparks.json`), not as a trap. A session-only waiver is the envelope or gitignored `factory/.waiver`. Last act: `node factory/tools/sitting.mjs close`.
+A handoff is this file plus `BOARD.md`. There is no handoff document. A session-only waiver is the envelope or gitignored `factory/.waiver`. Last act: `node factory/tools/sitting.mjs close`.
 
-The repository is memory. The session is a fuse: every model rots if it stays. Do not pick one that does not. Split it. A reviewer is always a fresh session, never resumed from a session id in prose; neither is a challenge seat. A writer that notices its own decay stops and returns. Detail: `factory/sessions.json`.
+The session is a fuse and every model rots if it stays (T25, T27). A writer that notices its own decay stops and returns. Detail: `factory/sessions.json`.
 
 ## 9. Where things are
 
