@@ -524,6 +524,45 @@ function gitStaleFixture() {
   }
 }
 
+// The ordinary launch: the worktree's page and the copy on the tracked main ref
+// are the same bytes, so the comparison has nothing to report. Every lane that
+// is not mid-correction takes this branch, and the refusal fixture above cannot
+// cover it — that tree only proves the path can say "different". With no
+// fixture for the equal case the branch is free to invert in silence: the
+// comparison reports a difference it did not find and refuses every launch in
+// the factory, and the self-test, the check and the gate all stay green.
+function gitSameFixture() {
+  const dir = fixture();
+  const g = (args) => {
+    try {
+      return spawnSync("git", ["-C", dir, ...args], { encoding: "utf8" });
+    } catch (err) {
+      return { status: null, error: err };
+    }
+  };
+  const ok = (args) => (g(args) || {}).status === 0;
+  try {
+    if (!ok(["init", "-q", "-b", "main"])) throw new Error("git init");
+    for (const [k, v] of [
+      ["core.autocrlf", "false"],
+      ["commit.gpgsign", "false"],
+      ["user.email", "fixture@example.invalid"],
+      ["user.name", "fixture"],
+    ]) {
+      g(["config", k, v]);
+    }
+    // One commit and the tracked main ref at it: the worktree's page IS the
+    // copy on main, and the worktree is never moved off it.
+    if (!ok(["add", "-A"])) throw new Error("git add");
+    if (!ok(["commit", "-q", "-m", "lane issued"])) throw new Error("git commit");
+    if (!ok(["update-ref", "refs/remotes/origin/main", "HEAD"])) throw new Error("git update-ref");
+    return dir;
+  } catch (err) {
+    rmSync(dir, { recursive: true, force: true });
+    return null;
+  }
+}
+
 // The shape of the packet, and nothing about its size. A tree over its caps
 // fails --check and passes this; a packet whose envelope is not last fails
 // this and passes --check. Two claims, two steps, so an experiment can
@@ -744,6 +783,42 @@ function selfTest(root) {
         }
       } finally {
         rmSync(repo, { recursive: true, force: true });
+      }
+    }
+
+    // The equal case, and the ordinary launch is the thing at stake: the
+    // worktree's page and the copy on the tracked main ref are byte-identical,
+    // so a seat must get the whole packet, exit 0, and hear NOTHING about the
+    // comparison. A mutation that makes the comparison always report a
+    // difference is invisible to the fixture above; here it refuses a
+    // byte-identical launch, which is every lane of every sitting, while the
+    // self-test, the check and the gate would all have stayed green.
+    const twin = gitSameFixture();
+    if (!twin) {
+      console.error(
+        "packet self-test: git is unavailable here, so the identical-envelope assertion was SKIPPED loudly",
+      );
+    } else {
+      try {
+        const r = seat(twin);
+        const err = String(r.stderr || "");
+        const out = String(r.stdout || "");
+        const silent = !/refusing/.test(err) && !/NOTE/.test(err);
+        if (r.status !== 0 || !silent || out !== render(seatPacket(twin, lane))) {
+          note(
+            "an identical envelope was refused and a working launch was killed",
+            "the worktree's envelope equals the copy on refs/remotes/origin/main, so the seat path must" +
+              " emit the packet and say nothing about the comparison (exit " +
+              r.status +
+              ", " +
+              Buffer.byteLength(out, "utf8") +
+              " bytes on stdout, stderr: " +
+              (err.trim().split(NL).join(" / ") || "(nothing)") +
+              ")",
+          );
+        }
+      } finally {
+        rmSync(twin, { recursive: true, force: true });
       }
     }
   }
