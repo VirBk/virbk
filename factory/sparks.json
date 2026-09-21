@@ -29,6 +29,15 @@
       "whyNotLaw": "Two readings and the control plane cannot settle it from the objects. One: this is T50 and T26 with a new carrier. The fuse model says the repository is memory and a successor reads AGENTS, BOARD and its envelope and never a transcript, and sessions.json lists what a successor never reads. A store that survives session death and is injected into every later seat makes a fresh seat not fresh, sits in no packet, under no size budget, in no gate, and is reviewed by nobody. The false version of this very note would have been read as fact by every seat after it. Two: it demonstrably paid. F47's seat diagnosed the WSL launcher by the -e versus -c pair, which is what its own note taught, and it CORRECTED the note at the objects rather than trusting it. Measure before ruling: how many bytes reach a seat, whether they sit ahead of the byte-stable prefix and cost the 95 per cent cache hit measured on F47, and whether a note can be made a return the control plane reviews instead of a file nobody owns.",
       "status": "open",
       "openedOn": 12
+    },
+    {
+      "id": "S29",
+      "kind": "trap",
+      "claim": "The reviewer is a Claude subagent of the control-plane session, so it appears in NO seat census and writes NO row to any meter. Four reviews this sitting cost about 542000 subagent tokens and 188 tool uses, none of it reaching returns.json.",
+      "object": "factory/tools/seat.mjs",
+      "whyNotLaw": "AGENTS section 3 is satisfied - never the author, never weaker than the writer, always a fresh session - and the reviews are paying for themselves, finding a blocking defect in three of four lanes this sitting. What is missing is accounting, and it has two edges the control plane cannot settle from the objects. The census reads the process table for harness processes, so a reviewer is invisible to the two-writer ceiling and to the dead-seat resume; that is arguably correct, since a reviewer is not a writer, but the census cannot CONFIRM it either way and a successor reading 0 running seats does not know whether a review is in flight. And the spend side is simply absent: writer spend is a row per lane read from the harness meter, while review spend exists only in a task notification this session will not outlive, so the factory's own record understates what a lane costs by however much its review cost. Measure before ruling: whether a subagent's usage can be read at all from this harness, and whether a review belongs in returns.json as its own row or as a field on the lane's row.",
+      "status": "open",
+      "openedOn": 12
     }
   ]
 }
