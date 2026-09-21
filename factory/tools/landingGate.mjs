@@ -31,9 +31,9 @@
 
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { suspendedBy } from "./experiment.mjs";
 
@@ -308,13 +308,77 @@ function fixtureDirs(tag) {
     // moment. A temp dir left behind is not a gate failure; a self-test
     // that throws instead of reporting is.
     done: () => {
-      try {
-        rmSync(root, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 });
-      } catch {
-        // the platform will clear its own temp dir
-      }
+      removeTree(root);
     },
   };
+}
+
+// Removing a directory a fixture owns. F47's fixture 5 met EBUSY for
+// real when a launcher still held the cwd, so a removal that cannot
+// complete is REPORTED and this returns: a temp dir left behind is the
+// platform's to clear, and a throw here would hide the real finding
+// behind a cleanup error (T79). `rm` and `report` are injectable so a
+// fixture can drive the failure path without waiting for the platform.
+function removeTree(dir, opts = {}) {
+  if (!dir) return "";
+  const rm = opts.rm || rmSync;
+  const report = opts.report || ((m) => console.error(m));
+  try {
+    rm(dir, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 });
+    return "";
+  } catch (err) {
+    const why = String(err.message || err);
+    report("landingGate self-test: could not remove " + dir + " — " + why);
+    return why;
+  }
+}
+
+// A throwaway repository the fixture owns: `git init`, one commit
+// holding this tool and its neighbour. The CLI resolves its commit from
+// the DIRECTORY OF THE FILE IT WAS LAUNCHED FROM, so a fixture that
+// spawns the shipped file must give it a repository of its own. From a
+// checkout the tree already is one; where the gate unpacks its archive
+// there is none, and a fixture that skipped there is exactly the hole
+// F47's correction left open (S24). It never throws: a repository that
+// cannot be created comes back as an `error` string, and the caller
+// FAILS on that rather than passing quietly. `spawn` is injectable so a
+// fixture can make creation fail on purpose.
+function makeTempRepo(tag, opts = {}) {
+  const spawn = opts.spawn || spawnSync;
+  let dir = "";
+  try {
+    dir = mkdtempSync(join(tmpdir(), "grok-gate-" + tag + "-repo-"));
+  } catch (err) {
+    return { dir: "", tool: "", sha: "", error: "could not create the repository directory: " + String(err.message || err) };
+  }
+  const tool = join(dir, "factory", "tools", "landingGate.mjs");
+  try {
+    mkdirSync(join(dir, "factory", "tools"), { recursive: true });
+    copyFileSync(fileURLToPath(import.meta.url), tool);
+    copyFileSync(join(dirname(fileURLToPath(import.meta.url)), "experiment.mjs"), join(dir, "factory", "tools", "experiment.mjs"));
+  } catch (err) {
+    return { dir, tool, sha: "", error: "could not lay out the repository: " + String(err.message || err) };
+  }
+  const git = (args) => spawn("git", args, { cwd: dir, encoding: "utf8", maxBuffer: 16 * 1024 * 1024 });
+  const steps = [
+    [["init", "-q"], "git init"],
+    [["add", "-A"], "git add"],
+    [
+      ["-c", "user.email=fixture@example.invalid", "-c", "user.name=fixture", "-c", "commit.gpgsign=false", "commit", "--no-verify", "-m", "fixture"],
+      "git commit",
+    ],
+  ];
+  for (const [args, what] of steps) {
+    const r = git(args);
+    if (r.error || r.status !== 0) {
+      const said = r.error ? String(r.error.message || r.error) : String(r.stderr || "").trim();
+      return { dir, tool, sha: "", error: what + " failed: " + (said || "exit " + r.status) };
+    }
+  }
+  const head = git(["rev-parse", "HEAD"]);
+  const sha = head.status === 0 ? String(head.stdout || "").trim() : "";
+  if (!sha) return { dir, tool, sha: "", error: "the throwaway repository has no commit to resolve" };
+  return { dir, tool, sha, error: "" };
 }
 
 function stand(spec = {}) {
@@ -341,6 +405,8 @@ function probeFixtures(errors) {
   fixture7(errors);
   fixture8(errors);
   fixture9(errors);
+  fixture10(errors);
+  fixture11(errors);
 }
 
 // 1 A shell that CAN run the steps changes nothing: all 21 run and a
@@ -472,55 +538,84 @@ function fixture6(errors) {
 //   stop = null; void shellStop;` — with all six green and the gate
 //   printing GATE PASSED, which is S24 still open (D-61: the red belongs
 //   at the production entry point). GATE_SHELL is read by the CLI so this
-//   fixture can drive it without editing the file. It needs a commit to
-//   resolve, so where the gate is unpacked from an archive without a .git
-//   it is skipped, and the CLI can still be driven by hand there.
+//   fixture can drive it without editing the file.
+//
+//   The repository is the fixture's OWN (makeTempRepo). The CLI resolves
+//   its commit from the directory of the file it was launched from, so
+//   the copy inside that throwaway repository is what the child reads.
+//   It therefore RUNS where the gate runs — step 15 unpacks the archive
+//   into a directory that is not a repository — instead of skipping
+//   there, which is what F47's correction did and what left the wiring
+//   unwatched by the gate that protects main. A repository that cannot
+//   be made is a FAILED fixture with its reason, never a quiet skip.
 function fixture7(errors) {
-  if (!inRepo()) return;
   const shell = "grok-no-such-shell-f47";
-  const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url)], {
-    cwd: repoRoot,
-    env: { ...process.env, GATE_SHELL: shell },
-    encoding: "utf8",
-    maxBuffer: 64 * 1024 * 1024,
-  });
-  const out = String(r.stdout || "");
-  const err = String(r.stderr || "");
-  if (r.status !== EXIT_UNRUNNABLE) {
-    errors.push(
-      "[7 entry point] the CLI with GATE_SHELL=" + shell + " came back exit " + r.status + ", not " + EXIT_UNRUNNABLE,
-    );
-  }
-  if (!err.includes("this shell cannot run the steps")) {
-    errors.push("[7 entry point] the CLI printed no unrunnable-shell diagnostic");
-  }
-  if (!err.includes(shell)) {
-    errors.push("[7 entry point] the diagnostic did not name the shell GATE_SHELL asked for");
-  }
-  if (NO_STEP_LINE.test(out) || NO_STEP_LINE.test(err)) {
-    errors.push("[7 entry point] a step line was printed before the probe stopped the CLI");
-  }
-  // BEFORE it archives: the diagnostic names the cwd it probed in, and
-  // that directory holds nothing — the commit was never unpacked into it.
-  const m = /^[ \t]*cwd[ \t]+(.+?)[ \t\r]*$/m.exec(err);
-  if (!m) {
-    errors.push("[7 entry point] the diagnostic did not name the cwd it probed in");
-    return;
-  }
-  const cwd = m[1];
+  const repo = makeTempRepo("f7");
   try {
-    const unpacked = readdirSync(cwd).length;
-    if (unpacked) {
-      errors.push("[7 entry point] " + unpacked + " entries were unpacked before the probe stopped the CLI");
+    if (repo.error) {
+      errors.push("[7 entry point] the throwaway repository could not be created — " + repo.error);
+      return;
     }
-  } catch {
-    // the child's temp dir is already gone
+    // The fixture owns its input: the copy it laid down, not the file
+    // in the tree it was launched from, so a checkout and a bare
+    // directory (step 15) bring back the same verdict.
+    const tool = repo.tool;
+    if (resolve(tool) === resolve(fileURLToPath(import.meta.url))) {
+      errors.push("[7 own copy] the fixture spawned the tree it runs from, not its own copy");
+    }
+    const r = spawnSync(process.execPath, [tool], {
+      cwd: repo.dir,
+      env: { ...process.env, GATE_SHELL: shell },
+      encoding: "utf8",
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    const out = String(r.stdout || "");
+    const err = String(r.stderr || "");
+    if (r.status !== EXIT_UNRUNNABLE) {
+      errors.push(
+        "[7 entry point] the CLI with GATE_SHELL=" + shell + " came back exit " + r.status + ", not " + EXIT_UNRUNNABLE,
+      );
+    }
+    if (!err.includes("this shell cannot run the steps")) {
+      errors.push("[7 entry point] the CLI printed no unrunnable-shell diagnostic");
+    }
+    if (!err.includes(shell)) {
+      errors.push("[7 entry point] the diagnostic did not name the shell GATE_SHELL asked for");
+    }
+    if (NO_STEP_LINE.test(out) || NO_STEP_LINE.test(err)) {
+      errors.push("[7 entry point] a step line was printed before the probe stopped the CLI");
+    }
+    // The child resolved the THROWAWAY repository's commit, not this
+    // tree's: the diagnostic names that sha. A fixture that spawned the
+    // launch tree's file would name the launch tree's.
+    if (repo.sha && !err.includes(repo.sha)) {
+      errors.push("[7 own copy] the child did not resolve the throwaway repository's commit");
+    }
+    // BEFORE it archives: the diagnostic names the cwd it probed in, and
+    // that directory holds nothing — the commit was never unpacked into it.
+    const m = /^[ \t]*cwd[ \t]+(.+?)[ \t\r]*$/m.exec(err);
+    if (!m) {
+      errors.push("[7 entry point] the diagnostic did not name the cwd it probed in");
+      return;
+    }
+    const cwd = m[1];
+    try {
+      const unpacked = readdirSync(cwd).length;
+      if (unpacked) {
+        errors.push("[7 entry point] " + unpacked + " entries were unpacked before the probe stopped the CLI");
+      }
+    } catch {
+      // the child's temp dir is already gone
+    }
+    removeTree(cwd);
+    removeTree(cwd + "-logs");
+  } finally {
+    removeTree(repo.dir);
   }
-  try {
-    rmSync(cwd, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 });
-    rmSync(cwd + "-logs", { recursive: true, force: true, maxRetries: 30, retryDelay: 100 });
-  } catch {
-    // a temp dir left behind is not a gate failure
+  // The self-test leaves no repository behind. A leftover is reported
+  // by the assertion below; removeTree above reports its own failure.
+  if (existsSync(repo.dir)) {
+    errors.push("[7 cleanup] the throwaway repository was left behind: " + repo.dir);
   }
 }
 
@@ -563,6 +658,49 @@ function fixture9(errors) {
   if (process.env.GATE_SHELL) return;
   if (SHELL !== "bash") {
     errors.push("[9 default] with GATE_SHELL unset the gate spawns `" + SHELL + "`, not `bash`");
+  }
+}
+
+// 10 A throwaway repository that cannot be CREATED fails the self-test
+//    with a message naming why; it never passes quietly as a skip. The
+//    seam is makeTempRepo's git spawn, driven with a git that refuses, so
+//    the failure this asserts is the one the fixture will really meet
+//    (T79: the fixture can fail). fixture7 turns a non-empty `error`
+//    into a self-test failure — this proves the error is populated and
+//    carries the cause.
+function fixture10(errors) {
+  const refusing = () => ({ status: 1, stdout: "", stderr: "fatal: cannot init a repository here", error: undefined });
+  const repo = makeTempRepo("f10", { spawn: refusing });
+  try {
+    if (!repo.error) {
+      errors.push("[10 repo failure] a repository that could not be created reported no reason");
+      return;
+    }
+    if (!/git init/.test(repo.error) || !/cannot init/.test(repo.error)) {
+      errors.push("[10 repo failure] the reason does not name what failed: " + repo.error);
+    }
+  } finally {
+    removeTree(repo.dir);
+  }
+}
+
+// 11 A cleanup that cannot complete is REPORTED, not thrown. F47's
+//    fixture 5 met EBUSY for real when a launcher still held the cwd, so
+//    a throwing rm stands for a thing this machine has already done once.
+//    removeTree must say so and return: a thrown cleanup error would hide
+//    the finding the fixture was reporting.
+function fixture11(errors) {
+  const reports = [];
+  removeTree("grok-gate-f11-never-created", {
+    rm: () => {
+      throw new Error("EBUSY: resource busy or locked, rmdir 'grok-gate-f11-never-created'");
+    },
+    report: (m) => reports.push(m),
+  });
+  if (!reports.length) {
+    errors.push("[11 cleanup] a removal that failed was reported nowhere");
+  } else if (!/EBUSY/.test(reports.join(" "))) {
+    errors.push("[11 cleanup] the report did not carry what the removal said");
   }
 }
 
