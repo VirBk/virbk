@@ -532,31 +532,68 @@ if (cmd === "census") {
     rows.push({ pid, ppid, harness: m[1].toLowerCase(), cmd: line.trim() });
   }
   const counted = new Map(rows.map((row) => [row.pid, row]));
+  // The machine gives neither a complete nor an acyclic chain. Windows stamps
+  // ParentProcessId at creation and never clears it when the parent dies, and
+  // Get-CimInstance does not enumerate atomically, so pid-reuse churn can leave
+  // two counted rows that are each other's parent. A walk that folded each into
+  // the other would print ZERO seats while seats exist — worse than the
+  // over-count this lane fixes, because the two-writer ceiling and the
+  // dead-seat resume read this number. A walk that returns to a pid it already
+  // walked has found a cycle: it cannot pick a nearest ancestor, and the seat is
+  // the counted row with the LOWEST pid in the cycle, so the choice is
+  // deterministic and no row is erased.
   function seatOf(row) {
-    const walked = new Set([row.pid]);
-    let pid = row.ppid;
+    const path = [];
+    const seen = new Set();
+    let pid = row.pid;
+    let nearest = null;
     for (;;) {
-      if (walked.has(pid)) return row;
-      walked.add(pid);
-      const seat = counted.get(pid);
-      if (seat) return seat;
+      seen.add(pid);
+      path.push(pid);
+      if (pid !== row.pid && nearest === null) {
+        const c = counted.get(pid);
+        if (c) nearest = c;
+      }
       const parent = parentOf.get(pid);
-      if (parent === undefined) return row;
+      if (parent === undefined) return nearest || row;
+      if (seen.has(parent)) {
+        const cycle = path.slice(path.indexOf(parent));
+        let best = nearest || row;
+        for (const p of cycle) {
+          const c = counted.get(p);
+          if (c && c.pid < best.pid) best = c;
+        }
+        return best;
+      }
       pid = parent;
     }
   }
   const folded = new Map();
   const seats = [];
+  // A counted row whose own parent is in no row cannot be attached to its
+  // launch — the parent exited between the enumeration and the write. The gap
+  // cannot be inferred, so the row is still counted; the census names the row
+  // and the pid it could not reach, and the summary says the count may
+  // over-report. An honest number with its uncertainty named beats a confident
+  // wrong one.
+  const broken = [];
   for (const row of rows) {
     const seat = seatOf(row);
     if (seat.pid === row.pid) seats.push(row);
     else folded.set(seat, (folded.get(seat) || 0) + 1);
+    if (!parentOf.has(row.ppid)) broken.push(row);
   }
   console.log("seat census — " + (listerIdx >= 0 ? "injected" : process.platform) + " process listing");
   for (const seat of seats) {
     console.log("  " + seat.pid + "  " + seat.harness + "  " + seat.cmd + "  (folded " + (folded.get(seat) || 0) + ")");
   }
+  for (const row of broken) {
+    console.log("  " + row.pid + "  " + row.harness + "  chain broken: parent " + row.ppid + " is in no row");
+  }
   console.log("  " + seats.length + " running writer seat(s)");
+  if (broken.length) {
+    console.log("  " + broken.length + " counted row(s) have a broken chain; the count may over-report");
+  }
   process.exit(0);
 }
 
@@ -801,6 +838,51 @@ if (cmd === "--self-test") {
       /^\s*6000\s+qwen\s/m.test(cenTwo.stdout || "") && /^\s*6002\s+qwen\s/m.test(cenTwo.stdout || ""),
       [cenTwo.stdout],
     );
+    // Correction item 1 — a parent cycle never erases a seat. Two counted rows
+    // whose pids are each other's parent is ordinary pid-reuse churn, and a walk
+    // that folds each into the other prints ZERO seats while seats exist. The
+    // seat is the lowest pid in the cycle, and the count is never below the
+    // counted rows present.
+    const cycle = [
+      "8001 8002 C:\\npm\\node_modules\\@qwen-code\\qwen-code\\node_modules\\@lydell\\node-pty-win32-x64\\prebuilds\\win32-x64\\conpty\\OpenConsole.exe --headless --width 80",
+      "8002 8001 C:\\npm\\node_modules\\@qwen-code\\qwen-code\\node_modules\\@lydell\\node-pty-win32-x64\\prebuilds\\win32-x64\\conpty\\OpenConsole.exe --headless --width 80",
+    ].join(NL);
+    const cenCycle = censusOf("lister-cycle.mjs", cycle);
+    ok("a cycle erased every seat", /^\s*1 running writer seat\(s\)/m.test(cenCycle.stdout || ""), [cenCycle.stdout]);
+    ok(
+      "a cycle was not folded to its lowest-pid row",
+      /^\s*8001\s+qwen[^\n]*\(folded 1\)/m.test(cenCycle.stdout || ""),
+      [cenCycle.stdout],
+    );
+    const cycleSeats = Number((/^\s*(\d+) running writer seat\(s\)/m.exec(cenCycle.stdout || "") || [])[1]);
+    ok("a cycle erased every seat: the count reached zero while counted rows exist", cycleSeats >= 1, [cenCycle.stdout]);
+
+    // A self-parent row is a one-row cycle: one seat, no loop.
+    const cenSelf = censusOf(
+      "lister-self.mjs",
+      "9000 9000 node C:\\npm\\node_modules\\@qwen-code\\qwen-code\\cli-entry.js -p -",
+    );
+    ok("a self-parent row was not one seat", /^\s*1 running writer seat\(s\)/m.test(cenSelf.stdout || ""), [cenSelf.stdout]);
+
+    // Correction item 2 — a torn chain is reported, not silently counted as
+    // another seat. The wrapper at 7000 has a listed parent; the conpty row at
+    // 7002's own parent 7001 is in no row, so 7002 cannot be attached to 7000's
+    // launch. The row still counts, and the census says why the count may
+    // over-report rather than printing a confident wrong one.
+    const torn = [
+      "6999 6999 init",
+      "7000 6999 node C:\\npm\\node_modules\\@qwen-code\\qwen-code\\cli-entry.js -p -",
+      "7002 7001 C:\\npm\\node_modules\\@qwen-code\\qwen-code\\node_modules\\@lydell\\node-pty-win32-x64\\prebuilds\\win32-x64\\conpty\\OpenConsole.exe --headless --width 80",
+    ].join(NL);
+    const cenTorn = censusOf("lister-torn.mjs", torn);
+    ok("the torn row was dropped instead of counted", /^\s*2 running writer seat\(s\)/m.test(cenTorn.stdout || ""), [cenTorn.stdout]);
+    ok("a torn chain was not reported", /^\s*7002\s+\S+[^\n]*chain broken[^\n]*7001/m.test(cenTorn.stdout || ""), [cenTorn.stdout]);
+    ok(
+      "the summary did not say the count may over-report",
+      /^\s*1 counted row\(s\) have a broken chain; the count may over-report/m.test(cenTorn.stdout || ""),
+      [cenTorn.stdout],
+    );
+
     const emptyLister = join(fixture, "empty-lister.mjs");
     writeFileSync(emptyLister, "process.stdout.write('');" + NL);
     const cenEmpty = runSeat(["census", "--lister", '"' + process.execPath + '" "' + emptyLister + '"'], fixture);
