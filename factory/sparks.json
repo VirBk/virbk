@@ -57,6 +57,15 @@
       "whyNotLaw": "Hit on F44's correction: the seat finished the work, was rejected non-fast-forward, correctly refused to rewrite a shared ref on its own authority and handed the call up. It was right to, and the cost was a stalled return the control plane finished by hand. T81's own remedy creates this, so the two belong together: a correction envelope should name the force-with-lease on its OWN lane branch as authorised, and say that main is never forced.",
       "status": "open",
       "openedOn": 11
+    },
+    {
+      "id": "S27",
+      "kind": "trap",
+      "claim": "The seat packet is at 99.9 per cent of cap with four trap rows due, but D-58's trigger has NOT fired: AGENTS sections 4 and 8 still restate what the digest carries in the same packet - T01, T02, T03, T25, T26, T27, T39 - about 700 bytes.",
+      "object": "AGENTS.md",
+      "whyNotLaw": "This is the shed D-58 says to make BEFORE firing its trigger, found by the sixth board-prose cap fight in two sittings. It was not taken on the spot for a reason worth recording: two seats were running against a byte-stable prefix that carried 96.8 per cent of input on cache last sitting, and rewriting AGENTS mid-flight busts that prefix for both seats and for any correction round. Order: land F47 and F48, shed second, absorb third. What keeps it a spark is that the shed and the four rows roughly cancel. If the packet is back over 90 with nothing left to cut, D-58's trigger HAS fired and scoping becomes a lane that also owns F31's byte-stable assertion and must price the prefix change at the measured cache rates.",
+      "status": "open",
+      "openedOn": 12
     }
   ]
 }
