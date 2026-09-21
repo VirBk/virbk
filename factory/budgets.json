@@ -75,7 +75,7 @@
     "seatPacketKb": 26,
     "cpPacketKb": 44,
     "envelopeKb": 6,
-    "ledgerRows": 12,
-    "note": "seatPacketKb was raised 26 to 27 on 2026-09-20 by D-56 and returned to 26 the same day by D-57, once F34's compaction put the packet at 25.3 KB. The forcing function is the point: about 0.7 KB of headroom, deliberately less than the raise gave it. D-58 narrows F36 and defers per-lane trap scoping with a stated trigger."
+    "ledgerRows": 8,
+    "note": "seatPacketKb was raised 26 to 27 on 2026-09-20 by D-56 and returned to 26 the same day by D-57, once F34's compaction put the packet at 25.3 KB. The forcing function is the point: about 0.7 KB of headroom, deliberately less than the raise gave it. D-58 narrows F36 and defers per-lane trap scoping with a stated trigger. D-66 took ledgerRows 12 to 8 on 2026-09-21 after board.json reached 99.8 per cent of cap, having first rewritten the three over-long rows that caused it."
   }
 }
