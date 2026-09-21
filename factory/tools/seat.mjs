@@ -169,6 +169,7 @@ export OPENAI_API_KEY="\${DEEPSEEK_API_KEY}"
 export OPENAI_MODEL="deepseek-chat"
 
 # Sweep: deepseek-flash. Keystone writer: deepseek-v4-pro.
+${UNVERIFIED_APPROVAL}
 # Print-mode. Envelope on stdin. Worktree only.
 `,
   "claude-code": `# Writer seat — DeepSeek through the Claude Code harness.
@@ -185,6 +186,7 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-flash"
 export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-flash"
 
 # Cut the worktree from live main, then start Claude Code in that tree.
+${UNVERIFIED_APPROVAL}
 # Paste the envelope. Print-mode. Poll long jobs in the foreground.
 `,
   "local-hands": `# Local path. Grok judges. hands.mjs runs git. Writer is the PM pick.
@@ -570,25 +572,36 @@ if (cmd === "--self-test") {
   want("aider carrier", carrierLine("aider"), "#   aider --model ollama/qwen3-coder < packet.txt");
   ok("the live hosted id reaches no rendered recipe", Object.values(rendered).some((t) => t.includes(hosted)));
 
-  // Item 5 — a print-mode carrier names a VERIFIED approval mode, or the
-  // recipe says that harness's option was not verified here. A print-mode
-  // seat has no terminal to approve at, so a carrier that names neither is a
-  // seat that reads its packet, does the analysis, and writes nothing —
-  // which is what two seats launched from this file's qwen-code line did
-  // before that line named --approval-mode. Every recipe the list prints is
-  // read; a recipe with no stdin carrier is not a print-mode launch line and
-  // has no mode to state. Read from the RENDERED recipe, and from the same
-  // carrier line the recipe prints (T07, D-59).
+  // Item 5 — a print-mode recipe names a VERIFIED approval mode, or says that
+  // harness's option was not verified here. A print-mode seat has no terminal
+  // to approve at, and the recipe is the only thing a launcher reads, so a
+  // recipe that names neither is a seat that reads its packet, does the
+  // analysis, and writes nothing — which is what two seats launched from this
+  // file's qwen-code line did before that line named --approval-mode.
+  //
+  // Scope is PRINT MODE, not the stdin carrier. Keying it on the carrier left
+  // goose invisible: goose launches print mode and renders no carrier, so
+  // deleting goose's note left this check green (D-62). A recipe marks itself
+  // a print-mode launch in one of two ways — its own text says so, or it
+  // hands the packet to a harness on stdin, which is that same launch by
+  // another route. Both are read from the RENDERED recipe (T07, D-59). The
+  // declaration is tested with the note stripped out, so a recipe is in scope
+  // on its own line and deleting the note cannot also delete the recipe from
+  // the rule: the marker can fail on its own. A recipe that marks neither is
+  // a pointer to another recipe or an advisory, launches no seat, and has no
+  // mode to state.
   const APPROVAL_MODE = /--approval-mode(\s+|=)\S/;
-  const carriers = Object.keys(rendered).filter((id) => carrierLine(id));
-  ok("no rendered recipe prints a stdin carrier, so the approval rule proves nothing", carriers.length >= 1);
+  const PRINT_MODE = /print-mode/i;
+  const ownsPrintMode = (id) => PRINT_MODE.test(rendered[id].split(UNVERIFIED_APPROVAL).join(""));
+  const printMode = Object.keys(rendered).filter((id) => ownsPrintMode(id) || carrierLine(id));
+  ok("no rendered recipe marks a print-mode launch, so the approval rule proves nothing", printMode.length >= 1);
   const noMode = [];
-  for (const id of carriers) {
+  for (const id of printMode) {
     if (APPROVAL_MODE.test(carrierLine(id))) continue;
     if (rendered[id].includes(UNVERIFIED_APPROVAL)) continue;
     noMode.push(id);
   }
-  ok("a print-mode carrier names no approval mode", noMode.length === 0, noMode);
+  ok("a print-mode recipe names no approval mode", noMode.length === 0, noMode);
 
   // Item 2 — a writer key is read from the store that owns it, in the same
   // act as the launch. A base URL is not a key; only *_API_KEY is held to it.
