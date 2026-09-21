@@ -3,86 +3,6 @@
   "note": "Look, not law. Absorb or drop next sitting. A spark is not a trap.",
   "items": [
     {
-      "id": "S13",
-      "kind": "trap",
-      "claim": "The qwen-code seat recipe passes the packet as an argv string, and on Windows a 33 KB packet exceeds the command-line limit: the seat dies with 'Argument list too long' before it reads a byte.",
-      "object": "factory/tools/seat.mjs",
-      "whyNotLaw": "Observed once on F33's launch. The fix is stdin rather than argv, but no check yet proves a recipe can carry a packet of cap size on the platform the control plane sits on.",
-      "status": "absorbed",
-      "openedOn": 10,
-      "absorbedAs": "T72"
-    },
-    {
-      "id": "S14",
-      "kind": "trap",
-      "claim": "An issuance commit pushed to main without a skip-ci marker turns the gate red and launches the GHA writer on the lane just issued, onto the same branch a local worktree already holds.",
-      "object": ".github/workflows/writer.yml",
-      "whyNotLaw": "On F33 the cloud seat started headless with yolo on writer/F33 and was stopped only by a 401 on a stale DashScope secret. The F31 sitting knew this and wrote it as a ledger sentence, not a check.",
-      "status": "absorbed",
-      "openedOn": 10,
-      "absorbedAs": "T74"
-    },
-    {
-      "id": "S15",
-      "kind": "trap",
-      "claim": "A router exists and one caller ignores it: ghaWriter.mjs hardcodes the DashScope base URL and maps the model through its own HOSTED table, so the cloud seat cannot take the native path route.mjs resolves for the local seat.",
-      "object": "factory/tools/ghaWriter.mjs",
-      "whyNotLaw": "It also counts DEEPSEEK_API_KEY as having a writer secret but never passes it to the call, so a repo holding only that secret stops idling and then fails on an empty key, which is the loud skip T55 requires turned into a loud failure.",
-      "status": "absorbed",
-      "openedOn": 10,
-      "absorbedAs": "T75"
-    },
-    {
-      "id": "S16",
-      "kind": "trap",
-      "claim": "A writer key read from a process environment is a value carried from an earlier act, not read from the store that owns it: after a rotation the User scope answers 200 and every already-open shell keeps answering 401.",
-      "object": "factory/tools/seat.mjs",
-      "whyNotLaw": "Cost this sitting two wrong diagnoses and nearly a handover command that could not work. T04 names the shape and no recipe reads the key from its store in the same act as the launch.",
-      "status": "absorbed",
-      "openedOn": 10,
-      "absorbedAs": "T73"
-    },
-    {
-      "id": "S17",
-      "kind": "trap",
-      "claim": "The seat census matches any command line containing qwen, aider, goose or opencode as a word, so an unrelated process reads as a running writer seat.",
-      "object": "factory/tools/seat.mjs",
-      "whyNotLaw": "Caught live during F37's review: the reviewer's own 'pip show aider-chat' was reported as two running aider seats. A census that over-reports is a census that gets ignored, and no check distinguishes a harness process from a mention of one.",
-      "status": "absorbed",
-      "openedOn": 10,
-      "absorbedAs": "T77"
-    },
-    {
-      "id": "S18",
-      "kind": "trap",
-      "claim": "A seat cited evidence that does not exist: a lane log named a git ref as the source of a price claim, and the ref appears nowhere in the repository except the sentence claiming it.",
-      "object": "docs/log",
-      "whyNotLaw": "The underlying claim was true and derivable from route.mjs, so a reviewer reading for plausibility passes it. T02 covers a copied number and T56 a missing command; neither covers an invented reference, and nothing checks that a ref or path a log cites resolves.",
-      "status": "absorbed",
-      "openedOn": 10,
-      "absorbedAs": "T76"
-    },
-    {
-      "id": "S19",
-      "kind": "trap",
-      "claim": "Half a fix can ship untested when one mutation reds for the other half's reason: splitCheck is case-sensitive AND last-wins, and only case-sensitivity has a fixture.",
-      "object": "factory/tools/alumni.mjs",
-      "whyNotLaw": "Restoring first-match while keeping case-sensitivity leaves alumni --self-test green, because no fixture row carries two capital-C directives. The envelope named one mutation combining both halves, and it reds on the first half alone.",
-      "status": "absorbed",
-      "openedOn": 10,
-      "absorbedAs": "T79"
-    },
-    {
-      "id": "S20",
-      "kind": "trap",
-      "claim": "seat.mjs disjoint is pairwise and silently drops every argument past the second: 'disjoint F40 F41 F42' prints a verdict about F40/F41 and exits 0, so a control plane proving three siblings gets a green that covers one pair of the three.",
-      "object": "factory/tools/seat.mjs",
-      "whyNotLaw": "Caught on the first act of sitting 11, by a control plane running the command the board's Now line cites for a mutual-disjointness claim about three lanes. The claim is true here - all three pairs were run by hand and each printed none shared - but the named command cannot mean what the sentence says. No check drives an extra argument, and the tool's own doc comment says 'disjoint <LANE> <LANE>' while the CLI accepts more without complaint.",
-      "status": "absorbed",
-      "openedOn": 11,
-      "absorbedAs": "T78"
-    },
-    {
       "id": "S21",
       "kind": "trap",
       "claim": "The gated 'seat packet' band measures seatPacket(root, null), the packet with no lane and so without the envelope: with F40 issued sizeBudget prints 99.7 per cent of 26 KB while packet.mjs seat F40 prints 31.6 KB.",
@@ -106,6 +26,15 @@
       "claim": "A correction envelope is written to main, but a seat reads its envelope from its own worktree, which still holds the superseded page; git fetch does not touch the working tree, so the seat runs the old envelope silently.",
       "object": "factory/tools/seat.mjs",
       "whyNotLaw": "Caught live this sitting by reading the envelope's first line after launching: the F42 correction seat was started against the original envelope, stopped, and relaunched only after the worktree was rebased onto main. packet.mjs reads factory/envelopes/<LANE>.md from the tree it runs in, so the failure is invisible and looks like a seat ignoring its instructions. Nothing in seat.mjs, the recipe or the packet warns that a correction launch must rebase the worktree first, and the cost is a whole paid session spent against a stale page.",
+      "status": "open",
+      "openedOn": 11
+    },
+    {
+      "id": "S24",
+      "kind": "trap",
+      "claim": "T70 says gate steps run through bash from a file and are unaffected by shell dialect. On this machine that is false: a seat whose bash resolves to the WSL launcher gets GATE FAILED on all 21 steps, at any commit.",
+      "object": "factory/traps.yaml",
+      "whyNotLaw": "Hit by two seats this sitting, F40 and F43, each spending calls proving the red was not its own; the F43 seat ran a control at live main's tip, got the same 21 reds and correctly handed classification to the control plane. The same gate passes 21 of 21 from git-bash at the same commit. A trap that states a hazard does not apply is worse than no trap, because a seat reads it and trusts it, and the gate prints step names rather than stderr so the cause is invisible from inside a seat.",
       "status": "open",
       "openedOn": 11
     }
