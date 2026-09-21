@@ -85,6 +85,10 @@
     {
       "name": "Experiments expire and are honest",
       "run": "node factory/tools/experiment.mjs --self-test && node factory/tools/experiment.mjs check"
+    },
+    {
+      "name": "Corrected envelopes authorise their own force",
+      "run": "node factory/tools/envelopeCheck.mjs --self-test && node factory/tools/envelopeCheck.mjs"
     }
   ]
 }

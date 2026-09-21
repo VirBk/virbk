@@ -8,12 +8,31 @@ Acceptance
   <what a command or the owner can prove>
 
 Base
-  <sha from git ls-remote origin refs/heads/main>
-  Worktree from that SHA. Rebase onto live main before push. Push the branch only.
+  <sha from git ls-remote origin refs/heads/main> — the commit the work is based on.
+  The worktree is cut from the commit that CARRIES this envelope, which is that commit or a later
+  one: a seat reads its envelope from its own worktree (T81). Rebase onto live main before push.
+  Push the branch only.
 
 Holds
   <paths this seat may write>
   Changed file set equals this list. A stray file is a stop.
+
+Correction
+  Include this section ONLY when the first line above reads ENVELOPE: <LANE> — CORRECTION <n> — ...
+  A correction is written to main and the seat's worktree is rebased onto it (T81), so the lane
+  branch has diverged from the tip it already pushed and this section is the only thing that
+  authorises the push that follows. An envelope whose first line carries no CORRECTION carries no
+  section.
+    Pushing after a correction
+      The rebase has diverged your branch from the tip you pushed. You are authorised to run
+        git push --force-with-lease origin writer/<LANE>
+      on YOUR LANE BRANCH ONLY. main is never forced and no other branch is yours to rewrite.
+      If force-with-lease is itself rejected, stop and return: that means something else moved
+      your branch.
+  Substitute <LANE>. A correction is still one page: keep it under envelopeKb, trimming narrative,
+  never this section. factory/tools/envelopeCheck.mjs refuses a correction envelope whose
+  authorisation names any branch but its own, and refuses any envelope that authorises a force on
+  main.
 
 Must stay true
   <standing rules plus this lane>
