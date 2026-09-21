@@ -47,8 +47,9 @@
       "claim": "T76 reads any backticked token with a slash and a source extension as a TREE PATH, so a git revision spec like HEAD:factory/tools/packet.mjs fails the gate although it resolves - git rev-parse prints its blob.",
       "object": "factory/tools/kitCheck.mjs",
       "whyNotLaw": "It blocked F45 at landing on a record whose claim was true and whose citation resolved, costing a control-plane documentation fix because the lane's one correction was already spent. T76 was written this sitting to catch invented evidence and it is now rejecting real evidence in a form the factory uses often, since a lane log pinning a blob is exactly the kind of citation T76 wants. A path citation and a rev spec are different objects and the rule cannot tell them apart.",
-      "status": "open",
-      "openedOn": 11
+      "status": "absorbed",
+      "openedOn": 11,
+      "absorbedAs": "T76"
     },
     {
       "id": "S26",
