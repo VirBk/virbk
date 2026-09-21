@@ -745,6 +745,23 @@ function selfTest() {
       "  title: A row the child refuses to have absorbed" + NL +
       "  rule: This rule clears its floor and its check clears the check floor." + NL +
       "  check: node factory/tools/kitCheck.mjs --self-test." + NL +
+      // T12's kind is the child's refusal typed in mixed case, and its check
+      // and its rule both clear their floors. Nothing but the fold on the kind
+      // holds it: a reader that reads `Reject` as portable emits it, so the
+      // fold is the only thing standing between a refusal and a candidate.
+      "- id: T12" + NL +
+      "  kind: Reject" + NL +
+      "  title: A refusal the child typed in mixed case" + NL +
+      "  rule: This rule clears its floor and its check clears the check floor." + NL +
+      "  check: node factory/tools/kitCheck.mjs --self-test." + NL +
+      // T13 is a refusal AND names no check, and its rule clears the rule
+      // floor: the reason it is held with is the evidence of what was read
+      // first. A reader that tests the check floor before the refusal holds
+      // this same row as checkless, which is the other reason.
+      "- id: T13" + NL +
+      "  kind: reject" + NL +
+      "  title: A refusal that names nothing to run" + NL +
+      "  rule: This rule clears its floor, and the refusal is the reason to hold it." + NL +
       "-" + NL +
       "  title: A list item with no id is not a row" + NL;
     const ymlRows =
@@ -766,11 +783,11 @@ function selfTest() {
     });
     try {
       const want = {
-        rows: 11,
+        rows: 13,
         named: 7,
         noid: 1,
         emit: 7,
-        held: ["T2", "T7", "T4", "T11"],
+        held: ["T2", "T7", "T4", "T11", "T12", "T13"],
         whyNoCheck: ["T2", "T4"],
       };
       const before = snapshot(rowsTree);
@@ -862,6 +879,37 @@ function selfTest() {
         errors.push(
           "a row whose kind is reject is held with reason " +
             JSON.stringify(heldById.get("T11")) +
+            ", not kind reject",
+        );
+      }
+
+      // T12's red is the fold on a refusal alone: `Reject` is the child's
+      // refusal in mixed case, and every other reject fixture is written lower
+      // case, so nothing else tests the fold. Its check and its rule both clear
+      // their floors, so a reader that does not fold the kind emits it — the
+      // mixed-case refusal is not honoured.
+      if (emitted.has("C-OTTO-T12")) {
+        errors.push("a mixed-case refusal was not honoured: C-OTTO-T12 was emitted");
+      }
+      if (heldById.get("T12") !== "kind reject") {
+        errors.push(
+          "a mixed-case refusal was not honoured: T12 held with reason " +
+            JSON.stringify(heldById.get("T12")) +
+            ", not kind reject",
+        );
+      }
+
+      // T13's red is the ordering alone: it is a refusal that also names no
+      // check, and its rule clears the rule floor, so the reason it is held
+      // with is the evidence of what was read first. A reader that tests the
+      // check floor before the refusal holds this same row as checkless.
+      if (emitted.has("C-OTTO-T13")) {
+        errors.push("a refusal read after the floors was emitted: C-OTTO-T13");
+      }
+      if (heldById.get("T13") !== "kind reject") {
+        errors.push(
+          "the refusal was not read before the floors: T13 held with reason " +
+            JSON.stringify(heldById.get("T13")) +
             ", not kind reject",
         );
       }
