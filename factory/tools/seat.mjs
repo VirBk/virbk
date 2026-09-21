@@ -382,9 +382,10 @@ export function disjointReport(tree, a, b) {
 
 // A seat census comes from the process table. The lister is injected on the
 // command line so a fixture can drive it, and it is the only source: census
-// reads no file. A lister prints one process per line, leading pid then the
-// command line.
-const SEAT_PID = /^\s*(\d+)\s+\S/;
+// reads no file. A lister prints one process per line: its pid, its parent
+// pid, then the command line. The parent pid is what folds one launch's
+// process tree into one seat.
+const SEAT_ROW = /^\s*(\d+)\s+(\d+)\s+(.*)$/;
 // A harness token is a bare word or a path segment (`\qwen-code\cli.js`,
 // `goose run`, `aider --model ...`). A path that merely contains a harness
 // directory name reads as that harness; the census is a listing of what the
@@ -409,11 +410,11 @@ function platformLister() {
       args: [
         "-NoProfile",
         "-Command",
-        "Get-CimInstance Win32_Process | ForEach-Object { \"$($_.ProcessId) $($_.CommandLine)\" }",
+        "Get-CimInstance Win32_Process | ForEach-Object { \"$($_.ProcessId) $($_.ParentProcessId) $($_.CommandLine)\" }",
       ],
     };
   }
-  return { command: "ps", args: ["-eo", "pid=,args="] };
+  return { command: "ps", args: ["-eo", "pid=,ppid=,args="] };
 }
 
 // Split on whitespace, but keep a quoted path together: an executable under
@@ -505,19 +506,57 @@ if (cmd === "census") {
   // `-- qwen` tail — is a mention and is not counted (S17). The test lives
   // here, in the command a person types, so a mutation of it mutates the
   // object that ships (D-61).
+  //
+  // One launch is a process TREE, so a counted row is a seat only when no
+  // other counted row is its ancestor (S22). The row that owns it is found by
+  // walking parents, not by reading the immediate parent alone, because the
+  // rows between them need not themselves be counted: a qwen launch measured
+  // on this machine is a cli-entry wrapper, a `node --expose-gc cli.js` child
+  // whose harness token is a mention rather than the program (T77), and the
+  // conpty helper below it, whose OpenConsole.exe path carries a harness
+  // directory name and so IS counted. Every row's parent is kept, counted or
+  // not, so the seat is the nearest counted ancestor.
+  const parentOf = new Map();
   const rows = [];
   for (const line of String(r.stdout == null ? "" : r.stdout).split(/\r?\n/)) {
-    if (!SEAT_PID.test(line)) continue;
-    const argv = commandLister(line.replace(/^\s*\d+\s+/, ""));
+    const row = SEAT_ROW.exec(line);
+    if (!row) continue;
+    const pid = Number(row[1]);
+    const ppid = Number(row[2]);
+    parentOf.set(pid, ppid);
+    const argv = commandLister(row[3]);
     const first = (argv.command || "").split(/[\\/]/).pop().toLowerCase();
     const program = SEAT_INTERPRETERS.has(first) ? argv.args[0] || "" : argv.command || "";
     const m = SEAT_HARNESS.exec(program);
     if (!m) continue;
-    rows.push({ pid: Number(SEAT_PID.exec(line)[1]), harness: m[1].toLowerCase(), cmd: line.trim() });
+    rows.push({ pid, ppid, harness: m[1].toLowerCase(), cmd: line.trim() });
+  }
+  const counted = new Map(rows.map((row) => [row.pid, row]));
+  function seatOf(row) {
+    const walked = new Set([row.pid]);
+    let pid = row.ppid;
+    for (;;) {
+      if (walked.has(pid)) return row;
+      walked.add(pid);
+      const seat = counted.get(pid);
+      if (seat) return seat;
+      const parent = parentOf.get(pid);
+      if (parent === undefined) return row;
+      pid = parent;
+    }
+  }
+  const folded = new Map();
+  const seats = [];
+  for (const row of rows) {
+    const seat = seatOf(row);
+    if (seat.pid === row.pid) seats.push(row);
+    else folded.set(seat, (folded.get(seat) || 0) + 1);
   }
   console.log("seat census — " + (listerIdx >= 0 ? "injected" : process.platform) + " process listing");
-  for (const row of rows) console.log("  " + row.pid + "  " + row.harness + "  " + row.cmd);
-  console.log("  " + rows.length + " running writer seat(s)");
+  for (const seat of seats) {
+    console.log("  " + seat.pid + "  " + seat.harness + "  " + seat.cmd + "  (folded " + (folded.get(seat) || 0) + ")");
+  }
+  console.log("  " + seats.length + " running writer seat(s)");
   process.exit(0);
 }
 
@@ -682,11 +721,11 @@ if (cmd === "--self-test") {
     // row runs. Driven through the CLI, because the row rule lives in the CLI
     // block, which is the object that ships (D-61).
     const listing = [
-      "8324 \"C:\\node\\qwen-code\\cli.js\" -p -",
-      "4521 goose run --recipe factory/recipes/x.json",
-      "17 node C:/tools/goose/run.py --once",
-      "9001 pip show aider-chat",
-      "9002 powershell -NoProfile -Command Get-CimInstance Win32_Process -- qwen",
+      "8324 7001 \"C:\\node\\qwen-code\\cli.js\" -p -",
+      "4521 7002 goose run --recipe factory/recipes/x.json",
+      "17 7003 node C:/tools/goose/run.py --once",
+      "9001 7004 pip show aider-chat",
+      "9002 7005 powershell -NoProfile -Command Get-CimInstance Win32_Process -- qwen",
     ].join(NL);
     const listerFile = join(fixture, "lister.mjs");
     writeFileSync(listerFile, "process.stdout.write(" + JSON.stringify(listing) + ");" + NL);
@@ -713,6 +752,54 @@ if (cmd === "--self-test") {
       "a row's harness label was wrong",
       label["8324"] === "qwen" && label["4521"] === "goose" && label["17"] === "goose",
       [JSON.stringify(label)],
+    );
+
+    // Item 1 — one launch is one seat. The fixture is a real launch's shape,
+    // measured on this machine: a cli-entry wrapper, two `--expose-gc` node
+    // children whose harness token is a mention and so are not counted rows at
+    // all, and the conpty helper under them, whose OpenConsole.exe path
+    // carries a harness directory name and so IS counted. The seat and the
+    // folded row are therefore separated by rows the census does not count,
+    // which is why the owner is found by walking parents. The fixture's bytes
+    // are written through JSON.stringify, so its backslashes survive: a
+    // collapsed backslash here would corrupt the very rows under test.
+    const censusOf = (name, text) => {
+      const file = join(fixture, name);
+      writeFileSync(file, "process.stdout.write(" + JSON.stringify(text) + ");" + NL);
+      return runSeat(["census", "--lister", '"' + process.execPath + '" "' + file + '"'], fixture);
+    };
+    const oneLaunch = [
+      "5000 900 node C:\\npm\\node_modules\\@qwen-code\\qwen-code\\cli-entry.js -p -",
+      "5001 5000 node --expose-gc C:\\npm\\node_modules\\@qwen-code\\qwen-code\\cli.js -p -",
+      "5002 5001 node --expose-gc C:\\npm\\node_modules\\@qwen-code\\qwen-code\\cli.js -p -",
+      "5003 5002 C:\\npm\\node_modules\\@qwen-code\\qwen-code\\node_modules\\@lydell\\node-pty-win32-x64\\prebuilds\\win32-x64\\conpty\\OpenConsole.exe --headless --width 80",
+      "5004 5002 powershell.exe -NoProfile -Command Add-Type -Namespace QwenCode",
+    ].join(NL);
+    const cenOne = censusOf("lister-one.mjs", oneLaunch);
+    ok("one launch was counted as several seats", (cenOne.stdout || "").includes("1 running writer seat(s)"), [cenOne.stdout]);
+    ok("the seat was not the launch's cli-entry wrapper", /^\s*5000\s+qwen\s/m.test(cenOne.stdout || ""), [cenOne.stdout]);
+    ok("the counted helper below the wrapper was dropped instead of folded", /\(folded 1\)/.test(cenOne.stdout || ""), [cenOne.stdout]);
+    ok(
+      "a counted row from the same launch survived as its own seat",
+      !/^\s*5003\s+\S+\s/m.test(cenOne.stdout || ""),
+      [cenOne.stdout],
+    );
+
+    // Item 2 — folding does not swallow a second launch. Two launches whose
+    // wrappers are not each other's parent, each with its own tree, are two
+    // seats.
+    const twoLaunches = [
+      "6000 900 node C:\\npm\\node_modules\\@qwen-code\\qwen-code\\cli-entry.js -p -",
+      "6001 6000 node --expose-gc C:\\npm\\node_modules\\@qwen-code\\qwen-code\\cli.js -p -",
+      "6002 901 node C:\\npm\\node_modules\\@qwen-code\\qwen-code\\cli-entry.js -p -",
+      "6003 6002 node --expose-gc C:\\npm\\node_modules\\@qwen-code\\qwen-code\\cli.js -p -",
+    ].join(NL);
+    const cenTwo = censusOf("lister-two.mjs", twoLaunches);
+    ok("two seats were counted as one", (cenTwo.stdout || "").includes("2 running writer seat(s)"), [cenTwo.stdout]);
+    ok(
+      "an independent launch's wrapper was not reported as a seat",
+      /^\s*6000\s+qwen\s/m.test(cenTwo.stdout || "") && /^\s*6002\s+qwen\s/m.test(cenTwo.stdout || ""),
+      [cenTwo.stdout],
     );
     const emptyLister = join(fixture, "empty-lister.mjs");
     writeFileSync(emptyLister, "process.stdout.write('');" + NL);
