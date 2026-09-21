@@ -11,6 +11,8 @@
 // E  no live doc restates lane state        (CONSOLE was three lanes stale)
 // F  every gate step names a file that is here
 // G  every tool is named by a gate step
+// H  a record cites only a path that resolves  (a log cited evidence that never existed)
+// I  a date field is not ahead of UTC          (rows were dated from a local clock)
 
 import {
   existsSync,
@@ -55,6 +57,33 @@ const LIVE_DOCS = [
 
 const STATE_WORD = /\b(landed|dropped|issued|queued|split)\b/i;
 const LANE_ID = /\bF\d+\b/;
+
+// A path citation is a backticked token that names a file. Globs and
+// placeholders are not citations, and neither is prose.
+const CITATION_EXT = /\.(mjs|json|yaml|yml|md|js|ts)$/;
+
+// The five paths a record cites that do not resolve in this tree, each
+// for a reason. An entry that starts resolving is stale and fails.
+const CITATION_ALLOW = [
+  { path: "factory/envelopes/F33.md", why: "an envelope is deleted at landing (AGENTS sec 3)" },
+  { path: "factory/help.json", why: "named by T47, written only when helpMode is not none" },
+  { path: "docs/log/landing-checkout.md", why: "cited by f21.md and never written" },
+  { path: "factory/not-in-the-tree.md", why: "a deliberate absent-file example in f36.md's prose" },
+  { path: "tools/check.yml", why: "a path in a CHILD's tree, not this one" },
+];
+
+function pathCitations(text) {
+  const out = [];
+  for (const m of text.matchAll(/`([^`\n]+)`/g)) {
+    const tok = m[1];
+    if (!tok.includes("/")) continue;
+    if (/\s/.test(tok)) continue;
+    if (/[*<>?]/.test(tok)) continue;
+    if (!CITATION_EXT.test(tok)) continue;
+    out.push(tok);
+  }
+  return out;
+}
 
 function walk(dir, root, acc) {
   for (const name of readdirSync(dir)) {
@@ -220,6 +249,59 @@ export function check(root) {
           errors.push("G factory/tools/" + name + " is named by no gate step");
         }
       }
+    }
+  }
+
+  // H — a record may cite only a path that resolves in the commit under
+  // test. A citation that resolves to nothing is evidence that never was.
+  const allow = new Set(CITATION_ALLOW.map((e) => e.path));
+  for (const entry of CITATION_ALLOW) {
+    if (!entry.why || entry.why.includes(NL)) {
+      errors.push("H citation allowlist entry " + entry.path + " has no one-line why");
+    }
+    if (existsSync(join(root, entry.path))) {
+      errors.push("H citation allowlist entry " + entry.path + " resolves; a stale exemption is a lie");
+    }
+  }
+  const logDir = join(root, "docs/log");
+  if (existsSync(logDir)) {
+    for (const name of readdirSync(logDir)) {
+      if (!name.endsWith(".md")) continue;
+      const rel = "docs/log/" + name;
+      for (const tok of pathCitations(read(root, rel))) {
+        if (allow.has(tok)) continue;
+        if (!existsSync(join(root, tok))) {
+          errors.push("H " + rel + " cites " + tok + ", which is not in the tree");
+        }
+      }
+    }
+  }
+
+  // I — a date field is never ahead of the UTC date read in the same act
+  // as the comparison (T04). Fields only; prose is not scanned.
+  const utc = new Date().toISOString().slice(0, 10);
+  const dated = [];
+  if (existsSync(join(root, "factory/decisions.json"))) {
+    let decisions = null;
+    try {
+      decisions = json(root, "factory/decisions.json");
+    } catch {
+      decisions = null;
+    }
+    for (const row of (decisions && decisions.decisions) || []) {
+      dated.push(["factory/decisions.json", "row " + (row.id == null ? "?" : row.id), row.at]);
+    }
+  }
+  (board.ledger || []).forEach((row, i) => {
+    const id = row.id == null ? "ledger[" + i + "]" : row.id;
+    dated.push(["factory/board.json ledger", "row " + id, row.at]);
+  });
+  for (const [where, id, at] of dated) {
+    const s = at == null ? "" : String(at);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+      errors.push("I " + where + " " + id + " has at " + JSON.stringify(at) + ", not a YYYY-MM-DD");
+    } else if (s > utc) {
+      errors.push("I " + where + " " + id + " is dated " + s + ", ahead of UTC " + utc);
     }
   }
 
