@@ -407,6 +407,7 @@ function probeFixtures(errors) {
   fixture9(errors);
   fixture10(errors);
   fixture11(errors);
+  fixture12(errors);
 }
 
 // 1 A shell that CAN run the steps changes nothing: all 21 run and a
@@ -548,9 +549,11 @@ function fixture6(errors) {
 //   there, which is what F47's correction did and what left the wiring
 //   unwatched by the gate that protects main. A repository that cannot
 //   be made is a FAILED fixture with its reason, never a quiet skip.
-function fixture7(errors) {
+//   `spawn` is injectable so fixture12 can drive THIS branch — the
+//   consumption, not the helper — with a repository that refuses.
+function fixture7(errors, opts = {}) {
   const shell = "grok-no-such-shell-f47";
-  const repo = makeTempRepo("f7");
+  const repo = makeTempRepo("f7", opts);
   try {
     if (repo.error) {
       errors.push("[7 entry point] the throwaway repository could not be created — " + repo.error);
@@ -701,6 +704,27 @@ function fixture11(errors) {
     errors.push("[11 cleanup] a removal that failed was reported nowhere");
   } else if (!/EBUSY/.test(reports.join(" "))) {
     errors.push("[11 cleanup] the report did not carry what the removal said");
+  }
+}
+
+// 12 fixture7 CONSUMES a repository it could not make — the early-return
+//    branch, which is the silent skip this lane exists to delete. Its
+//    own errors array is used so a real report does not fail the suite.
+//    makeTempRepo's failure is injected into the path fixture7 takes, so
+//    this runs wherever the gate runs and needs no absent git; a second
+//    fixture on the helper would prove nothing (T79). Deleting the
+//    errors.push inside that branch leaves nothing for this to read.
+function fixture12(errors) {
+  const refusing = () => ({ status: 1, stdout: "", stderr: "fatal: cannot init a repository here", error: undefined });
+  const seen = [];
+  fixture7(seen, { spawn: refusing });
+  const line = seen.find((e) => e.startsWith("[7 entry point] the throwaway repository could not be created"));
+  if (!line) {
+    errors.push("[12 f7 consumption] fixture7 did not report a repository it could not create: " + (seen.join(" | ") || "nothing at all"));
+    return;
+  }
+  if (!/git init/.test(line) || !/cannot init/.test(line)) {
+    errors.push("[12 f7 consumption] fixture7's report does not name the reason: " + line);
   }
 }
 
