@@ -213,7 +213,7 @@
     {
       "id": "F42",
       "title": "The TRAPS parser: last-wins proved, quoted scalars, an explicit refusal honoured (S19)",
-      "status": "issued"
+      "status": "landed"
     },
     {
       "id": "F43",

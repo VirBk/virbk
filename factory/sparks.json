@@ -68,8 +68,9 @@
       "claim": "Half a fix can ship untested when one mutation reds for the other half's reason: splitCheck is case-sensitive AND last-wins, and only case-sensitivity has a fixture.",
       "object": "factory/tools/alumni.mjs",
       "whyNotLaw": "Restoring first-match while keeping case-sensitivity leaves alumni --self-test green, because no fixture row carries two capital-C directives. The envelope named one mutation combining both halves, and it reds on the first half alone.",
-      "status": "open",
-      "openedOn": 10
+      "status": "absorbed",
+      "openedOn": 10,
+      "absorbedAs": "T79"
     },
     {
       "id": "S20",
@@ -96,6 +97,15 @@
       "claim": "The census counts processes, not seats: two qwen-code launches produced six rows, a cli-entry wrapper plus --expose-gc children each, and it printed 6 running writer seat(s) when the true number was two.",
       "object": "factory/tools/seat.mjs",
       "whyNotLaw": "Observed live when sitting 11's two siblings were launched, with the real number known. F40 does NOT fix this: that lane puts the harness token in program position, and every one of the six rows has it there, so the count stays wrong by the process tree after F40 lands. The two-writer ceiling and the dead-seat resume both read this number. A seat is a process group, or the row a launch recorded, not a matching command line.",
+      "status": "open",
+      "openedOn": 11
+    },
+    {
+      "id": "S23",
+      "kind": "trap",
+      "claim": "A correction envelope is written to main, but a seat reads its envelope from its own worktree, which still holds the superseded page; git fetch does not touch the working tree, so the seat runs the old envelope silently.",
+      "object": "factory/tools/seat.mjs",
+      "whyNotLaw": "Caught live this sitting by reading the envelope's first line after launching: the F42 correction seat was started against the original envelope, stopped, and relaunched only after the worktree was rebased onto main. packet.mjs reads factory/envelopes/<LANE>.md from the tree it runs in, so the failure is invisible and looks like a seat ignoring its instructions. Nothing in seat.mjs, the recipe or the packet warns that a correction launch must rebase the worktree first, and the cost is a whole paid session spent against a stale page.",
       "status": "open",
       "openedOn": 11
     }

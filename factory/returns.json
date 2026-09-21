@@ -50,6 +50,23 @@
         "source": "qwen usage_record.jsonl"
       },
       "meterModel": "deepseek-flash"
+    },
+    {
+      "at": "2026-09-21T02:45:28.317Z",
+      "key": "e8320818ecec1e7e",
+      "lane": "F42",
+      "runtime": "desktop-qwen",
+      "model": "deepseek-flash",
+      "base": "b96d16583e5ce1f0bf6c8dd82319e3b761e6de8b",
+      "branch": "writer/F42",
+      "tokens": {
+        "in": 3217606,
+        "out": 44392,
+        "cached": 3116032,
+        "requests": 46,
+        "source": "qwen usage_record.jsonl"
+      },
+      "meterModel": "deepseek-flash"
     }
   ]
 }

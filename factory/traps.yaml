@@ -468,3 +468,9 @@
   object: "factory/tools/seat.mjs"
   title: Answering command that silently answers about fewer objects than it was given
   rule: A command comparing a fixed number of things refuses a call that names more. Answering about the first two and exiting 0 is worse than a wrong answer, because the caller asked a question the command never answered and nothing said so. disjoint took two lanes and dropped the rest, so proving three siblings gave a green covering one pair of three, and a board claim rested on it. Check is node factory/tools/seat.mjs --self-test.
+
+- id: T79
+  kind: portable
+  object: "factory/tools/alumni.mjs"
+  title: Parser that half-proves a rule, and a fixture that cannot fail
+  rule: A fixture proves a property only if the fixture COULD fail it. splitCheck is case-sensitive AND last-wins and shipped with a fixture for one half, so restoring first-match left the gate green; the correction then proved a reject row is held while its own case-fold and its ordering against the floors stayed unproven, because the only reject fixture was already lowercase and already cleared every floor. A quoted YAML scalar carries its quotes into the id, the kind and the title unless one matching pair is stripped at the two ends only, an apostrophe inside a rule surviving. A child's kind of reject is the child refusing absorption in the contract's own vocabulary, and it is read BEFORE the floors, so a refused row carrying a good check is still held and named by id. Check is node factory/tools/alumni.mjs --self-test.
