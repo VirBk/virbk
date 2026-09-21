@@ -18,16 +18,93 @@
 // still RUNS and still prints what it found; it does not fail the
 // landing. The rows are read from the archive, like the manifest, so a
 // commit carries its own exceptions and they expire on a stated date.
+//
+// Before the first step runs, the shell is probed THE WAY A STEP IS RUN:
+// a file in the log dir, spawned as `<shell> -e <file>`, cwd set to the
+// unpacked archive. When that shell cannot run the steps the gate prints
+// one diagnostic naming it and exits EXIT_UNRUNNABLE with no step lines.
+// A launcher that cannot read a Windows path as a file reds all 21 steps
+// at ANY commit — green from git-bash a second later (S24) — and a seat
+// reading step names cannot see why. The probe form is the whole point:
+// one shaped `bash -c true` succeeds under that launcher and closes
+// nothing.
 
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { suspendedBy } from "./experiment.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "../..");
+const NL = String.fromCharCode(10);
+
+// Steps are spawned as `<SHELL> -e <script>` with cwd = the unpacked
+// archive. One form only, and the probe takes that same form.
+const SHELL = "bash";
+
+// GATE FAILED — the commit is bad.
+export const EXIT_FAILED = 1;
+// The shell cannot run the gate. Not a verdict on the commit, and not
+// the status of a failed gate, so a caller and a seat can tell them
+// apart: "this shell cannot run the gate" versus "your commit is bad".
+export const EXIT_UNRUNNABLE = 2;
+
+// Probe the shell the way a step is run: a file in logDir, spawned as
+// `<shell> -e <file>`, cwd set to workDir. The form is the whole point
+// (T09): a probe shaped `bash -c true` SUCCEEDS under the WSL launcher
+// and leaves the 21 reds where they are.
+export function probeShell(shell, workDir, logDir, spawn = spawnSync) {
+  const script = join(logDir, "00-probe.sh");
+  writeFileSync(script, "exit 0" + NL);
+  const r = spawn(shell, ["-e", script], {
+    cwd: workDir,
+    encoding: "utf8",
+    maxBuffer: 4 * 1024 * 1024,
+  });
+  const spawned = !r.error;
+  const status = spawned ? (r.status === null ? 1 : r.status) : null;
+  return {
+    shell,
+    script,
+    cwd: workDir,
+    spawned,
+    status,
+    ok: spawned && status === 0,
+    error: r.error ? String(r.error.message || r.error.code || r.error) : "",
+    stderr: String(r.stderr || ""),
+  };
+}
+
+// ONE diagnostic. S24 was a seat that saw 21 reds and no cause, so the
+// shell, the probe it ran and what the shell wrote are all named.
+// "shell failed" does not close it.
+export function shellDiagnostic(p, sha) {
+  const lines = [
+    "grok landing gate: this shell cannot run the steps (exit " + EXIT_UNRUNNABLE + ")",
+  ];
+  lines.push("  shell   " + p.shell);
+  lines.push("  probe   " + p.script);
+  lines.push("  cwd     " + p.cwd);
+  if (sha) lines.push("  commit  " + sha);
+  lines.push(p.spawned ? "  exit    " + p.status : "  spawn   " + p.error);
+  const err = String(p.stderr || "").trim();
+  if (err) lines.push("  stderr  " + err.split(NL).join(NL + "          "));
+  lines.push(
+    "Steps run as `" +
+      p.shell +
+      " -e <file>` from that cwd. No step ran: this is not a verdict on the commit.",
+  );
+  return lines.join(NL);
+}
+
+// The gate's first act. null means the steps can run.
+export function shellStop(shell, workDir, logDir, spawn = spawnSync, sha) {
+  const probe = probeShell(shell, workDir, logDir, spawn);
+  if (probe.ok) return null;
+  return { code: EXIT_UNRUNNABLE, probe, text: shellDiagnostic(probe, sha) };
+}
 
 function git(args, opts = {}) {
   const r = spawnSync("git", args, { cwd: repoRoot, encoding: "utf8", ...opts });
@@ -148,11 +225,245 @@ export function failures(results) {
   return results.filter((r) => r.status !== null && r.status !== 0 && !r.suspended);
 }
 
+// The verdict, and the status a caller sees. A failed step is
+// EXIT_FAILED; the unrunnable shell is EXIT_UNRUNNABLE, and this is
+// where the two stay apart.
+export function verdict(results) {
+  const failed = failures(results);
+  return { code: failed.length ? EXIT_FAILED : 0, failed };
+}
+
+// One script per step, run through `<shell> -e <file>`, exit code
+// captured and never piped away (T10, T14). `write` is injectable so a
+// fixture can drive the steps without printing them.
+export function runSteps(opts) {
+  const { steps, workDir, logDir, shell = SHELL, spawn = spawnSync } = opts;
+  const write = opts.write || ((s) => process.stdout.write(s));
+  const results = [];
+  for (const [i, step] of steps.entries()) {
+    const n = String(i + 1).padStart(2, "0");
+    if (!step.run) {
+      write("  --  " + n + "  " + step.name + "  (no run)" + NL);
+      results.push({ name: step.name, status: null });
+      continue;
+    }
+    const sus = suspendedBy(workDir, step.name);
+    write("  ..  " + n + "  " + step.name + " ... ");
+    const scriptPath = join(logDir, n + ".sh");
+    writeFileSync(scriptPath, step.run.endsWith("\n") ? step.run : step.run + "\n");
+    const r = spawn(shell, ["-e", scriptPath], {
+      cwd: workDir,
+      encoding: "utf8",
+      maxBuffer: 32 * 1024 * 1024,
+    });
+    const status = r.status === null ? 1 : r.status;
+    results.push({ name: step.name, status, suspended: sus ? sus.id : null });
+    if (status === 0) {
+      write(sus ? "ok — " + sus.id + " suspends it and it passes anyway" + NL : "ok" + NL);
+    } else {
+      write(sus ? "FAILED — suspended by " + sus.id + " until " + sus.expires + NL : "FAILED" + NL);
+    }
+    writeFileSync(join(logDir, n + ".txt"), (r.stdout || "") + (r.stderr || ""));
+  }
+  return results;
+}
+
+// ---- fixtures for the shell probe -----------------------------------
+//
+// One fixture per property, and each one can fail: a fixture that could
+// not red proves nothing, and a fixture that reds for two properties
+// leaves one of them untested (T79).
+//
+// A fixture's shell is either the real one or a STAND that answers the
+// two forms the gate uses — `-e <file>` and `-c <string>` — so the WSL
+// launcher (it takes a command string and cannot read a Windows path as
+// a file) can be modelled where no such launcher is installed. The real
+// launcher is checked too when this machine has one.
+
+function fixtureDirs(tag) {
+  const root = mkdtempSync(join(tmpdir(), "grok-gate-" + tag + "-"));
+  const workDir = join(root, "work");
+  const logDir = join(root, "logs");
+  mkdirSync(workDir, { recursive: true });
+  mkdirSync(logDir, { recursive: true });
+  return {
+    workDir,
+    logDir,
+    // A launcher spawned with cwd = workDir can still hold it for a
+    // moment. A temp dir left behind is not a gate failure; a self-test
+    // that throws instead of reporting is.
+    done: () => {
+      try {
+        rmSync(root, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 });
+      } catch {
+        // the platform will clear its own temp dir
+      }
+    },
+  };
+}
+
+function stand(spec = {}) {
+  const calls = [];
+  const fn = (cmd, args, opts = {}) => {
+    calls.push({ cmd, args: Array.from(args), cwd: opts.cwd });
+    const status = args[0] === "-e" ? spec.onFile : spec.onCommand;
+    return { status, stdout: "", stderr: status === 0 ? "" : String(spec.stderr || ""), error: undefined };
+  };
+  fn.calls = calls;
+  return fn;
+}
+
+const WSL_LAUNCHER = "C:\\Windows\\System32\\bash.exe";
+const NO_STEP_LINE = /\.\.\s+\d\d\s/;
+
+function probeFixtures(errors) {
+  fixture1(errors);
+  fixture2(errors);
+  fixture3(errors);
+  fixture4(errors);
+  fixture5(errors);
+  fixture6(errors);
+}
+
+// 1 A shell that CAN run the steps changes nothing: all 21 run and a
+//   green run comes back passed.
+function fixture1(errors) {
+  const d = fixtureDirs("f1");
+  try {
+    const stop = shellStop(SHELL, d.workDir, d.logDir, spawnSync, "f".repeat(40));
+    if (stop) errors.push("[1 ordinary] a shell that can run the steps was refused: " + stop.text.split(NL)[0]);
+    const steps = Array.from({ length: 21 }, (_, i) => ({ name: "passes " + (i + 1), run: "exit 0" }));
+    const results = runSteps({ steps, workDir: d.workDir, logDir: d.logDir, write: () => {} });
+    if (results.length !== 21) errors.push("[1 ordinary] " + results.length + " of 21 steps ran");
+    if (results.some((r) => r.status !== 0)) errors.push("[1 ordinary] a passing step did not pass");
+    if (verdict(results).code !== 0) errors.push("[1 ordinary] a green run did not come back passed");
+  } finally {
+    d.done();
+  }
+}
+
+// 2 A command name that does not exist: the diagnostic, no step lines,
+//   and the unrunnable status. The real spawn, so the real error.
+function fixture2(errors) {
+  const d = fixtureDirs("f2");
+  try {
+    const shell = "grok-no-such-shell-f47";
+    const stop = shellStop(shell, d.workDir, d.logDir, spawnSync, "a".repeat(40));
+    if (!stop) {
+      errors.push("[2 not spawnable] a shell that cannot be spawned was accepted");
+      return;
+    }
+    if (stop.code !== EXIT_UNRUNNABLE) {
+      errors.push("[2 not spawnable] exit " + stop.code + ", not " + EXIT_UNRUNNABLE);
+    }
+    if (NO_STEP_LINE.test(stop.text)) errors.push("[2 not spawnable] the diagnostic carried step lines");
+    if (!stop.text.includes(shell)) errors.push("[2 not spawnable] the diagnostic did not name the shell");
+  } finally {
+    d.done();
+  }
+}
+
+// 3 A shell that CAN be spawned and then fails the probe. This is the
+//   member most likely to escape: a check written against the spawn
+//   error alone passes 2 and leaves this one open. Its stand fails
+//   `-c` too, so the property-5 mutation cannot red it.
+function fixture3(errors) {
+  const d = fixtureDirs("f3");
+  try {
+    const sh = stand({ onFile: 3, onCommand: 3, stderr: "sh: cannot run a script here" });
+    const stop = shellStop(SHELL, d.workDir, d.logDir, sh, "b".repeat(40));
+    if (!stop) {
+      errors.push("[3 spawned then failed] a shell that failed the probe was accepted");
+      return;
+    }
+    if (stop.code !== EXIT_UNRUNNABLE) {
+      errors.push("[3 spawned then failed] exit " + stop.code + ", not " + EXIT_UNRUNNABLE);
+    }
+    if (NO_STEP_LINE.test(stop.text)) {
+      errors.push("[3 spawned then failed] the diagnostic carried step lines");
+    }
+  } finally {
+    d.done();
+  }
+}
+
+// 4 The diagnostic NAMES the shell and carries what the probe wrote to
+//   stderr. Straight at the formatter, so a mutation of the gate's
+//   decision cannot move it.
+function fixture4(errors) {
+  const d = fixtureDirs("f4");
+  try {
+    const wrote = "C:UsersaccesAppDataLocaltempgrok-gate-abc-logs00-probe.sh: No such file or directory";
+    const p = probeShell(SHELL, d.workDir, d.logDir, stand({ onFile: 127, onCommand: 127, stderr: wrote }));
+    const text = shellDiagnostic(p, "c".repeat(40));
+    if (!text.includes(SHELL)) errors.push("[4 diagnostic] the diagnostic does not name the shell");
+    if (!text.includes(wrote)) {
+      errors.push("[4 diagnostic] the diagnostic does not carry what the shell wrote to stderr");
+    }
+    if (!text.includes(p.script)) errors.push("[4 diagnostic] the diagnostic does not name the probe it ran");
+    if (NO_STEP_LINE.test(text)) errors.push("[4 diagnostic] the diagnostic carried step lines");
+  } finally {
+    d.done();
+  }
+}
+
+// 5 The probe takes the STEP's own form. Under the WSL shape — `-c`
+//   works, `-e <windows file>` does not — a probe shaped `bash -c true`
+//   passes and the 21 reds come back (T09).
+function fixture5(errors) {
+  const d = fixtureDirs("f5");
+  try {
+    ownForm(errors, stand({ onFile: 1, onCommand: 0, stderr: "cannot read that file" }), SHELL, d);
+    if (existsSync(WSL_LAUNCHER)) ownForm(errors, spawnSync, WSL_LAUNCHER, d);
+  } finally {
+    d.done();
+  }
+}
+
+function ownForm(errors, spawn, shell, d) {
+  const probe = probeShell(shell, d.workDir, d.logDir, spawn);
+  if (probe.ok) {
+    errors.push(
+      "[5 own form] " + shell + " cannot take `-e <file>` and the probe passed anyway, so a `-c`-shaped probe passes here",
+    );
+  }
+  const call = spawn.calls && spawn.calls[0];
+  if (!call) return;
+  if (call.args[0] !== "-e") {
+    errors.push("[5 own form] the probe spawned `" + call.args.join(" ") + "`, not `-e <file>`");
+  }
+  if (dirname(String(call.args[1] || "")) !== d.logDir) {
+    errors.push("[5 own form] the probe script is not a file in the log dir");
+  }
+  if (call.cwd !== d.workDir) errors.push("[5 own form] the probe did not run with the step's cwd");
+}
+
+// 6 A caller and a seat can tell "this shell cannot run the gate" from
+//   "your commit is bad".
+function fixture6(errors) {
+  if (EXIT_UNRUNNABLE === 0) errors.push("[6 status] the unrunnable status is the passed status");
+  if (EXIT_UNRUNNABLE === EXIT_FAILED) errors.push("[6 status] the unrunnable status is GATE FAILED's status");
+  if (EXIT_FAILED !== 1) errors.push("[6 status] GATE FAILED is " + EXIT_FAILED + ", not 1");
+  const v = verdict([{ name: "Fails", status: 1, suspended: null }]);
+  if (v.code !== 1) errors.push("[6 status] a failed step comes back " + v.code + ", not 1");
+}
+
+function selfTestReport(errors, note) {
+  if (errors.length) {
+    console.error("landingGate self-test failed");
+    for (const e of errors) console.error("  " + e);
+    process.exit(EXIT_FAILED);
+  }
+  console.log("landingGate self-test ok" + (note ? " (" + note + ")" : ""));
+  process.exit(0);
+}
+
 function selfTest() {
   // The gate must unpack on the platform the control plane actually runs
   // on. Proof is bytes out of the archive equal to bytes out of git.
   const errors = [];
   synthTest(errors);
+  probeFixtures(errors);
   const sample = [
     { name: "passes", status: 0, suspended: null },
     { name: "fails", status: 1, suspended: null },
@@ -164,15 +475,7 @@ function selfTest() {
     errors.push("suspension changed which steps fail the landing: " + got.join(","));
   }
   const inRepo = spawnSync("git", ["-C", repoRoot, "rev-parse", "--git-dir"], { encoding: "utf8" }).status === 0;
-  if (!inRepo) {
-    if (errors.length) {
-      console.error("landingGate self-test failed");
-      for (const e of errors) console.error("  " + e);
-      process.exit(1);
-    }
-    console.log("landingGate self-test ok (unpack only; no repository here)");
-    process.exit(0);
-  }
+  if (!inRepo) selfTestReport(errors, "unpack only; no repository here");
   const sha = git(["rev-parse", "HEAD"]);
   const { workDir } = tempPair("selftest");
   try {
@@ -206,13 +509,7 @@ function selfTest() {
   } finally {
     rmSync(workDir, { recursive: true, force: true });
   }
-  if (errors.length) {
-    console.error("landingGate self-test failed");
-    for (const e of errors) console.error("  " + e);
-    process.exit(1);
-  }
-  console.log("landingGate self-test ok");
-  process.exit(0);
+  selfTestReport(errors, "");
 }
 
 if (process.argv.includes("--self-test")) selfTest();
@@ -225,9 +522,19 @@ const sha = git(["rev-parse", shaArg]);
 const short = sha.slice(0, 7);
 const { workDir, logDir } = tempPair(short);
 
+// The shell is probed before the first step, in the step's own form, and
+// before anything is read out of the commit: a shell that cannot run the
+// steps reds all 21 at any commit, and a seat reading step names cannot
+// see why (S24). It names itself instead, and no step line is printed.
+const stop = shellStop(SHELL, workDir, logDir, spawnSync, sha);
+if (stop) {
+  console.error(stop.text);
+  process.exit(stop.code);
+}
+
 if (!archiveTo(sha, workDir)) {
   console.error("archive failed");
-  process.exit(1);
+  process.exit(EXIT_FAILED);
 }
 
 let manifest;
@@ -237,11 +544,10 @@ try {
   console.error("commit", sha, "has no parseable factory/landing-checks.json");
   console.error(String(err.message || err));
   console.error("The gate does not fall back to this tree.");
-  process.exit(1);
+  process.exit(EXIT_FAILED);
 }
 
 const steps = Array.isArray(manifest.steps) ? manifest.steps : [];
-const results = [];
 
 console.log("grok landing gate");
 console.log("  commit   " + sha);
@@ -249,40 +555,16 @@ console.log("  archive  " + workDir);
 console.log("  steps    " + steps.length);
 console.log("");
 
-for (const [i, step] of steps.entries()) {
-  const n = i + 1;
-  if (!step.run) {
-    console.log("  --  " + String(n).padStart(2, "0") + "  " + step.name + "  (no run)");
-    results.push({ name: step.name, status: null });
-    continue;
-  }
-  const sus = suspendedBy(workDir, step.name);
-  process.stdout.write("  ..  " + String(n).padStart(2, "0") + "  " + step.name + " ... ");
-  const scriptPath = join(logDir, String(n).padStart(2, "0") + ".sh");
-  writeFileSync(scriptPath, step.run.endsWith("\n") ? step.run : step.run + "\n");
-  const r = spawnSync("bash", ["-e", scriptPath], {
-    cwd: workDir,
-    encoding: "utf8",
-    maxBuffer: 32 * 1024 * 1024,
-  });
-  const status = r.status === null ? 1 : r.status;
-  results.push({ name: step.name, status, suspended: sus ? sus.id : null });
-  if (status === 0) {
-    console.log(sus ? "ok — " + sus.id + " suspends it and it passes anyway" : "ok");
-  } else {
-    console.log(sus ? "FAILED — suspended by " + sus.id + " until " + sus.expires : "FAILED");
-  }
-  writeFileSync(join(logDir, String(n).padStart(2, "0") + ".txt"), (r.stdout || "") + (r.stderr || ""));
-}
+const results = runSteps({ steps, workDir, logDir, shell: SHELL });
 
-const failed = failures(results);
+const { code, failed } = verdict(results);
 const suspended = results.filter((r) => r.suspended && r.status !== 0);
 console.log("");
 for (const s of suspended) {
   console.log("  suspended  " + s.name + " failed under " + s.suspended + " — kept out of the verdict");
 }
 if (suspended.length) console.log("  logs       " + logDir);
-if (failed.length === 0) {
+if (code === 0) {
   rmSync(workDir, { recursive: true, force: true });
   if (!suspended.length) rmSync(logDir, { recursive: true, force: true });
   console.log(suspended.length ? "GATE PASSED with " + suspended.length + " suspended" : "GATE PASSED");
@@ -291,4 +573,4 @@ if (failed.length === 0) {
 console.log("GATE FAILED");
 for (const f of failed) console.log("  " + f.name + " exit " + f.status);
 console.log("  archive " + workDir);
-process.exit(1);
+process.exit(EXIT_FAILED);
