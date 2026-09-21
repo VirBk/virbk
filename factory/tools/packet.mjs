@@ -433,6 +433,97 @@ function fixture() {
   return dir;
 }
 
+// git is a probe in this file, never a dependency. The landing gate runs this
+// tool from an unpacked archive with no repository at all, so every way git can
+// fail to answer — no binary, no repository, no ref — comes back as `reason`
+// and the seat path notes it rather than refusing (F45 item 2, T09).
+function gitProbe(root, args) {
+  let r;
+  try {
+    r = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
+  } catch (err) {
+    return { reason: "git could not be run: " + String(err.message || err).split(NL)[0] };
+  }
+  if (r.error || r.status === null) {
+    return { reason: "git is not available" + (r.error && r.error.code ? " (" + r.error.code + ")" : "") };
+  }
+  if (r.status !== 0) {
+    const why = String(r.stderr || "").trim().split(NL)[0];
+    return { reason: why || "git exited " + r.status };
+  }
+  return { out: r.stdout };
+}
+
+// The seat path's one new check (F45/S23). A seat reads its envelope from the
+// worktree, which sits on the lane branch at the issuance commit; a correction
+// envelope written to main afterwards leaves the superseded page in place, and
+// `git fetch` never touches a working tree. The seat then works to a page
+// nothing on the read path contradicts, and the failure looks exactly like a
+// seat ignoring its instructions. Compare the two copies and hand back a
+// verdict; the caller decides what goes where. This function writes nowhere:
+// the bytes before the envelope are a provider prefix-cache hit (T45, T61).
+function staleEnvelope(root, lane) {
+  if (!lane) return null;
+  const rel = "factory/envelopes/" + lane + ".md";
+  if (!existsSync(join(root, rel))) return null;
+  const ref = "refs/remotes/origin/main";
+  const refProbe = gitProbe(root, ["rev-parse", "--verify", "--quiet", ref + "^{commit}"]);
+  if (refProbe.reason !== undefined) {
+    return { verdict: "skipped", why: ref + " does not resolve (" + refProbe.reason + ")" };
+  }
+  const main = gitProbe(root, ["show", ref + ":" + rel]);
+  if (main.reason !== undefined) {
+    return { verdict: "skipped", why: rel + " is not on " + ref + " (" + main.reason + ")" };
+  }
+  // The repository pins `* text=auto eol=lf`, but a checkout elsewhere may not;
+  // a line ending is not a page, so it is not a difference.
+  const same =
+    readFileSync(join(root, rel), "utf8").replace(/\r\n/g, NL) === main.out.replace(/\r\n/g, NL);
+  if (same) return null;
+  return { verdict: "stale", why: rel + " differs from the copy on " + ref };
+}
+
+// A repository whose worktree holds the page the lane was issued with while the
+// local ref for live main holds the correction written after it. That is the
+// shape S23 cost a paid session on, and no tree without a repository can
+// produce it — so this fixture is skipped loudly where git is not present.
+function gitStaleFixture() {
+  const dir = fixture();
+  const g = (args) => {
+    try {
+      return spawnSync("git", ["-C", dir, ...args], { encoding: "utf8" });
+    } catch (err) {
+      return { status: null, error: err };
+    }
+  };
+  const ok = (args) => (g(args) || {}).status === 0;
+  try {
+    if (!ok(["init", "-q", "-b", "main"])) throw new Error("git init");
+    for (const [k, v] of [
+      ["core.autocrlf", "false"],
+      ["commit.gpgsign", "false"],
+      ["user.email", "fixture@example.invalid"],
+      ["user.name", "fixture"],
+    ]) {
+      g(["config", k, v]);
+    }
+    const page = (text) => writeFileSync(join(dir, "factory/envelopes/F00.md"), text + NL);
+    page("the page the lane was issued with");
+    if (!ok(["add", "-A"])) throw new Error("git add");
+    if (!ok(["commit", "-q", "-m", "lane issued"])) throw new Error("git commit");
+    page("the correction the control plane wrote to main after the worktree was taken");
+    if (!ok(["add", "-A"])) throw new Error("git add");
+    if (!ok(["commit", "-q", "-m", "correction"])) throw new Error("git commit");
+    if (!ok(["update-ref", "refs/remotes/origin/main", "HEAD"])) throw new Error("git update-ref");
+    // The worktree goes back to the issuance commit: git fetch never moved it.
+    if (!ok(["reset", "-q", "--hard", "HEAD~1"])) throw new Error("git reset");
+    return dir;
+  } catch (err) {
+    rmSync(dir, { recursive: true, force: true });
+    return null;
+  }
+}
+
 // The shape of the packet, and nothing about its size. A tree over its caps
 // fails --check and passes this; a packet whose envelope is not last fails
 // this and passes --check. Two claims, two steps, so an experiment can
@@ -584,6 +675,79 @@ function selfTest(root) {
     rmSync(dir, { recursive: true, force: true });
   }
 
+  // F45/S23. The comparison lives in the seat dispatch, so the production
+  // entry point is what these assertions drive. Three properties, and each one
+  // is the only thing a mutation of that dispatch can move (D-62): drop the
+  // refusal and a stale envelope reaches a seat; make the unmakeable case
+  // refuse and a working launch dies; put the note on stdout and the packet's
+  // bytes move. The two fixtures are different trees on purpose — one has a
+  // repository where the two pages differ, one has no repository at all, which
+  // is the shape the landing gate runs in. A single tree could not separate
+  // "refused" from "could not compare".
+  {
+    const cli = fileURLToPath(import.meta.url);
+    const lane = "F00"; // fixture() writes factory/envelopes/F00.md
+    const note = (property, why) => errors.push(property + " — " + why);
+    const seat = (tree) =>
+      spawnSync(process.execPath, [cli, "seat", lane, "--root", tree], { encoding: "utf8" });
+
+    const plain = fixture();
+    try {
+      const r = seat(plain);
+      const err = String(r.stderr || "");
+      const out = String(r.stdout || "");
+      if (r.status !== 0) {
+        note(
+          "a launch was refused for a comparison nobody could make",
+          "exit " + r.status + " in a tree with no repository: " + (err.trim().split(NL).join(" / ") || "(no stderr)"),
+        );
+      }
+      if (!err.includes("refs/remotes/origin/main")) {
+        note(
+          "a comparison that could not be made was not noted",
+          "no note on stderr naming the ref it could not read",
+        );
+      }
+      if (out !== render(seatPacket(plain, lane))) {
+        note(
+          "the packet's bytes moved",
+          "the note path's stdout is not byte-identical to the rendered packet",
+        );
+      }
+    } finally {
+      rmSync(plain, { recursive: true, force: true });
+    }
+
+    const repo = gitStaleFixture();
+    if (!repo) {
+      console.error(
+        "packet self-test: git is unavailable here, so the stale-envelope assertion was SKIPPED loudly",
+      );
+    } else {
+      try {
+        const r = seat(repo);
+        const err = String(r.stderr || "");
+        const out = String(r.stdout || "");
+        if (r.status === 0 || out !== "") {
+          note(
+            "a stale envelope was handed to a seat",
+            "the worktree's envelope differs from the copy on main and the seat path emitted it anyway" +
+              " (exit " +
+              r.status +
+              ", " +
+              Buffer.byteLength(out, "utf8") +
+              " bytes on stdout)",
+          );
+        }
+        if (!/differs/.test(err)) {
+          note("a refused launch did not say why", "stderr did not name the difference: " + (err.trim() || "(nothing)"));
+        }
+      } finally {
+        rmSync(repo, { recursive: true, force: true });
+      }
+    }
+  }
+
   if (errors.length) {
     console.error("packet self-test failed");
     for (const e of errors) console.error("  " + e);
@@ -617,8 +781,36 @@ if (isEntry) {
 
   if (cmd === "seat" || cmd === "cp") {
     const lane = rest[1] || "";
+    // Only the seat path compares: a cp read is the control plane's own page,
+    // already taken from main. A stale envelope refuses (F45/S23) — and the
+    // launch line is a pipe into the harness, so the refusal must reach it as
+    // an EMPTY stdin, which is a loud failure, rather than as a packet a seat
+    // would work to. Hence stdout is untouched and every word goes to stderr
+    // (T61); exit 3 separates a refusal from the usage branch's exit 1.
+    const verdict = cmd === "seat" ? staleEnvelope(root, lane) : null;
+    if (verdict && verdict.verdict === "stale") {
+      process.stderr.write(
+        "packet seat: refusing — " +
+          verdict.why +
+          ". The worktree holds a superseded page; a correction launch must rebase the worktree" +
+          " onto live main first. Nothing was written to stdout, and the seat was not launched." +
+          NL,
+      );
+      process.exit(3);
+    }
     const parts = cmd === "seat" ? seatPacket(root, lane) : cpPacket(root, lane);
     process.stdout.write(render(parts));
+    if (verdict && verdict.verdict === "skipped") {
+      // A check that cannot pass is removed or skipped loudly (T09): a missing
+      // ref, a shallow clone or no git at all must never turn a working launch
+      // into a dead one, so this is a note and the packet still emits.
+      process.stderr.write(
+        "packet seat: NOTE — the envelope could not be compared with refs/remotes/origin/main (" +
+          verdict.why +
+          "); emitting the worktree's copy." +
+          NL,
+      );
+    }
     // stdout is the packet. The meter goes to stderr so a pipe stays clean.
     process.stderr.write(
       "packet " + cmd + (lane ? " " + lane : "") + "  " + kb(total(parts)) + NL,
