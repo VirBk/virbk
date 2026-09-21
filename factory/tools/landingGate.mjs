@@ -23,7 +23,7 @@
 // a file in the log dir, spawned as `<shell> -e <file>`, cwd set to the
 // unpacked archive. When that shell cannot run the steps the gate prints
 // one diagnostic naming it and exits EXIT_UNRUNNABLE with no step lines.
-// A launcher that cannot read a Windows path as a file reds all 21 steps
+// A launcher that cannot read a Windows path as a file reds every step
 // at ANY commit — green from git-bash a second later (S24) — and a seat
 // reading step names cannot see why. The probe form is the whole point:
 // one shaped `bash -c true` succeeds under that launcher and closes
@@ -61,7 +61,7 @@ export const EXIT_UNRUNNABLE = 2;
 // Probe the shell the way a step is run: a file in logDir, spawned as
 // `<shell> -e <file>`, cwd set to workDir. The form is the whole point
 // (T09): a probe shaped `bash -c true` SUCCEEDS under the WSL launcher
-// and leaves the 21 reds where they are.
+// and leaves every step red.
 export function probeShell(shell, workDir, logDir, spawn = spawnSync) {
   const script = join(logDir, "00-probe.sh");
   writeFileSync(script, "exit 0" + NL);
@@ -84,7 +84,7 @@ export function probeShell(shell, workDir, logDir, spawn = spawnSync) {
   };
 }
 
-// ONE diagnostic. S24 was a seat that saw 21 reds and no cause, so the
+// ONE diagnostic. S24 was a seat that saw every step red and no cause, so the
 // shell, the probe it ran and what the shell wrote are all named.
 // "shell failed" does not close it.
 export function shellDiagnostic(p, sha) {
@@ -410,8 +410,8 @@ function probeFixtures(errors) {
   fixture12(errors);
 }
 
-// 1 A shell that CAN run the steps changes nothing: all 21 run and a
-//   green run comes back passed.
+// 1 A shell that CAN run the steps changes nothing: every step it was
+//   given runs and a green run comes back passed.
 function fixture1(errors) {
   const d = fixtureDirs("f1");
   try {
@@ -494,7 +494,7 @@ function fixture4(errors) {
 
 // 5 The probe takes the STEP's own form. Under the WSL shape — `-c`
 //   works, `-e <windows file>` does not — a probe shaped `bash -c true`
-//   passes and the 21 reds come back (T09).
+//   passes and every step comes back red (T09).
 function fixture5(errors) {
   const d = fixtureDirs("f5");
   try {
@@ -803,7 +803,7 @@ const { workDir, logDir } = tempPair(short);
 
 // The shell is probed before the first step, in the step's own form, and
 // before anything is read out of the commit: a shell that cannot run the
-// steps reds all 21 at any commit, and a seat reading step names cannot
+// steps reds every one at any commit, and a seat reading step names cannot
 // see why (S24). It names itself instead, and no step line is printed.
 const stop = shellStop(SHELL, workDir, logDir, spawnSync, sha);
 if (stop) {

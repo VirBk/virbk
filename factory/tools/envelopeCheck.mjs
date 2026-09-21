@@ -2,7 +2,7 @@
 // The force a correction envelope must authorise, and the force no envelope may.
 //
 //   node factory/tools/envelopeCheck.mjs [--dir <kit root>]   the live check
-//   node factory/tools/envelopeCheck.mjs --self-test          ten clauses, six properties
+//   node factory/tools/envelopeCheck.mjs --self-test          thirteen clauses, nine properties
 //
 // Why the clause exists (S26). T81 makes a seat read its envelope out of its own
 // worktree and refuse when that copy differs from live main, so a correction is
@@ -26,11 +26,21 @@
 // This file reads text. It calls no git and needs no repository: the landing
 // gate runs it from an unpacked archive, where there is no .git at all. The
 // check path above MARKER runs no program.
+//
+// The check runs only when this file is the process entry point (isEntry at the
+// bottom), the guard packet.mjs in this directory carries. Without it, an import
+// of ANY export ran the live check against the kit root this file derives from
+// its own location and called process.exit, killing the importing script before
+// its own code ran; F49's reviewer worked around it with a stripped copy.
+//
+// A correction whose clause names ANOTHER lane's branch is not a correction with
+// no clause, and the summary names which one was found. One label for both sent
+// a reader after a clause that was on the page.
 
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { envelopes } from "./packet.mjs";
 
@@ -99,7 +109,11 @@ export function checkEnvelope(file, text) {
   const lane = laneOf(text);
   const correction = isCorrection(text);
   const pushes = forcePushes(text);
-  const record = { file, lane, correction, clause: false, branch: null };
+  // `clause` answers "does this envelope authorise its own lane's force"; `found`
+  // carries the branch a wrong clause named, so the summary can tell the two
+  // apart. A correction with a clause for someone else has clause false AND
+  // found set.
+  const record = { file, lane, correction, clause: false, branch: null, found: null };
 
   if (!lane) {
     errors.push(file + ": line 1 names no lane — an envelope starts with ENVELOPE: <LANE>");
@@ -133,6 +147,7 @@ export function checkEnvelope(file, text) {
         );
       }
     } else if (leases.length) {
+      record.found = leases[0].targets.join(", ");
       errors.push(
         file + ": the force authorisation names " + leases[0].targets.join(", ") +
         ", not this lane's " + own + " — a correction envelope is written by copying the last one",
@@ -176,10 +191,14 @@ export function checkDir(root) {
 export function render(res) {
   const out = ["envelopes in " + res.dir + " — " + res.envelopes + " envelope(s) examined"];
   for (const r of res.records) {
+    // Three answers, not two: a clause authorising this lane, a clause found
+    // that authorises another branch (the summary names it), and no clause.
     const verdict = r.clause
       ? "lane " + r.lane + ": force-with-lease on " + r.branch
       : r.correction
-        ? "correction with no clause found"
+        ? r.found
+          ? "correction with a clause for " + r.found + ", not this lane's writer/" + r.lane
+          : "correction with no clause found"
         : "no clause required";
     out.push("  envelope " + r.file + " — " + verdict);
   }
@@ -195,6 +214,11 @@ export function render(res) {
 // ---- self-test fixtures and mutations below this line; the check path ends here ----
 
 const MARKER = "fixtures and mutations below this line";
+// The guard fixtures run a child process, and the "check path runs no program"
+// clause scans exactly the region above MARKER, so this binding sits below it.
+// ESM hoists a top-level import whatever its position.
+import { spawnSync } from "node:child_process";
+
 const CORRECTION_HEAD = "ENVELOPE: F49 — CORRECTION 1 — a lesson gets a check";
 const ORDINARY_HEAD = "ENVELOPE: F52 — a lane that is not a correction";
 const SAFE = "main is never forced and no other branch is yours to rewrite.";
@@ -220,7 +244,8 @@ function clause(head, branch, opts = {}) {
 // then no mutation proves any one property (D-62). `errors` is the count, and a
 // fixture that expects no error still asserts the count and the verdict text, so
 // a file that was never examined cannot pass as a file that was examined and
-// found clean.
+// found clean. `refuse` holds text the fixture must NOT print — the half of a
+// two-answer property that says which of the two answers this one is.
 const FIXTURES = [
   {
     tag: "P1 own clause", prop: 1, expect: "pass", errors: 0,
@@ -231,6 +256,7 @@ const FIXTURES = [
     tag: "P2 no clause", prop: 2, expect: "fail", errors: 1,
     files: { "F49.md": CORRECTION_HEAD + NL + "Holds" + NL + "  factory/tools/envelopeCheck.mjs" + NL },
     wants: [/correction with no clause found/, /carries no force-with-lease authorisation for writer\/F49/],
+    refuse: [/correction with a clause for/],
   },
   {
     tag: "P2b no main sentence", prop: 2, expect: "fail", errors: 1,
@@ -268,6 +294,16 @@ const FIXTURES = [
   { tag: "P6a empty directory", prop: 6, kind: "empty" },
   { tag: "P6b absent directory", prop: 6, kind: "absent" },
   { tag: "P6c the check path runs no program", prop: 6, kind: "source" },
+  {
+    // A clause WAS found, and it names writer/F48. The summary must say so; the
+    // no-clause verdict is the one answer this page does not have.
+    tag: "P7 wrong-branch summary", prop: 7, expect: "fail", errors: 1,
+    files: { "F49.md": clause(CORRECTION_HEAD, "writer/F48") },
+    wants: [/correction with a clause for writer\/F48, not this lane's writer\/F49/],
+    refuse: [/correction with no clause found/],
+  },
+  { tag: "P8 import runs nothing", prop: 8, kind: "import" },
+  { tag: "P9 the live run as a command", prop: 9, kind: "cli" },
 ];
 
 function tempRoot() {
@@ -316,6 +352,71 @@ function runFixture(f) {
       ok: !hit,
     };
   }
+  if (f.kind === "import") {
+    // A real child process, because the red must be observable from outside: an
+    // in-process import would be a false pass under the guard-removed mutation,
+    // where the child exits 0 having done its work before the importer's own
+    // statement. The statement after the import running IS the assertion.
+    const root = tempRoot();
+    try {
+      const importer = join(root, "importer.mjs");
+      const url = pathToFileURL(fileURLToPath(import.meta.url)).href;
+      writeFileSync(
+        importer,
+        'import { laneOf } from "' + url + '";' + NL +
+        'console.log("IMPORT SURVIVED " + laneOf("ENVELOPE: F9 - a lane"));' + NL,
+      );
+      const r = spawnSync(process.execPath, [importer], {
+        cwd: root,
+        encoding: "utf8",
+        maxBuffer: 16 * 1024 * 1024,
+      });
+      const out = String(r.stdout || "") + String(r.stderr || "");
+      return {
+        text:
+          "importing envelopeCheck.mjs, then one statement of the importer's own, printed: " +
+          (out.trim().split(NL).join(" / ") || "(nothing, exit " + r.status + ")"),
+        ok: /IMPORT SURVIVED F9/.test(out),
+      };
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
+  if (f.kind === "cli") {
+    // The live run as a command, on roots this fixture builds: a clean one must
+    // exit 0 and print the ok line, a corrected envelope with no clause must
+    // exit 1 and print the failed line. --dir, never --self-test, which would
+    // re-enter this suite.
+    const good = tempRoot();
+    const bad = tempRoot();
+    try {
+      build(good, { "F60.md": ORDINARY_HEAD + NL + "Holds" + NL + "  factory/tools/envelopeCheck.mjs" + NL });
+      build(bad, { "F61.md": "ENVELOPE: F61 — CORRECTION 1 — no clause" + NL });
+      const run = (root) =>
+        spawnSync(process.execPath, [fileURLToPath(import.meta.url), "--dir", root], {
+          cwd: root,
+          encoding: "utf8",
+          maxBuffer: 16 * 1024 * 1024,
+        });
+      const a = run(good);
+      const b = run(bad);
+      const aText = String(a.stdout || "") + String(a.stderr || "");
+      const bText = String(b.stdout || "") + String(b.stderr || "");
+      const ok =
+        a.status === 0 && /envelope check ok/.test(aText) &&
+        b.status === 1 && /envelope check failed/.test(bText);
+      return {
+        text:
+          "the live run exited " + a.status + " on a clean root and " + b.status + " on a bad one, " +
+          "printing " + (aText.trim().split(NL).pop() || "(nothing)") + " / " +
+          (bText.trim().split(NL).pop() || "(nothing)"),
+        ok,
+      };
+    } finally {
+      rmSync(good, { recursive: true, force: true });
+      rmSync(bad, { recursive: true, force: true });
+    }
+  }
   const root = tempRoot();
   try {
     build(root, f.files);
@@ -323,10 +424,13 @@ function runFixture(f) {
     const text = render(res);
     const verdict = res.errors.length === 0 ? "pass" : "fail";
     const counted = f.errors == null || res.errors.length === f.errors;
-    const ok = verdict === f.expect && counted && (f.wants || []).every((w) => w.test(text));
+    const refused = (f.refuse || []).find((w) => w.test(text));
+    const ok = verdict === f.expect && counted && !refused && (f.wants || []).every((w) => w.test(text));
     const why = verdict !== f.expect
       ? "expected " + f.expect + ", got " + verdict
-      : counted ? "" : res.errors.length + " error(s), expected " + f.errors;
+      : !counted
+        ? res.errors.length + " error(s), expected " + f.errors
+        : refused ? "printed text it must not print: " + refused : "";
     return { text, ok, verdict, why };
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -352,15 +456,24 @@ function selfTest() {
   console.log("envelopeCheck self-test ok — " + FIXTURES.length + " clauses, " + props + " properties");
 }
 
-const argv = process.argv.slice(2);
-if (argv.includes("--self-test")) {
-  selfTest();
-  process.exit(0);
+// The CLI runs only when this file is the process entry point. An import must be
+// free of side effects: without this test, importing ANY export ran the live
+// check against the root named above and called process.exit, killing the
+// importing script before its own code ran. The test is on the entry file name,
+// which is the guard packet.mjs in this directory carries.
+const isEntry = /envelopeCheck\.mjs$/.test(process.argv[1] || "");
+
+if (isEntry) {
+  const argv = process.argv.slice(2);
+  if (argv.includes("--self-test")) {
+    selfTest();
+    process.exit(0);
+  }
+  const at = argv.indexOf("--dir");
+  const root = at >= 0 && argv[at + 1] ? resolve(argv[at + 1]) : kitRoot;
+  const result = checkDir(root);
+  const report = render(result);
+  if (result.errors.length) console.error(report);
+  else console.log(report);
+  process.exit(result.errors.length ? 1 : 0);
 }
-const at = argv.indexOf("--dir");
-const root = at >= 0 && argv[at + 1] ? resolve(argv[at + 1]) : kitRoot;
-const result = checkDir(root);
-const report = render(result);
-if (result.errors.length) console.error(report);
-else console.log(report);
-process.exit(result.errors.length ? 1 : 0);
