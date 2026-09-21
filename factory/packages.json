@@ -228,7 +228,7 @@
     {
       "id": "F45",
       "title": "A seat packet refuses a stale envelope the worktree still holds (S23)",
-      "status": "issued"
+      "status": "landed"
     }
   ]
 }
