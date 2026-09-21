@@ -213,7 +213,12 @@
     {
       "id": "F42",
       "title": "The TRAPS parser: last-wins proved, quoted scalars, an explicit refusal honoured (S19)",
-      "status": "queued"
+      "status": "issued"
+    },
+    {
+      "id": "F43",
+      "title": "A print-mode recipe names its approval mode, or the seat writes nothing",
+      "status": "issued"
     }
   ]
 }
