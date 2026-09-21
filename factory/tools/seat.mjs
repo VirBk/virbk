@@ -357,27 +357,21 @@ export function disjointReport(tree, a, b) {
   };
 }
 
-// A seat census comes from the process table. `lister` is injected so a
-// fixture can drive it, and it is the only source: census reads no file.
-// A lister prints one process per line, leading pid then the command line.
+// A seat census comes from the process table. The lister is injected on the
+// command line so a fixture can drive it, and it is the only source: census
+// reads no file. A lister prints one process per line, leading pid then the
+// command line.
 const SEAT_PID = /^\s*(\d+)\s+\S/;
 // A harness token is a bare word or a path segment (`\qwen-code\cli.js`,
 // `goose run`, `aider --model ...`). A path that merely contains a harness
 // directory name reads as that harness; the census is a listing of what the
-// platform reports, not a proof that the lane on it is running.
+// platform reports, not a proof that the lane on it is running. It is applied
+// to the program a row runs, never to the whole command line: a harness token
+// later in the line is a mention, not a seat (S17).
 const SEAT_HARNESS = /(?:^|[\s\\/"'])(qwen|aider|goose|opencode)(?![A-Za-z0-9])/i;
-
-export function census(lister) {
-  const raw = lister();
-  const rows = [];
-  for (const line of String(raw == null ? "" : raw).split(/\r?\n/)) {
-    if (!SEAT_PID.test(line)) continue;
-    const m = SEAT_HARNESS.exec(line);
-    if (!m) continue;
-    rows.push({ pid: Number(SEAT_PID.exec(line)[1]), harness: m[1].toLowerCase(), cmd: line.trim() });
-  }
-  return rows;
-}
+// The program a row runs is its first token, or the token after an
+// interpreter (`node C:/tools/goose/run.py`, `python3 .../aider`).
+const SEAT_INTERPRETERS = new Set(["node", "node.exe", "python", "python3", "py"]);
 
 function listerError(r) {
   return "census: the lister failed (" + (r.error ? String(r.error.message || r.error) : "exit " + r.status) + ")";
@@ -459,7 +453,16 @@ if (cmd === "worktree") {
 }
 
 if (cmd === "disjoint") {
-  const report = disjointReport(root, rest[1] || "", rest[2] || "");
+  // Two lanes, or the verdict would answer about the first pair and silently
+  // drop the rest — a green that covers one pair of three (S20).
+  const lanes = rest.slice(1);
+  if (lanes.length !== 2) {
+    console.error(
+      "disjoint: compares two lanes and was given " + lanes.length + (lanes.length ? ": " + lanes.join(", ") : " (none)"),
+    );
+    process.exit(1);
+  }
+  const report = disjointReport(root, lanes[0], lanes[1]);
   const out = report.status === 0 ? console.log : console.error;
   for (const line of report.lines) out(line);
   process.exit(report.status);
@@ -473,7 +476,22 @@ if (cmd === "census") {
     console.error(listerError(r));
     process.exit(1);
   }
-  const rows = census(() => r.stdout || "");
+  // A row is a seat only where the harness token is the program being run:
+  // the first token of the command line, or the first token after an
+  // interpreter. A harness token anywhere later — `pip show aider-chat`, a
+  // `-- qwen` tail — is a mention and is not counted (S17). The test lives
+  // here, in the command a person types, so a mutation of it mutates the
+  // object that ships (D-61).
+  const rows = [];
+  for (const line of String(r.stdout == null ? "" : r.stdout).split(/\r?\n/)) {
+    if (!SEAT_PID.test(line)) continue;
+    const argv = commandLister(line.replace(/^\s*\d+\s+/, ""));
+    const first = (argv.command || "").split(/[\\/]/).pop().toLowerCase();
+    const program = SEAT_INTERPRETERS.has(first) ? argv.args[0] || "" : argv.command || "";
+    const m = SEAT_HARNESS.exec(program);
+    if (!m) continue;
+    rows.push({ pid: Number(SEAT_PID.exec(line)[1]), harness: m[1].toLowerCase(), cmd: line.trim() });
+  }
   console.log("seat census — " + (listerIdx >= 0 ? "injected" : process.platform) + " process listing");
   for (const row of rows) console.log("  " + row.pid + "  " + row.harness + "  " + row.cmd);
   console.log("  " + rows.length + " running writer seat(s)");
@@ -595,29 +613,44 @@ if (cmd === "--self-test") {
     ok("a lane missing from the board read as a proven pair", absent.status !== 0, [absent.stdout]);
     const noBoard = runSeat(["disjoint", "F35", "F38"], bare);
     ok("a tree with no board read as a proven pair", noBoard.status !== 0, [noBoard.stdout]);
+    // Three lanes are not a pair. The verdicts above answer about two; a third
+    // used to be dropped in silence and the exit was still 0.
+    const three = runSeat(["disjoint", "F35", "F38", "F39"], fixture);
+    ok("a three-lane call was answered as a pair", three.status !== 0, [three.stdout, three.stderr]);
+    ok(
+      "the refused three-lane call did not name all three lanes",
+      ["F35", "F38", "F39"].every((id) => (three.stderr || "").includes(id)),
+      [three.stderr],
+    );
 
-    // Item 4 — the census comes from the process table. Take the lister as an
-    // argument, so what census returns is exactly what the lister reports.
-    const fakeRows = [
+    // Item 4 — the census comes from the process table through the injected
+    // lister, and a harness token is a seat only where it is the program the
+    // row runs. Driven through the CLI, because the row rule lives in the CLI
+    // block, which is the object that ships (D-61).
+    const listing = [
       "8324 \"C:\\node\\qwen-code\\cli.js\" -p -",
       "4521 goose run --recipe factory/recipes/x.json",
       "17 node C:/tools/goose/run.py --once",
-      "1234 powershell.exe -Command Get-CimInstance Win32_Process",
+      "9001 pip show aider-chat",
+      "9002 powershell -NoProfile -Command Get-CimInstance Win32_Process -- qwen",
     ].join(NL);
-    want("census rows", census(() => fakeRows), [
-      { pid: 8324, harness: "qwen", cmd: "8324 \"C:\\node\\qwen-code\\cli.js\" -p -" },
-      { pid: 4521, harness: "goose", cmd: "4521 goose run --recipe factory/recipes/x.json" },
-      { pid: 17, harness: "goose", cmd: "17 node C:/tools/goose/run.py --once" },
-    ]);
-    want("census of an empty listing", census(() => ""), []);
-    want("census of a missing listing", census(() => null), []);
     const listerFile = join(fixture, "lister.mjs");
-    writeFileSync(listerFile, "process.stdout.write(" + JSON.stringify(fakeRows) + ");" + NL);
+    writeFileSync(listerFile, "process.stdout.write(" + JSON.stringify(listing) + ");" + NL);
     const cen = runSeat(["census", "--lister", '"' + process.execPath + '" "' + listerFile + '"'], fixture);
     ok("census through the CLI exited " + cen.status, cen.status === 0, [cen.stderr]);
-    ok("census did not report the lister's first row", (cen.stdout || "").includes("8324"), [cen.stdout]);
-    ok("census did not report the lister's whole listing", (cen.stdout || "").includes("3 running writer seat(s)"), [cen.stdout]);
+    ok("a mention was counted as a seat", (cen.stdout || "").includes("3 running writer seat(s)"), [cen.stdout]);
+    ok("the seat whose program is the qwen path was not reported", (cen.stdout || "").includes("8324"), [cen.stdout]);
+    ok("the script after an interpreter was not reported", (cen.stdout || "").includes("C:/tools/goose/run.py"), [cen.stdout]);
+    ok(
+      "a harness named in an argument was reported as a seat",
+      !(cen.stdout || "").includes("9001") && !(cen.stdout || "").includes("9002"),
+      [cen.stdout],
+    );
     ok("census reported a row no lister emitted", !(cen.stdout || "").includes("4242"), [cen.stdout]);
+    const emptyLister = join(fixture, "empty-lister.mjs");
+    writeFileSync(emptyLister, "process.stdout.write('');" + NL);
+    const cenEmpty = runSeat(["census", "--lister", '"' + process.execPath + '" "' + emptyLister + '"'], fixture);
+    ok("an empty process listing reported a seat", (cenEmpty.stdout || "").includes("0 running writer seat(s)"), [cenEmpty.stdout]);
   } finally {
     rmSync(fixture, { recursive: true, force: true });
     rmSync(bare, { recursive: true, force: true });
