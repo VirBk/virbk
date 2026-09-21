@@ -90,6 +90,16 @@ function packetStdin(harness) {
   ].join(NL);
 }
 
+// A print-mode seat has no terminal to approve at, so the line that launches
+// it must either name the harness's own auto-approve option or say plainly
+// that the option was not verified here. Only qwen's option was read off its
+// own help output on this machine; the rest are named gaps, because a guessed
+// option fails silently, at the moment a seat needs it, which is exactly how
+// the qwen-code line failed before it named --approval-mode (T07). Spelled
+// once, so the recipes and the check that reads them cannot drift apart.
+const UNVERIFIED_APPROVAL =
+  "# A print-mode launch needs the harness's own auto-approve option. UNVERIFIED here: confirm it from that harness's own help output before launching.";
+
 const RECIPES = {
   "qwen-code": (m) => `# Writer seat — Qwen Code.
 # Control plane stays Grok (or Claude desktop). Do not remap the CP session.
@@ -111,7 +121,11 @@ export OPENAI_API_KEY="\${OPENAI_API_KEY:-local}"
 #   $env:OPENAI_API_KEY=[Environment]::GetEnvironmentVariable("DASHSCOPE_API_KEY","User")
 #   qwen --auth-type openai --model ${m}
 #
-${packetStdin("qwen --auth-type openai --model <id> -p -")}
+# --approval-mode yolo: the option and its choices (plan, default, auto-edit,
+# auto, yolo) are read off "qwen --help" on this machine. The documented
+# default requires approval for file edits or shell commands, and a print-mode
+# seat has no terminal to approve at.
+${packetStdin("qwen --auth-type openai --model <id> --approval-mode yolo -p -")}
 # Print-mode. Poll long jobs in the foreground.
 `,
   aider: `# Writer seat — Aider. Git-native. OpenAI-compat.
@@ -128,6 +142,7 @@ ${packetStdin("qwen --auth-type openai --model <id> -p -")}
 #   aider --model deepseek/deepseek-chat
 #
 ${packetStdin("aider --model ollama/qwen3-coder")}
+${UNVERIFIED_APPROVAL}
 # Print-mode. Worktree only.
 `,
   opencode: `# Writer seat — OpenCode. Multi-model local harness.
@@ -136,12 +151,14 @@ ${packetStdin("aider --model ollama/qwen3-coder")}
 #   opencode run --model <the project.json writerModel>
 #
 ${packetStdin("opencode run --model <the project.json writerModel>")}
+${UNVERIFIED_APPROVAL}
 # Worktree only. Print-mode.
 `,
   goose: `# Writer seat — Goose recipes. Local.
 # Control plane stays Grok. Writer is the recipe, not the CP chat.
 
 #   goose run --recipe <file> --path .
+${UNVERIFIED_APPROVAL}
 # Worktree only. Print-mode. Poll in the foreground.
 `,
   "deepseek-openai": `# Writer seat — DeepSeek through any OpenAI-compat client.
@@ -180,6 +197,7 @@ export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-flash"
 # 6. Grok reviews in a fresh session, lands, restamps
 #
 ${packetStdin("<writer harness>")}
+${UNVERIFIED_APPROVAL}
 # Prefix: the packet is the byte-stable prefix. Paste cache hits.
 `,
   "cloud-grok": `# Cloud path when the autobuild PC is off.
@@ -196,6 +214,7 @@ ${packetStdin("<writer harness>")}
 # Do not add a GitHub Action until the secret exists.
 #
 ${packetStdin("aider --model deepseek/deepseek-chat")}
+${UNVERIFIED_APPROVAL}
 # Prefix: the packet. Set x-grok-conv-id only on Grok API. Paste cache hits.
 `,
   "cloud-git-bus": `# Cloud CP, local autobuild host still on.
@@ -207,6 +226,7 @@ ${packetStdin("aider --model deepseek/deepseek-chat")}
 #   node factory/tools/hands.mjs recipe
 #
 ${packetStdin("<writer harness>")}
+${UNVERIFIED_APPROVAL}
 # Writer pushes the branch only. Grok reviews and lands.
 `,
   "git-bus": `# See cloud-git-bus. isolate git-bus is the pick; this recipe is the PC side.
@@ -231,6 +251,7 @@ ${packetStdin("<writer harness>")}
 # 7. Writer pushes the branch only. Grok reviews and lands.
 #
 ${packetStdin("aider --model deepseek/deepseek-chat")}
+${UNVERIFIED_APPROVAL}
 # Prefix is the packet. Paste cache hits.
 `,
   "pc-dashscope": (m) => `# No Claude Code. Grok judges. This PC runs hands. Token is DashScope.
@@ -247,7 +268,7 @@ ${packetStdin("aider --model deepseek/deepseek-chat")}
 #    $env:OPENAI_API_KEY=[Environment]::GetEnvironmentVariable("DASHSCOPE_API_KEY","User")
 #    qwen --auth-type openai --model ${m}
 #
-${packetStdin("qwen --auth-type openai --model " + m)}
+${packetStdin("qwen --auth-type openai --model " + m + " --approval-mode yolo")}
 # 5. Writer pushes the branch only. Grok reviews and lands.
 `,
   "cloud-dashscope": (m) => `# No Claude Code. Autobuild PC is off. Token is DashScope.
@@ -258,7 +279,7 @@ ${packetStdin("qwen --auth-type openai --model " + m)}
 #    OPENAI_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
 #    qwen --auth-type openai --model ${m}
 #
-${packetStdin("qwen --auth-type openai --model " + m)}
+${packetStdin("qwen --auth-type openai --model " + m + " --approval-mode yolo")}
 # 4. Writer pushes the branch only. Grok reviews and lands.
 # Do not add a GitHub Action until the secret exists.
 `,
@@ -545,9 +566,29 @@ if (cmd === "--self-test") {
   }
   ok("a recipe hands the packet over as an argv substitution", argvForms.length === 0, argvForms);
   ok("a recipe names packet.mjs and prints no stdin carrier", carrierless.length === 0, carrierless);
-  want("qwen-code carrier", carrierLine("qwen-code"), "#   qwen --auth-type openai --model <id> -p - < packet.txt");
+  want("qwen-code carrier", carrierLine("qwen-code"), "#   qwen --auth-type openai --model <id> --approval-mode yolo -p - < packet.txt");
   want("aider carrier", carrierLine("aider"), "#   aider --model ollama/qwen3-coder < packet.txt");
   ok("the live hosted id reaches no rendered recipe", Object.values(rendered).some((t) => t.includes(hosted)));
+
+  // Item 5 — a print-mode carrier names a VERIFIED approval mode, or the
+  // recipe says that harness's option was not verified here. A print-mode
+  // seat has no terminal to approve at, so a carrier that names neither is a
+  // seat that reads its packet, does the analysis, and writes nothing —
+  // which is what two seats launched from this file's qwen-code line did
+  // before that line named --approval-mode. Every recipe the list prints is
+  // read; a recipe with no stdin carrier is not a print-mode launch line and
+  // has no mode to state. Read from the RENDERED recipe, and from the same
+  // carrier line the recipe prints (T07, D-59).
+  const APPROVAL_MODE = /--approval-mode(\s+|=)\S/;
+  const carriers = Object.keys(rendered).filter((id) => carrierLine(id));
+  ok("no rendered recipe prints a stdin carrier, so the approval rule proves nothing", carriers.length >= 1);
+  const noMode = [];
+  for (const id of carriers) {
+    if (APPROVAL_MODE.test(carrierLine(id))) continue;
+    if (rendered[id].includes(UNVERIFIED_APPROVAL)) continue;
+    noMode.push(id);
+  }
+  ok("a print-mode carrier names no approval mode", noMode.length === 0, noMode);
 
   // Item 2 — a writer key is read from the store that owns it, in the same
   // act as the launch. A base URL is not a key; only *_API_KEY is held to it.
