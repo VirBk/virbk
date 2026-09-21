@@ -122,6 +122,19 @@ function collapse(text) {
   return String(text || "").replace(/\s+/g, " ").trim();
 }
 
+// A YAML scalar may be quoted, and YAML strips the pair before the value
+// reaches anyone. A reader that keeps the quotes carries them into the id, the
+// kind, the title, the rule and the check: the minted id names a row that does
+// not exist, a quoted `machine` reads as portable, and the owner is handed the
+// quotes as the value. One matching pair only, and only at the two ends: an
+// apostrophe inside a rule is not a quote character and has to survive.
+function unquote(text) {
+  const s = String(text == null ? "" : text);
+  if (s.length < 2) return s;
+  const q = s[0];
+  return (q === '"' || q === "'") && s[s.length - 1] === q ? s.slice(1, -1) : s;
+}
+
 export function parseTrapsYaml(text) {
   const rows = [];
   const noid = [];
@@ -151,7 +164,7 @@ export function parseTrapsYaml(text) {
   });
   const out = [];
   for (const r of rows) {
-    const id = String(r.keys.id || "").trim();
+    const id = unquote(String(r.keys.id || "").trim());
     if (!id) {
       noid.push(r.line);
       continue;
@@ -159,10 +172,10 @@ export function parseTrapsYaml(text) {
     out.push({
       line: r.line,
       id,
-      title: collapse(r.keys.title),
-      body: collapse(r.keys.rule || r.keys.charged || r.keys.cost),
-      check: collapse(r.keys.check),
-      kind: collapse(r.keys.kind),
+      title: unquote(collapse(r.keys.title)),
+      body: unquote(collapse(r.keys.rule || r.keys.charged || r.keys.cost)),
+      check: unquote(collapse(r.keys.check)),
+      kind: unquote(collapse(r.keys.kind)),
     });
   }
   return { rows: out, noid };
@@ -217,6 +230,19 @@ function mintId(child, rowId) {
   return "C-" + clean(child).toUpperCase() + "-" + clean(rowId);
 }
 
+// How a row travels, from the child's own word. `machine` is the row bound to
+// one harness, and `reject` is the child saying, in the contract's own
+// vocabulary, that this row is not to be absorbed at all. Reading reject
+// through the portable default inverted the instruction and emitted a
+// candidate the child had refused; the value is already in the contract's
+// enum, so honouring it adds no field.
+function portableOf(kind) {
+  const k = collapse(kind).toLowerCase();
+  if (k === "machine") return "machine";
+  if (k === "reject") return "reject";
+  return "portable";
+}
+
 function trapsCandidate(row, child, rel, at) {
   const split = splitCheck(row.body);
   const check = row.check || split.check;
@@ -236,7 +262,7 @@ function trapsCandidate(row, child, rel, at) {
     charged: "Charged in " + child + " at " + rel + " row " + row.id + ": " + rule,
     rule,
     check,
-    portable: row.kind === "machine" ? "machine" : "portable",
+    portable: portableOf(row.kind),
   };
 }
 
@@ -258,7 +284,12 @@ export function trapsReport(root, child, at) {
     for (const row of parsed.rows) {
       const candidate = trapsCandidate(row, child, rel, day);
       let why = "";
-      if (!candidate.check) why = "names no check";
+      // A refusal is read before the floors: a reject row that carries a
+      // twelve-character check is still a row the child refused. It is held
+      // and named by id like any other unemittable row, never given an
+      // outcome of its own.
+      if (candidate.portable === "reject") why = "kind reject";
+      else if (!candidate.check) why = "names no check";
       else if (candidate.check.length < f.check) why = "check under " + f.check;
       else if (candidate.rule.length < f.rule) why = "rule under " + f.rule;
       else if (seen.has(candidate.id)) why = "row id repeated in this file";
@@ -678,6 +709,14 @@ function selfTest() {
       // reader holds it as checkless.
       "- T8 Confirm the box. check is ticked before merge, always. Check is node factory/tools/kitCheck.mjs --self-test.",
       "- T9 Do it. check is fine. Check is node factory/tools/kitCheck.mjs --self-test.",
+      // T10 carries two capital-C directives on two lines: the prose one
+      // first, the row's real one last. Only the last-wins take emits the
+      // real one. T8's red is the case-sensitivity alone and T10's is
+      // last-wins alone: neither row can red for the other's reason.
+      "- T10 The row's prose names an earlier directive.",
+      "  Check: node factory/tools/proseCheck.mjs --self-test.",
+      "  The rule still clears its floor, and the row ends with the directive that counts.",
+      "  Check is node factory/tools/kitCheck.mjs --self-test.",
       "",
       "Prose in a TRAPS file is not a row: it is not a bullet, and it carries no id.",
     ].join(NL) + NL;
@@ -691,6 +730,21 @@ function selfTest() {
       "- id: T4" + NL +
       "  title: A row that names nothing to run" + NL +
       "  rule: This rule is long enough to clear the floor, and stops there." + NL +
+      // T6 quotes its id, its kind and its check, which YAML permits anywhere.
+      // Its rule quotes itself as well and keeps an apostrophe inside: the
+      // quotes go, the apostrophe stays.
+      "- id: \"T6\"" + NL +
+      "  kind: 'machine'" + NL +
+      "  title: \"The quotes are not the value\"" + NL +
+      "  rule: \"A rule that keeps its child's apostrophe and clears the floor.\"" + NL +
+      "  check: \"node factory/tools/kitCheck.mjs --self-test\"" + NL +
+      // T11's kind is the child's own word for do-not-absorb, and its rule and
+      // its check both clear their floors: nothing but the kind holds it.
+      "- id: T11" + NL +
+      "  kind: reject" + NL +
+      "  title: A row the child refuses to have absorbed" + NL +
+      "  rule: This rule clears its floor and its check clears the check floor." + NL +
+      "  check: node factory/tools/kitCheck.mjs --self-test." + NL +
       "-" + NL +
       "  title: A list item with no id is not a row" + NL;
     const ymlRows =
@@ -712,11 +766,11 @@ function selfTest() {
     });
     try {
       const want = {
-        rows: 8,
-        named: 5,
+        rows: 11,
+        named: 7,
         noid: 1,
-        emit: 5,
-        held: ["T2", "T7", "T4"],
+        emit: 7,
+        held: ["T2", "T7", "T4", "T11"],
         whyNoCheck: ["T2", "T4"],
       };
       const before = snapshot(rowsTree);
@@ -740,6 +794,75 @@ function selfTest() {
         errors.push(
           "a false early hit held a row that carries a check: T9 " +
             (t9 ? JSON.stringify(t9.check) : "held, not emitted"),
+        );
+      }
+
+      // T10's red is last-wins alone: two capital-C directives, the prose one
+      // first and the row's real one last, so a first-match take emits the
+      // prose tail as the check of a row that carries a good one.
+      const t10 = emitted.get("C-OTTO-T10");
+      if (!t10 || t10.check !== "node factory/tools/kitCheck.mjs --self-test") {
+        errors.push(
+          "an earlier directive won over the row's real one: T10 check is " +
+            JSON.stringify(t10 ? t10.check : "held, not emitted"),
+        );
+      }
+
+      // T6's red is the unquoting alone, and it is asserted on the parsed
+      // values first so the failure names the value that carried its quotes
+      // into the tree, then on the emitted candidate so the values are proved
+      // to reach the parent. A quoted row does not change a count: it is
+      // emitted under a minted id that names no row.
+      const y6 = parseTrapsYaml(yamlRows).rows.find((r) => String(r.body).includes("apostrophe"));
+      if (!y6) errors.push("the quoted fixture row did not parse as a row");
+      else {
+        if (y6.id !== "T6") {
+          errors.push("a quoted id carried its quotes into the value: T6 id is " + JSON.stringify(y6.id));
+        }
+        if (y6.kind !== "machine") {
+          errors.push("a quoted kind carried its quotes into the value: T6 kind is " + JSON.stringify(y6.kind));
+        }
+        if (y6.title !== "The quotes are not the value") {
+          errors.push("a quoted title carried its quotes into the value: T6 title is " + JSON.stringify(y6.title));
+        }
+        if (y6.check !== "node factory/tools/kitCheck.mjs --self-test") {
+          errors.push("a quoted check carried its quotes into the value: T6 check is " + JSON.stringify(y6.check));
+        }
+        if (y6.body !== "A rule that keeps its child's apostrophe and clears the floor.") {
+          errors.push("the unquoting mangled the rule: T6 rule is " + JSON.stringify(y6.body));
+        }
+      }
+      const t6 = emitted.get("C-OTTO-T6");
+      if (!t6) {
+        errors.push("a quoted id carried its quotes into the value: no candidate C-OTTO-T6");
+      } else {
+        if (t6.portable !== "machine") {
+          errors.push("a quoted kind carried its quotes into the value: T6 portable is " + JSON.stringify(t6.portable));
+        }
+        if (t6.check !== "node factory/tools/kitCheck.mjs --self-test") {
+          errors.push("a quoted check carried its quotes into the value: T6 check is " + JSON.stringify(t6.check));
+        }
+        if (!t6.title.endsWith("The quotes are not the value")) {
+          errors.push("a quoted title carried its quotes into the value: T6 title is " + JSON.stringify(t6.title));
+        }
+        if (t6.rule !== "A rule that keeps its child's apostrophe and clears the floor.") {
+          errors.push("the unquoting mangled the rule: T6 rule is " + JSON.stringify(t6.rule));
+        }
+      }
+
+      // T11's red is the refusal alone: its kind is the child's word for
+      // do-not-absorb, so it must be held with that reason and never emitted,
+      // named by id the way a row that names no check already is.
+      const heldById = new Map();
+      for (const file of traps.files) for (const h of file.held) heldById.set(h.id, h.why);
+      if (emitted.has("C-OTTO-T11")) {
+        errors.push("a row that refused absorption was emitted: C-OTTO-T11");
+      }
+      if (heldById.get("T11") !== "kind reject") {
+        errors.push(
+          "a row whose kind is reject is held with reason " +
+            JSON.stringify(heldById.get("T11")) +
+            ", not kind reject",
         );
       }
 
