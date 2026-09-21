@@ -238,12 +238,12 @@
     {
       "id": "F47",
       "title": "The gate names a shell that cannot run it, instead of 21 false reds (S24)",
-      "status": "queued"
+      "status": "issued"
     },
     {
       "id": "F48",
-      "title": "A citation check tells a rev spec from a tree path (S25)",
-      "status": "queued"
+      "title": "A citation check tells a rev spec, a URL and a tree path apart (S25)",
+      "status": "issued"
     },
     {
       "id": "F49",
