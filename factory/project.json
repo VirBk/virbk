@@ -11,5 +11,5 @@
   "promptCache": "provider-prefix",
   "helpMode": "none",
   "writerMeter": "deepseek-native",
-  "writerPath": "auto"
+  "writerPath": "native"
 }
