@@ -248,12 +248,12 @@
     {
       "id": "F49",
       "title": "A correction envelope authorises the force its own rebase forces (S26)",
-      "status": "queued"
+      "status": "issued"
     },
     {
       "id": "F50",
       "title": "The entry-point fixture runs where the gate runs, not only from a checkout",
-      "status": "issued"
+      "status": "landed"
     }
   ]
 }
