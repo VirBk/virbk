@@ -229,6 +229,26 @@
       "id": "F45",
       "title": "A seat packet refuses a stale envelope the worktree still holds (S23)",
       "status": "landed"
+    },
+    {
+      "id": "F46",
+      "title": "The packet band names the context that reaches a writer (S21)",
+      "status": "queued"
+    },
+    {
+      "id": "F47",
+      "title": "The gate names a shell that cannot run it, instead of 21 false reds (S24)",
+      "status": "queued"
+    },
+    {
+      "id": "F48",
+      "title": "A citation check tells a rev spec from a tree path (S25)",
+      "status": "queued"
+    },
+    {
+      "id": "F49",
+      "title": "A correction envelope authorises the force its own rebase forces (S26)",
+      "status": "queued"
     }
   ]
 }
