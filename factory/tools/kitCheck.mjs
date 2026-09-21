@@ -401,12 +401,16 @@ function selfTest() {
   // Rule H holds three kinds of token apart (S25). One fixture per
   // property, and a fixture proves a property only if the fixture COULD
   // fail it: each tree below is the one that makes its own property red.
+  // H1, H3, H4 and H5 all expect the empty list, and an empty list is also
+  // what a token the extractor never saw returns, so every token those
+  // fixtures hold is pinned here by kind, token and path.
   const held = pathCitations(
-    "`HEAD:factory/tools/packet.mjs` `https://example.invalid/x.md` `docs/log/f45.md`",
+    "`HEAD:factory/tools/packet.mjs` `factory/tools/packet.mjs` `https://example.invalid/not-in-tree.md` `writer/F45:docs/log/f45.md`",
   );
   const wantHeld = [
     { kind: "revspec", token: "HEAD:factory/tools/packet.mjs", path: "factory/tools/packet.mjs" },
-    { kind: "path", token: "docs/log/f45.md", path: "docs/log/f45.md" },
+    { kind: "path", token: "factory/tools/packet.mjs", path: "factory/tools/packet.mjs" },
+    { kind: "revspec", token: "writer/F45:docs/log/f45.md", path: "docs/log/f45.md" },
   ];
   if (JSON.stringify(held) !== JSON.stringify(wantHeld)) {
     errors.push("the extractor held the wrong kinds: " + JSON.stringify(held));
