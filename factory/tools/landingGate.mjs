@@ -31,7 +31,7 @@
 
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -42,7 +42,14 @@ const NL = String.fromCharCode(10);
 
 // Steps are spawned as `<SHELL> -e <script>` with cwd = the unpacked
 // archive. One form only, and the probe takes that same form.
-const SHELL = "bash";
+//
+// GATE_SHELL names that shell. It exists so a fixture can spawn the
+// shipped CLI as a process — the entry point is not reachable from the
+// exports — without editing this file. Unset, which is every ordinary
+// launch and the public Action, the shell is `bash`: exactly the path
+// before the variable existed.
+const DEFAULT_SHELL = "bash";
+const SHELL = process.env.GATE_SHELL || DEFAULT_SHELL;
 
 // GATE FAILED — the commit is bad.
 export const EXIT_FAILED = 1;
@@ -110,6 +117,14 @@ function git(args, opts = {}) {
   const r = spawnSync("git", args, { cwd: repoRoot, encoding: "utf8", ...opts });
   if (r.status !== 0) throw new Error("git " + args.join(" ") + " failed");
   return (r.stdout || "").trim();
+}
+
+// Is this file's own checkout a repository? The CLI resolves its commit
+// from repoRoot, so a fixture that spawns the CLI proves nothing — and
+// must not run — where the gate is unpacked from an archive without a
+// .git. The self-test runs both ways.
+function inRepo() {
+  return spawnSync("git", ["-C", repoRoot, "rev-parse", "--git-dir"], { encoding: "utf8" }).status === 0;
 }
 
 function octal(buf) {
@@ -323,6 +338,9 @@ function probeFixtures(errors) {
   fixture4(errors);
   fixture5(errors);
   fixture6(errors);
+  fixture7(errors);
+  fixture8(errors);
+  fixture9(errors);
 }
 
 // 1 A shell that CAN run the steps changes nothing: all 21 run and a
@@ -448,6 +466,106 @@ function fixture6(errors) {
   if (v.code !== 1) errors.push("[6 status] a failed step comes back " + v.code + ", not 1");
 }
 
+// 7 THE SHIPPED FILE, spawned as the process a person runs. Fixtures 1-6
+//   reach the library through its exports; nothing above the export line
+//   is exercised, so the wiring a launch takes can be removed — `const
+//   stop = null; void shellStop;` — with all six green and the gate
+//   printing GATE PASSED, which is S24 still open (D-61: the red belongs
+//   at the production entry point). GATE_SHELL is read by the CLI so this
+//   fixture can drive it without editing the file. It needs a commit to
+//   resolve, so where the gate is unpacked from an archive without a .git
+//   it is skipped, and the CLI can still be driven by hand there.
+function fixture7(errors) {
+  if (!inRepo()) return;
+  const shell = "grok-no-such-shell-f47";
+  const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url)], {
+    cwd: repoRoot,
+    env: { ...process.env, GATE_SHELL: shell },
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  const out = String(r.stdout || "");
+  const err = String(r.stderr || "");
+  if (r.status !== EXIT_UNRUNNABLE) {
+    errors.push(
+      "[7 entry point] the CLI with GATE_SHELL=" + shell + " came back exit " + r.status + ", not " + EXIT_UNRUNNABLE,
+    );
+  }
+  if (!err.includes("this shell cannot run the steps")) {
+    errors.push("[7 entry point] the CLI printed no unrunnable-shell diagnostic");
+  }
+  if (!err.includes(shell)) {
+    errors.push("[7 entry point] the diagnostic did not name the shell GATE_SHELL asked for");
+  }
+  if (NO_STEP_LINE.test(out) || NO_STEP_LINE.test(err)) {
+    errors.push("[7 entry point] a step line was printed before the probe stopped the CLI");
+  }
+  // BEFORE it archives: the diagnostic names the cwd it probed in, and
+  // that directory holds nothing — the commit was never unpacked into it.
+  const m = /^[ \t]*cwd[ \t]+(.+?)[ \t\r]*$/m.exec(err);
+  if (!m) {
+    errors.push("[7 entry point] the diagnostic did not name the cwd it probed in");
+    return;
+  }
+  const cwd = m[1];
+  try {
+    const unpacked = readdirSync(cwd).length;
+    if (unpacked) {
+      errors.push("[7 entry point] " + unpacked + " entries were unpacked before the probe stopped the CLI");
+    }
+  } catch {
+    // the child's temp dir is already gone
+  }
+  try {
+    rmSync(cwd, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 });
+    rmSync(cwd + "-logs", { recursive: true, force: true, maxRetries: 30, retryDelay: 100 });
+  } catch {
+    // a temp dir left behind is not a gate failure
+  }
+}
+
+// 8 A shell that cannot be SPAWNED keeps its cause. probeShell records
+//   the spawn's own error and the diagnostic prints it as `spawn …`
+//   rather than degrading to a bare `exit 1` — the invisibility S24 is
+//   about. Fixture 2 asserts the verdict but not the cause, so before
+//   this fixture `const spawned = true` in probeShell red nothing.
+function fixture8(errors) {
+  const d = fixtureDirs("f8");
+  try {
+    const shell = "grok-no-such-shell-f47-spawn";
+    const p = probeShell(shell, d.workDir, d.logDir, spawnSync);
+    if (p.spawned) {
+      errors.push("[8 spawn cause] a shell that cannot be spawned read as spawned");
+      return;
+    }
+    if (!p.error) {
+      errors.push("[8 spawn cause] the probe recorded no cause for a spawn that failed");
+      return;
+    }
+    const text = shellDiagnostic(p, "d".repeat(40));
+    if (!/(^|\n)[ \t]*spawn[ \t]+/.test(text)) {
+      errors.push("[8 spawn cause] the diagnostic says the shell failed but not that it could not be spawned");
+    }
+    if (!text.includes(p.error)) {
+      errors.push("[8 spawn cause] the diagnostic does not carry the spawn's own error");
+    }
+  } finally {
+    d.done();
+  }
+}
+
+// 9 With GATE_SHELL unset — every ordinary launch, and the Action on
+//   Ubuntu, which sets nothing — the gate spawns `bash`. The variable is
+//   a new way for the default to drift, and this is what would catch it.
+//   It asserts the resolved value: with a shell that works there is no
+//   diagnostic in which to read the name back.
+function fixture9(errors) {
+  if (process.env.GATE_SHELL) return;
+  if (SHELL !== "bash") {
+    errors.push("[9 default] with GATE_SHELL unset the gate spawns `" + SHELL + "`, not `bash`");
+  }
+}
+
 function selfTestReport(errors, note) {
   if (errors.length) {
     console.error("landingGate self-test failed");
@@ -474,8 +592,7 @@ function selfTest() {
   if (got.join(",") !== "fails") {
     errors.push("suspension changed which steps fail the landing: " + got.join(","));
   }
-  const inRepo = spawnSync("git", ["-C", repoRoot, "rev-parse", "--git-dir"], { encoding: "utf8" }).status === 0;
-  if (!inRepo) selfTestReport(errors, "unpack only; no repository here");
+  if (!inRepo()) selfTestReport(errors, "unpack only; no repository here");
   const sha = git(["rev-parse", "HEAD"]);
   const { workDir } = tempPair("selftest");
   try {
