@@ -18,8 +18,9 @@
       "claim": "A correction launch rebases the worktree (T81), which diverges the lane branch from its pushed tip, and 'push the branch only' does not authorise the force-with-lease that then needs.",
       "object": "factory/templates/ENVELOPE.md",
       "whyNotLaw": "Hit on F44's correction: the seat finished the work, was rejected non-fast-forward, correctly refused to rewrite a shared ref on its own authority and handed the call up. It was right to, and the cost was a stalled return the control plane finished by hand. T81's own remedy creates this, so the two belong together: a correction envelope should name the force-with-lease on its OWN lane branch as authorised, and say that main is never forced.",
-      "status": "open",
-      "openedOn": 11
+      "status": "absorbed",
+      "openedOn": 11,
+      "absorbedAs": "T81"
     },
     {
       "id": "S28",

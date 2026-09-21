@@ -248,12 +248,17 @@
     {
       "id": "F49",
       "title": "A correction envelope authorises the force its own rebase forces (S26)",
-      "status": "issued"
+      "status": "landed"
     },
     {
       "id": "F50",
       "title": "The entry-point fixture runs where the gate runs, not only from a checkout",
       "status": "landed"
+    },
+    {
+      "id": "F51",
+      "title": "A verdict names the clause it found, and an imported tool does not run",
+      "status": "issued"
     }
   ]
 }
