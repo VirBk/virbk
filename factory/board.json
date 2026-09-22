@@ -344,6 +344,12 @@
       "state": "landed",
       "hold": "factory/tools/envelopeCheck.mjs, factory/tools/landingGate.mjs",
       "title": "A verdict names the clause it found, and an imported tool does not run"
+    },
+    {
+      "id": "F52",
+      "state": "queued",
+      "hold": "factory/tools/route.mjs, factory/tools/seat.mjs",
+      "title": "No tool offers a model the catalog dropped (D-68)"
     }
   ],
   "keystones": [

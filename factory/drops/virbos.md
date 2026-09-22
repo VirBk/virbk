@@ -189,3 +189,62 @@ walkthrough as acceptance, one private remote, the existing
 
 Overlay of `factory/` stays shelf: quiet week, no running seats,
 owner word, kit pin. Never a GitHub fork.
+
+---
+
+# SECOND DROP — 2026-09-22 — one check, still useful only
+
+Does not supersede the 2026-09-17 file above; that one is the size step
+and stands either way. A different check, takeable on its own, and still
+one Virbos's own gate knows how to run.
+
+## WHEN
+
+Adopt whenever no writer holds the file that EXECUTES the steps in
+`tools/check.yml` dirty. It does not wait on a lane: it changes what the
+gate reports, never what it tests.
+
+## Feed (this is the drop)
+
+### A gate that cannot run its shell says so, instead of failing every step
+
+What this cost the parent: two paid seats, on two lanes, spending calls
+to prove a red was not their own change.
+
+A gate that spawns a shell with a script file and a working directory
+reports two things through one channel. A failing step means the commit
+is bad. A shell that cannot read the script path or take that directory
+means EVERY step fails at EVERY commit — including one that is green
+minutes later from another terminal. Step names print and stderr goes to
+a log, so a headless seat sees every step red, no reason, and starts
+debugging its own diff.
+
+The check. Before the first step, probe the shell **in a step's own
+form**: write a trivial script into the same directory the step scripts
+use, and spawn it exactly as a step is spawned, same working directory.
+If it does not exit 0, print ONE diagnostic naming the shell, the probe
+path, the directory and the shell's own stderr; run no step; print no
+step line; exit with a status that is NOT a failed gate's. Then a seat
+can tell "this shell cannot run the gate" from "your commit is bad".
+
+The form is the whole of it. A probe written as `bash -c true` SUCCEEDS
+on a launcher that only fails on file paths, and closes nothing. A probe
+that does not take the step's form is a check that cannot fail.
+
+Prove it before believing it: a working shell still runs every step and
+the verdict is unchanged, and forcing the probe to report failure turns
+that case red; a shell that does not exist gives one diagnostic; a shell
+that runs but cannot read the script gives the same one — that third
+case is what a check written against the spawn error alone will miss,
+and it is the case that happens. Then re-point the probe at
+`bash -c true` under that case and watch every step go red again. Keep
+that counterfactual.
+
+Do not copy `factory/`. Do not replace the gate runner. This is a dozen
+lines at the top of the run loop and one new exit status.
+
+## What the parent is NOT sending
+
+The lesson that cost it most is not a check and so is not here: an
+assertion that stops short of the object that ships. If Virbos wants it,
+it returns as an intake with a check attached, not as prose.

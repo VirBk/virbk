@@ -76,6 +76,7 @@ No envelope opens a gate.
 | F49 | landed | factory/templates/ENVELOPE.md, factory/tools/envelopeCheck.mjs, factory/landing-checks.json | A correction envelope authorises the force its own rebase forces (S26) |
 | F50 | landed | factory/tools/landingGate.mjs | The entry-point fixture runs where the gate runs, not only from a checkout |
 | F51 | landed | factory/tools/envelopeCheck.mjs, factory/tools/landingGate.mjs | A verdict names the clause it found, and an imported tool does not run |
+| F52 | queued | factory/tools/route.mjs, factory/tools/seat.mjs | No tool offers a model the catalog dropped (D-68) |
 
 ## Holds
 

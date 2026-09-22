@@ -5,7 +5,7 @@
     "controlPlane": "grok-cloud",
     "hands": "hands.mjs",
     "writerHarness": "qwen-code",
-    "writerModel": "qwen3-coder",
+    "writerModel": "deepseek-flash",
     "isolate": "worktree",
     "land": "ff-only",
     "envelopeStore": "git-blob",
@@ -13,8 +13,8 @@
     "commitCredit": "owner-account",
     "promptCache": "local-kv",
     "helpMode": "none",
-    "writerMeter": "dashscope-payg",
-    "writerPath": "auto"
+    "writerMeter": "deepseek-native",
+    "writerPath": "native"
   },
   "catalog": {
     "controlPlane": [
@@ -85,11 +85,6 @@
     ],
     "writerModel": [
       {
-        "id": "qwen3-coder",
-        "recommended": true,
-        "note": "Local Ollama tag. Not a DashScope API id. Hosted PAYG uses qwen3-coder-plus."
-      },
-      {
         "id": "deepseek-flash",
         "recommended": true,
         "note": "Native sweep (api.deepseek.com). Hosted DashScope id is deepseek-v4.1-flash."
@@ -108,31 +103,6 @@
         "id": "deepseek-v4-pro-0813",
         "recommended": true,
         "note": "DashScope Singapore keystone snapshot. Peak/off-peak. Do not send unversioned deepseek-v4-pro."
-      },
-      {
-        "id": "qwen3.8-max",
-        "recommended": true,
-        "note": "Qwen flagship. Keystone only when named."
-      },
-      {
-        "id": "qwen3.7-plus",
-        "recommended": true,
-        "note": "Strong general sweep on DashScope PAYG."
-      },
-      {
-        "id": "qwen3-coder-plus",
-        "recommended": true,
-        "note": "Coding flagship on DashScope PAYG."
-      },
-      {
-        "id": "qwen3-coder-next",
-        "recommended": true,
-        "note": "Coding mid. Acceptable envelope writer."
-      },
-      {
-        "id": "qwen3.7-flash",
-        "recommended": true,
-        "note": "Floor that is still acceptable. Cheap PAYG sweep."
       }
     ],
     "isolate": [
@@ -302,7 +272,7 @@
         "controlPlane": "grok-cloud",
         "hands": "hands.mjs",
         "writerHarness": "qwen-code",
-        "writerModel": "qwen3-coder",
+        "writerModel": "deepseek-flash",
         "isolate": "worktree",
         "land": "ff-only",
         "envelopeStore": "git-blob",
@@ -350,7 +320,7 @@
         "controlPlane": "claude-desktop",
         "hands": "claude-code",
         "writerHarness": "qwen-code",
-        "writerModel": "qwen3-coder",
+        "writerModel": "deepseek-flash",
         "isolate": "worktree",
         "land": "ff-only",
         "envelopeStore": "git-blob",
@@ -366,7 +336,7 @@
         "controlPlane": "grok-cloud",
         "hands": "hands.mjs",
         "writerHarness": "qwen-code",
-        "writerModel": "qwen3-coder",
+        "writerModel": "deepseek-flash",
         "isolate": "worktree",
         "land": "github-rebase-after-approved",
         "envelopeStore": "git-blob",
@@ -382,7 +352,7 @@
         "controlPlane": "grok-cloud",
         "hands": "hands.mjs",
         "writerHarness": "qwen-code",
-        "writerModel": "qwen3-coder",
+        "writerModel": "deepseek-flash",
         "isolate": "worktree",
         "land": "ff-only",
         "envelopeStore": "git-blob",
@@ -398,7 +368,7 @@
         "controlPlane": "grok-cloud",
         "hands": "hands.mjs",
         "writerHarness": "qwen-code",
-        "writerModel": "qwen3-coder",
+        "writerModel": "deepseek-flash",
         "isolate": "git-bus",
         "land": "ff-only",
         "envelopeStore": "git-blob",
@@ -430,7 +400,7 @@
         "controlPlane": "grok-cloud",
         "hands": "hands.mjs",
         "writerHarness": "qwen-code",
-        "writerModel": "qwen3-coder-plus",
+        "writerModel": "deepseek-v4.1-flash",
         "isolate": "worktree",
         "land": "ff-only",
         "envelopeStore": "git-blob",
@@ -446,7 +416,7 @@
         "controlPlane": "grok-cloud",
         "hands": "hands.mjs",
         "writerHarness": "qwen-code",
-        "writerModel": "qwen3-coder-plus",
+        "writerModel": "deepseek-v4.1-flash",
         "isolate": "codespace",
         "land": "github-rebase-after-approved",
         "envelopeStore": "git-blob",
@@ -491,7 +461,7 @@
     }
   ],
   "routing": {
-    "sweepWriter": "deepseek-flash or local qwen",
+    "sweepWriter": "deepseek-flash on the direct api (D-67); no Qwen model is offered (D-68)",
     "keystoneWriter": "deepseek-v4-pro or Claude",
     "controlPlane": "Grok cloud or Claude desktop",
     "hands": "hands.mjs; Claude Code only if the PM picked it",
@@ -526,14 +496,6 @@
       "inCached": 0.022,
       "peakIn": 1.32,
       "peakOut": 3.96
-    },
-    "qwen-local": {
-      "in": 0,
-      "out": 0
-    },
-    "qwen3.7-flash": {
-      "in": 0.03,
-      "out": 0.13
     }
   },
   "recipes": [

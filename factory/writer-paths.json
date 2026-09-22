@@ -38,7 +38,16 @@
     "up": "Any HTTP response, including 401.",
     "down": "Timeout, DNS, or network error."
   },
-  "excluded": {
-    "qwen3-coder": "Out of consideration. D-51: qwen3-coder-plus burned 4898721 tokens on the F31 envelope over 83 requests and never committed, against 1013608 tokens for a complete correct lane on deepseek-flash."
+  "dropped": {
+    "at": "2026-09-22",
+    "ids": [
+      "qwen3-coder",
+      "qwen3.8-max",
+      "qwen3.7-plus",
+      "qwen3-coder-plus",
+      "qwen3-coder-next",
+      "qwen3.7-flash"
+    ],
+    "why": "Owner's word: every Qwen model is dropped completely. D-51 had already excluded qwen3-coder after qwen3-coder-plus burned 4898721 tokens on the F31 envelope over 83 requests and never committed, against 1013608 for a complete correct lane on deepseek-flash, but the catalog still offered six Qwen ids and seven topologies still picked one. The qwen-code HARNESS is not dropped: it runs deepseek-flash on the direct api and every seat of sitting 12 landed through it. D-68."
   }
 }

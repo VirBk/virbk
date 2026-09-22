@@ -259,6 +259,11 @@
       "id": "F51",
       "title": "A verdict names the clause it found, and an imported tool does not run",
       "status": "landed"
+    },
+    {
+      "id": "F52",
+      "title": "No tool offers a model the catalog dropped (D-68)",
+      "status": "queued"
     }
   ]
 }

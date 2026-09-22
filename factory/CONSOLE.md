@@ -6,7 +6,7 @@ Live surface the owner walks. Spec, not a writer envelope. Control plane wrote i
 
 1. Floor — local machine or cloud.
 2. Remote — GitHub owner/repo. Empty owner is filled by the session as VirBk. Children never write VirBk/virbk.
-3. Seats — control plane is Grok (this session, wired) or Claude desktop. Writer is local Qwen, DeepSeek Flash, DeepSeek V4 Pro, or an own model. Keys never enter git. Never a `VITE_` variable. Do not remap this session onto a writer token. Cursor Cloud Agents cannot take that token.
+3. Seats — control plane is Grok (this session, wired) or Claude desktop. Writer is DeepSeek Flash, DeepSeek V4 Pro, or an own model; no Qwen model is offered (D-68). Keys never enter git. Never a `VITE_` variable. Do not remap this session onto a writer token. Cursor Cloud Agents cannot take that token.
 4. Name — local folder `~/factory/<slug>`. Cloud codespace `grok-<lane>`, not the owner's disk. git-bus reuses the PC that already autobuilds.
 5. Charge — objective, goals, spec, expected result. Becomes the first envelope.
 6. Bench — install plan for that floor. Prepare writes `factory.project.json`, `SPEC.md`, `install.sh`, `.env.example`. The preview cannot apt-install on the laptop; the owner runs the script on the machine that hosts hands.
@@ -19,8 +19,8 @@ Local and cloud are lenses. The path mark sits on the floor this project uses. T
 
 Cloud control plane stays Grok. It deploys a terminal; it is not the writer.
 
-- Autobuild PC on — topology `cloud-git-bus`. Envelope blob is the deploy. That machine runs `node factory/tools/hands.mjs watch` then isolate/recipe. Same Qwen/DeepSeek harness as local.
-- Autobuild PC off — topology `cloud-grok`. Isolate is a Codespace. Writer is aider pointed at DeepSeek or Qwen. Token is a Codespaces secret, placed once. `hands.mjs isolate` prints `gh codespace create`. Not a GitHub Action.
+- Autobuild PC on — topology `cloud-git-bus`. Envelope blob is the deploy. That machine runs `node factory/tools/hands.mjs watch` then isolate/recipe. Same harness as local.
+- Autobuild PC off — topology `cloud-grok`. Isolate is a Codespace. Writer is aider pointed at DeepSeek. Token is a Codespaces secret, placed once. `hands.mjs isolate` prints `gh codespace create`. Not a GitHub Action.
 - Cursor — optional local Chat/Agent BYOK only. Cloud Cursor is not a writer seat.
 
 The chassis is the product dashboard as it is built. Landed tiles take a click. Framing and planned tiles stay visible, locked, not clickable.
@@ -60,16 +60,17 @@ Forbidden cuts: remap this control plane onto DeepSeek or Qwen; skip review; wri
 
 ## Writer ladder
 
-Meter is DashScope PAYG (Singapore). Not Token Plan. Not provisioned throughput.
+Meter is the DeepSeek native meter (api.deepseek.com), writerPath pinned native by D-67. DashScope PAYG (Singapore) remains the outage failover only. Not Token Plan. Not provisioned throughput.
 
 The owner picks the model, flagship down to the still-acceptable floor:
 
-- Qwen: qwen3.8-max, qwen3.7-plus, qwen3-coder-plus, qwen3-coder-next, qwen3.7-flash
 - DeepSeek: deepseek-v4-pro, deepseek-flash
+
+Qwen models were dropped completely on 2026-09-22 (D-68). The qwen-code HARNESS stays: it runs deepseek-flash on the direct api.
 
 Path:
 
-- `auto` — native DeepSeek off-peak if healthy; DashScope PAYG on peak (01:00–04:00 and 06:00–10:00 UTC, weekday) or if native does not answer. Qwen is always DashScope.
+- `auto` — native DeepSeek off-peak if healthy; DashScope PAYG on peak (01:00–04:00 and 06:00–10:00 UTC, weekday) or if native does not answer.
 - `native` — pin api.deepseek.com. Peak rates stand. Outage still fails over.
 - `dashscope` — pin Model Studio PAYG.
 
@@ -79,7 +80,7 @@ node factory/tools/route.mjs peak
 node factory/tools/route.mjs probe
 ```
 
-Place `DASHSCOPE_API_KEY` for Qwen and for DeepSeek failover. Place `DEEPSEEK_API_KEY` to take native off-peak. Never git, never `VITE_`.
+Place `DASHSCOPE_API_KEY` for the DeepSeek failover. Place `DEEPSEEK_API_KEY` to take native off-peak. Never git, never `VITE_`.
 
 ## What landed
 

@@ -155,3 +155,79 @@ the existing 21 gate steps.
 
 Overlay of `factory/` stays shelf: quiet week, no running seats,
 owner word, kit pin. Never a GitHub fork.
+
+---
+
+# SECOND DROP — 2026-09-22 — one check, still useful only
+
+Does not supersede the 2026-09-17 file above. That one is the size step
+and it stands whether or not it has landed yet. This one is a different
+check and can be taken on its own.
+
+Alumni. Not a child. Not a kit overlay. Still a check Otto's own gate
+already knows how to run.
+
+## WHEN
+
+Adopt whenever no writer holds `tools/landingGate.js` dirty. It does not
+wait on a lane: it changes what the gate REPORTS, never what it tests.
+
+## Feed (this is the drop)
+
+### A gate that cannot run its shell says so, instead of failing every step
+
+What this cost the parent: two paid seats, on two separate lanes,
+spending calls to prove that a red was not their own change.
+
+The shape. A gate that runs each step by spawning a shell with a script
+file and a working directory is reporting two different things through
+one channel. If the step fails, the commit is bad. If the SHELL cannot
+read the script path or take that directory, every step fails at every
+commit — including a commit that is green thirty seconds later from a
+different terminal. The gate prints step names and sends stderr to a log
+file, so from inside a headless seat the cause is invisible. The seat
+sees twenty-one reds and no reason, and starts debugging its own diff.
+
+On the parent's machine `bash` resolves through PATH order to either
+Git's bash, which reads Windows paths, or the WSL launcher, which strips
+the backslashes and can read neither the script nor the cwd. Same gate,
+same commit, opposite verdicts.
+
+The check. Before the first step runs, probe the shell **in a step's own
+form** — write a trivial script file to the same directory the step
+scripts go in, and spawn it exactly the way a step is spawned, with the
+same working directory. If that probe does not exit 0, print ONE
+diagnostic naming the shell, the probe path, the working directory and
+what the shell wrote to stderr, run no step, print no step line, and
+exit with a status that is NOT the status of a failed gate. A caller and
+a seat can then tell "this shell cannot run the gate" from "your commit
+is bad".
+
+The form is the whole of it. A probe written as `bash -c true` SUCCEEDS
+on the broken launcher and closes nothing — the launcher takes a command
+string fine and only fails on a file path. A probe that does not take
+the step's form is a check that cannot fail, which is the parent's T09
+and worth less than no check at all.
+
+Proof it works, before you believe it:
+
+1. With a working shell, the gate runs every step and the verdict is
+   unchanged. Force the probe to report failure and confirm that case
+   goes red — a fixture that cannot fail proves nothing.
+2. Point the gate at a shell that does not exist. One diagnostic, no
+   step lines, the unrunnable status.
+3. Point it at a shell that runs but cannot read the script. Same
+   diagnostic. This is the case a check written against the spawn error
+   alone will miss, and it is the case that actually happens.
+4. Re-point the probe at `bash -c true` under case 3 and watch every
+   step go red again. That is the counterfactual; keep it.
+
+Do not copy `factory/`. Do not replace the gate runner. This is a dozen
+lines at the top of the run loop and one new exit status.
+
+## What the parent is NOT sending
+
+The lesson that cost it most this sitting is not here, because it is not
+a check: an assertion that stops short of the object that ships. It
+arrived three times in six lanes by three different routes. If Otto
+wants it, it returns as an intake with a check attached, not as prose.

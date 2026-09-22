@@ -26,11 +26,12 @@
       "take": "Envelope, landing gate, keystones, idle-is-success, real-data gates, closed owner-ask, ruling-fits-hold. Alumni drop after O38 is a size check on Otto's own gate plus archive (D-30). A drop that grows over-cap files is pain (T52).",
       "drop": {
         "file": "factory/drops/otto.md",
-        "at": "2026-09-17",
+        "at": "2026-09-22",
         "expect": {
           "script": "tools/sizeBudget.js",
           "gate": "tools/landingChecks.yml"
-        }
+        },
+        "note": "Second dated drop appended 2026-09-22: a gate that cannot run its shell names it and exits, instead of reporting every step red. expect still names the FIRST drop's files, because the second lands in whatever executes that product's steps and this factory has not seen that file - naming a path it has not opened is what T76 exists to stop. drop-status therefore measures the size check only; adoption of the second is the product control plane's own report."
       }
     },
     {
@@ -41,11 +42,12 @@
       "take": "Decision register, authority levels, walkthrough as acceptance, derivation containers. Alumni drop after PK-3b and LEAVE-TYPE-KEY is a size check on Virbos's own gate plus archive (D-31). A drop that grows over-cap files is pain (T52).",
       "drop": {
         "file": "factory/drops/virbos.md",
-        "at": "2026-09-17",
+        "at": "2026-09-22",
         "expect": {
           "script": "tools/sizeBudget.js",
           "gate": "tools/check.yml"
-        }
+        },
+        "note": "Second dated drop appended 2026-09-22: a gate that cannot run its shell names it and exits, instead of reporting every step red. expect still names the FIRST drop's files, because the second lands in whatever executes that product's steps and this factory has not seen that file - naming a path it has not opened is what T76 exists to stop. drop-status therefore measures the size check only; adoption of the second is the product control plane's own report."
       }
     },
     {
