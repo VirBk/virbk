@@ -492,3 +492,15 @@
   object: "factory/tools/sizeBudget.mjs"
   title: Band that measures a different object than its label names
   rule: A budget row names the object it measured, and a budget that is a SUM of capped parts prints the sum a consumer receives beside the parts. Check is node factory/tools/sizeBudget.mjs. The gated seat packet band measured the packet with NO lane - the shared cacheable prefix - while a real seat packet is prefix plus envelope, 5.7 KB more, so a control plane reading 99.7 per cent green could hand a seat 22 per cent more context than the number it had just checked. The sum cannot fail on its own here, since prefix and envelope are each capped and their caps add to the sum cap, so what the row buys is VISIBILITY at issue rather than a new way to fail.
+
+- id: T83
+  kind: portable
+  object: "factory/tools/seat.mjs"
+  title: Non-repository context that reaches a seat unnamed
+  rule: A launch names the non-repository context the harness injects — path, file count, total bytes and each file — and a machine with no store gets a named zero rather than silence. Check is node factory/tools/seat.mjs store, and node factory/tools/seat.mjs --self-test at gate step 09. The qwen harness injects ~/.qwen/memories ahead of the packet: outside git, in no packet, under no size budget, in no gate, and it GREW from 5718 bytes over four files to 7292 over five during one sitting because a seat wrote to it mid-lane. Nothing in the repository could tell a successor it was there, and one note in it stayed factually false across two sittings while another paid for itself twice. So the rule is to NAME it, never to ban it, and a note that pays is promoted into the repository through a reviewed return. Name, size and count only: a store may hold anything the owner typed and a packet is not the place to find out. D-72.
+
+- id: T84
+  kind: portable
+  object: "contracts/seat-return.v1.json"
+  title: Review whose cost dies with its session
+  rule: A return carries a review row — tier, tokens, tool uses — and a row present but empty is a NAMED refusal, because a lane nobody reviewed and a review nobody counted are not the same claim. Check is node factory/tools/seatReturn.mjs --self-test at gate step 20. Writer spend has been a row per lane read from the harness meter since F29 while review spend existed only in a task notification the session would not outlive, so the factory understated what a lane costs by however much its review cost. Measured on F52: 173651 subagent tokens over 67 tool uses, about 2 per cent of that lane's input, and that review found the one blocking defect the control plane had missed. A reviewer still appears in no process-table census, which is correct because a reviewer is not a writer, and the two-writer ceiling is unaffected. D-72.
