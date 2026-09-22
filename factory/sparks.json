@@ -39,6 +39,15 @@
       "whyNotLaw": "AGENTS section 3 is satisfied - never the author, never weaker than the writer, always a fresh session - and the reviews are paying for themselves, finding a blocking defect in three of four lanes this sitting. What is missing is accounting, and it has two edges the control plane cannot settle from the objects. The census reads the process table for harness processes, so a reviewer is invisible to the two-writer ceiling and to the dead-seat resume; that is arguably correct, since a reviewer is not a writer, but the census cannot CONFIRM it either way and a successor reading 0 running seats does not know whether a review is in flight. And the spend side is simply absent: writer spend is a row per lane read from the harness meter, while review spend exists only in a task notification this session will not outlive, so the factory's own record understates what a lane costs by however much its review cost. Measure before ruling: whether a subagent's usage can be read at all from this harness, and whether a review belongs in returns.json as its own row or as a field on the lane's row.",
       "status": "open",
       "openedOn": 12
+    },
+    {
+      "id": "S30",
+      "kind": "trap",
+      "claim": "Packet budgets measure total(parts) while the seat receives render(parts), which adds a header and blank line per part. F52: counted 32599, emitted 32705. The 106 unmeasured bytes leave 63 of real headroom where the tools imply 169.",
+      "object": "factory/tools/packet.mjs",
+      "whyNotLaw": "T82's own rule - a budget names the object it measured - unclosed in the tool T82's Check sentence names. F46 fixed the LABEL in sizeBudget.mjs and the two tools now agree, which is why it reads green: they agree because both call total(), and both are low by the same 106 bytes. Gate step 17, the seat packet error and every band inherit it. Two readings. One: S21 one level down, closed the same way, by measuring what render emits. Two: the separators are a constant of the part COUNT, not content, so a cap may deliberately name content and the fix is a documented derivation, not a new number - and the prefix must stay byte-stable for the 95 per cent cache hit, so changing what is counted must not change what is emitted. Measure before ruling: whether any lane was ever issued between the two numbers, and whether D-57's 25.3 KB and D-66's 85-bytes-from-red were content or emitted bytes.",
+      "status": "open",
+      "openedOn": 13
     }
   ]
 }
