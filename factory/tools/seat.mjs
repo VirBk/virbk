@@ -66,13 +66,13 @@ const NL = String.fromCharCode(10);
 // name, size and count only.
 //
 // The baseline is a STATED number, not a threshold. It is what the store held
-// when D-72 ruled, re-read on 2026-09-23. Printing the total beside it makes
+// when D-72 ruled, re-read on 2026-09-22. Printing the total beside it makes
 // drift visible to the next successor and buys nothing else: this command
 // always exits 0, and its own line says it is a report rather than implying a
 // check that is not there (T82, P4). An absent store is a named zero, because
 // the absent case is the one that runs on every machine that is not this one
 // (F49, P2).
-const STORE_BASELINE = { bytes: 7292, files: 5, at: "2026-09-23", decision: "D-72" };
+const STORE_BASELINE = { bytes: 7292, files: 5, at: "2026-09-22", decision: "D-72" };
 
 // Windows keeps the home directory in USERPROFILE and the bash family keeps it
 // in HOME; a machine with neither has no store, which is the named zero below
@@ -815,15 +815,25 @@ if (cmd === "--self-test") {
   // the same act as they are printed (T04), because a number copied into the
   // recipe would be carried and a copied count agrees with itself and with
   // nothing on the disk. Every recipe that hands a seat a packet carries it,
-  // read off the RENDERED text (D-59).
+  // read off the RENDERED text (D-59). The set the rule scans is the recipes
+  // that render a stdin carrier — the act of handing the packet over — computed
+  // here rather than borrowed from the carrier rule's `named`. Its guard then
+  // asserts the store line over THAT set, so it reds when the store block
+  // leaves every recipe while the carrier rule stays green: the old guard copied
+  // the carrier guard's own condition and could not fail unless it did (D-61).
   const storeLine = (id) => linesOf(rendered[id]).find((l) => /\bseat\.mjs store\b/.test(l)) || "";
-  const storeless = named.filter((id) => !storeLine(id));
+  const carrying = Object.keys(rendered).filter((id) => carrierLine(id));
+  const storeless = carrying.filter((id) => !storeLine(id));
   ok(
     "a launch hands over a packet and never names the memory store that also reaches the seat",
     storeless.length === 0,
     storeless,
   );
-  ok("no rendered recipe names packet.mjs, so the store rule proves nothing", named.length >= 1);
+  ok(
+    "no recipe that hands over a packet names the memory store, so the store rule proves nothing",
+    carrying.filter((id) => storeLine(id)).length >= 1,
+    storeless,
+  );
   want("qwen-code store line", storeLine("qwen-code"), "#   node factory/tools/seat.mjs store");
 
   // P2 — no dropped id survives in a RENDERED recipe (D-59), and the list
@@ -916,6 +926,9 @@ if (cmd === "--self-test") {
   const baseTree = mkdtempSync(join(tmpdir(), "grok-f52-seat-base-"));
   const storeA = mkdtempSync(join(tmpdir(), "grok-f54-store-a-"));
   const storeB = mkdtempSync(join(tmpdir(), "grok-f54-store-b-"));
+  // storeC is created and never written to: a store directory that is present
+  // with zero files, the case one line from absent.
+  const storeC = mkdtempSync(join(tmpdir(), "grok-f54-store-c-"));
   const runSeat = (args, tree) => spawnSync(process.execPath, [self, ...args, "--root", tree], { encoding: "utf8" });
   try {
     mkdirSync(join(fixture, "factory"), { recursive: true });
@@ -1161,6 +1174,20 @@ if (cmd === "--self-test") {
     ok("an absent store exited " + missing.status, missing.status === 0, [missing.stderr]);
     ok("an absent store was silent", /looked and found none/.test(missing.stdout || ""), [missing.stdout]);
     ok("an absent store did not report a zero", /\(0 files, 0 bytes\)/.test(missing.stdout || ""), [missing.stdout]);
+    // P2 — an EMPTY store: the directory is present and holds zero files. It is
+    // one line from the absent case in storeReport() and the two must stay
+    // distinguishable, or "looked and found none" tells a reader nothing about
+    // which of the two it was looking at.
+    const emptyStore = runSeat(["store", "--store", storeC], fixture);
+    ok("an empty store exited " + emptyStore.status, emptyStore.status === 0, [emptyStore.stderr]);
+    const eOut = emptyStore.stdout || "";
+    ok("an empty store was not reported as an empty store", /empty - looked and found none/.test(eOut), [eOut]);
+    ok("an empty store did not report its count and bytes", /files 0\b/.test(eOut) && /bytes 0\b/.test(eOut), [eOut]);
+    ok(
+      "an empty store reads the same as an absent one",
+      !/absent/.test(eOut) && !/\(0 files, 0 bytes\)/.test(eOut),
+      [eOut],
+    );
     // A machine with no home directory at all: no crash, and a named zero. The
     // case is driven in-process against the two functions the command calls,
     // because a child on Windows gets USERPROFILE handed back by the platform
@@ -1202,6 +1229,7 @@ if (cmd === "--self-test") {
     rmSync(baseTree, { recursive: true, force: true });
     rmSync(storeA, { recursive: true, force: true });
     rmSync(storeB, { recursive: true, force: true });
+    rmSync(storeC, { recursive: true, force: true });
   }
 
   if (failed.length) {
