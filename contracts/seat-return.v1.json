@@ -58,6 +58,33 @@
       "minLength": 1,
       "description": "The model id the harness meter recorded for the project the lane ran in — the id that actually answered, not the one the launcher was told. A seat cannot see its own model and echoes the envelope's Runtime stamp instead (T69), so the recorder reads this from the usage record and fills it in; it is therefore optional in a return and never required. The two ids agree through the native-to-DashScope map in factory/tools/route.mjs, never by string equality: deepseek-flash and deepseek-v4.1-flash are one model at two vendors (T48). Recording refuses a disagreement, so both ids sit on the stored row and a later price question can see which one was served."
     },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tier",
+        "tokens",
+        "toolUses"
+      ],
+      "description": "What the lane's review cost, when it had one: the reviewer's tier, the tokens the reviewer spent and the tool uses it took. Measured on F52 — 173651 subagent tokens over 67 tool uses, roughly 2 per cent of that lane's input tokens — and recorded nowhere the session would outlive (D-72). Optional: a lane with no review omits it. A row present but empty is refused by name, because a lane nobody reviewed and a lane whose review was never counted must not read the same.",
+      "properties": {
+        "tier": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The reviewer's tier. The correction cap turns on it, so an unnamed tier is not usable."
+        },
+        "tokens": {
+          "type": "number",
+          "minimum": 0,
+          "description": "The tokens the reviewer spent, read from the harness the review ran in."
+        },
+        "toolUses": {
+          "type": "number",
+          "minimum": 0,
+          "description": "The tool calls the reviewer made."
+        }
+      }
+    },
     "base": {
       "type": "string",
       "minLength": 7

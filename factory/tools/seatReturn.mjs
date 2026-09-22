@@ -45,7 +45,7 @@ import {
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 // The router owns which id a base expects (T48, T75). This asks it for the
 // id a model is served as instead of typing the pairs in a second copy.
 import { resolve as resolveRoute } from "./route.mjs";
@@ -220,6 +220,45 @@ export function readMeter(file, projectPath) {
   return { ok: true, row: best.row, ids, totals, lines };
 }
 
+// D-72. A return now carries what its review cost: the reviewer's tier, the
+// tokens the reviewer spent and the tool uses it took. The three live in one
+// exported checker so the return contract and the stored row cannot drift into
+// two rules (T29). A row that is present but empty is refused BY NAME: a lane
+// nobody reviewed and a lane whose review was never counted have to read
+// differently in the record, or the field is decoration (P6).
+const REVIEW_FIELDS = ["tier", "tokens", "toolUses"];
+
+export function reviewErrors(review, where = "review") {
+  if (review === undefined) return [];
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    return [where + " is not an object"];
+  }
+  const errors = [];
+  const extra = Object.keys(review).filter((k) => !REVIEW_FIELDS.includes(k));
+  if (extra.length) errors.push(where + " has unknown fields: " + extra.join(", "));
+  if (!REVIEW_FIELDS.some((f) => f in review)) {
+    errors.push(
+      where + " is an empty row — a lane nobody reviewed and a review nobody counted are not the same claim",
+    );
+    return errors;
+  }
+  for (const field of REVIEW_FIELDS) {
+    if (!(field in review)) errors.push(where + " has no " + field);
+  }
+  if ("tier" in review && (typeof review.tier !== "string" || !review.tier.trim())) {
+    errors.push(where + ".tier is not a tier");
+  }
+  for (const field of ["tokens", "toolUses"]) {
+    if (
+      field in review &&
+      (typeof review[field] !== "number" || !Number.isFinite(review[field]) || review[field] < 0)
+    ) {
+      errors.push(where + "." + field + " is not a non-negative number");
+    }
+  }
+  return errors;
+}
+
 export function returnErrors(root, row) {
   const errors = [];
   if (!row || typeof row !== "object" || Array.isArray(row)) return ["not an object"];
@@ -236,6 +275,7 @@ export function returnErrors(root, row) {
     "tokens",
     "cachedTokens",
     "meterModel",
+    "review",
     "note",
   ];
   const extra = Object.keys(row).filter((k) => !known.includes(k));
@@ -253,6 +293,9 @@ export function returnErrors(root, row) {
   if (row.meterModel !== undefined && (typeof row.meterModel !== "string" || !row.meterModel.trim())) {
     errors.push("meterModel is not a model id");
   }
+  // D-72. What the review cost, when the return carries it. Optional: a lane
+  // with no review says nothing here, and the recorder stores nothing.
+  for (const e of reviewErrors(row.review)) errors.push(e);
   if (typeof row.base !== "string" || !SHA.test(row.base)) errors.push("base is not a sha");
   if (typeof row.branch !== "string" || !row.branch.trim()) errors.push("branch");
   if (/^(main|master)$/.test(String(row.branch))) errors.push("a writer never returns main");
@@ -315,7 +358,7 @@ function schemaErrors(root) {
   if (live.join(",") !== inSchema.join(",")) {
     errors.push("contracts/seat-return.v1.json runtime enum is not factory/runtimes.json topologies");
   }
-  for (const field of ["measured", "cachedTokens", "meterModel"]) {
+  for (const field of ["measured", "cachedTokens", "meterModel", "review"]) {
     if (!schema.properties || !(field in schema.properties)) {
       errors.push("contracts/seat-return.v1.json has no " + field);
     }
@@ -340,6 +383,19 @@ function schemaErrors(root) {
   }
   if ((schema.required || []).includes("spendUsd")) {
     errors.push("contracts/seat-return.v1.json requires spendUsd — the meter made it conditional");
+  }
+  // D-72. The review object names the same three fields the checker above and
+  // the stored row use. A contract that loosened one of them to make a
+  // disagreement pass is red where the landings look.
+  const review = schema.properties?.review;
+  if (review) {
+    const named = (review.required || []).slice().sort();
+    if (named.join(",") !== REVIEW_FIELDS.slice().sort().join(",")) {
+      errors.push("contracts/seat-return.v1.json review.required is not " + REVIEW_FIELDS.join(", "));
+    }
+    if (review.additionalProperties !== false) {
+      errors.push("contracts/seat-return.v1.json review admits fields outside the set");
+    }
   }
   return errors;
 }
@@ -390,6 +446,13 @@ export function rowKey(row) {
   // meterModel and keeps the key it was written with, which is why this is
   // appended and never substituted.
   if (row.meterModel) parts.push(String(row.meterModel));
+  // D-72. What the review cost is part of what was done, so it is part of the
+  // key: two returns of one lane that differ only in their review cost are not
+  // the same row. A row stored before this lane carries no review and keeps the
+  // key it was written with, which is why this is appended and never substituted.
+  if (row.review) {
+    parts.push(String(row.review.tier), String(row.review.tokens), String(row.review.toolUses));
+  }
   return createHash("sha256").update(parts.join(String.fromCharCode(31))).digest("hex").slice(0, 16);
 }
 
@@ -411,7 +474,7 @@ function saveStore(root, data) {
 // in the lane log. A rewrite that drops a field or renames one is the
 // mutation this refuses, and it refuses it on the file that ships.
 const STORE_ROW_REQUIRED = ["at", "key", "lane", "runtime", "model", "base", "branch"];
-const STORE_ROW_OPTIONAL = ["spendUsd", "cachedTokens", "tokens", "meterModel"];
+const STORE_ROW_OPTIONAL = ["spendUsd", "cachedTokens", "tokens", "meterModel", "review"];
 const KEY_HEX = /^[0-9a-f]{16}$/;
 
 export function storeErrors(root) {
@@ -458,6 +521,11 @@ export function storeErrors(root) {
     }
     if (r.meterModel !== undefined && (typeof r.meterModel !== "string" || !r.meterModel.trim())) {
       errors.push(where + " meterModel is not a model id");
+    }
+    // D-72. A stored review row is checked by the same rule the return is, so
+    // an empty one is a named refusal here too and not a pass (P6).
+    if (r.review !== undefined) {
+      for (const e of reviewErrors(r.review, where + " review")) errors.push(e);
     }
     if (r.tokens !== undefined) {
       const t = r.tokens;
@@ -538,6 +606,16 @@ export function record(root, row, project, meterFile = usageRecordPath()) {
   // has to be able to see which id was actually served, not just that the two
   // folded together on the day they were compared.
   stored.meterModel = agreed;
+  // D-72. What the review cost travels with the measurement it paid for.
+  // Absent stays absent: a lane nobody reviewed must not read as a lane
+  // reviewed for nothing (P6).
+  if (row.review) {
+    stored.review = {
+      tier: row.review.tier,
+      tokens: row.review.tokens,
+      toolUses: row.review.toolUses,
+    };
+  }
   data.rows.push(stored);
   saveStore(root, data);
   return { ok: true, key, rows: data.rows.length, meterModel: agreed };
@@ -564,12 +642,18 @@ export function spendReport(root) {
   let cached = 0;
   let unpriced = 0;
   const metered = { rows: 0, in: 0, out: 0, cached: 0, requests: 0 };
+  const reviewed = { rows: 0, tokens: 0, toolUses: 0 };
   for (const r of rows) {
     const s = Number(r.spendUsd) || 0;
     const c = cachedOf(r);
     if (typeof r.spendUsd !== "number") unpriced += 1;
     spend += s;
     cached += c;
+    if (r.review) {
+      reviewed.rows += 1;
+      reviewed.tokens += Number(r.review.tokens) || 0;
+      reviewed.toolUses += Number(r.review.toolUses) || 0;
+    }
     if (r.tokens) {
       metered.rows += 1;
       metered.in += Number(r.tokens.in) || 0;
@@ -594,6 +678,16 @@ export function spendReport(root) {
     lines.push(
       "metered rows " + metered.rows + "  in " + metered.in + "  out " + metered.out +
         "  cached " + metered.cached + "  requests " + metered.requests,
+      "",
+    );
+  }
+  // D-72. What the reviews of these lanes cost, summed. Printed only when a
+  // row carries one: a report that invented a zero would be the false
+  // measurement the store is built to refuse.
+  if (reviewed.rows) {
+    lines.push(
+      "reviewed rows " + reviewed.rows + "  reviewer tokens " + reviewed.tokens +
+        "  tool uses " + reviewed.toolUses,
       "",
     );
   }
@@ -669,6 +763,17 @@ function selfTest() {
     ["tokens with a negative count", { ...strip(good, ["spendUsd"]), tokens: { ...metered.tokens, cached: -1 } }],
     ["tokens is not an object", { ...strip(good, ["spendUsd"]), tokens: 4 }],
     ["meterModel is a sentence", { ...good, meterModel: "  " }],
+    // D-72, P5/P6. What the review cost, and the one shape that must never be
+    // a pass: a row present but empty.
+    ["review is a word, not a row", { ...good, review: "two hours" }],
+    ["review is an empty row", { ...good, review: {} }],
+    ["review with no tier", { ...good, review: { tokens: 173651, toolUses: 67 } }],
+    ["review with a blank tier", { ...good, review: { tier: "  ", tokens: 1, toolUses: 1 } }],
+    ["review with a word for tokens", { ...good, review: { tier: "keystone", tokens: "many", toolUses: 67 } }],
+    [
+      "review with a field nobody defined",
+      { ...good, review: { tier: "keystone", tokens: 1, toolUses: 1, verdict: "pass" } },
+    ],
   ];
   for (const [name, row] of cases) {
     if (!returnErrors(kitRoot, row).length) errors.push("case passed but should fail: " + name);
@@ -678,6 +783,19 @@ function selfTest() {
     errors.push("a metered return with no spendUsd should pass: " + meteredErrors.join(", "));
   }
   if (!models(kitRoot).includes(good.model)) errors.push("template model is not in the catalog");
+
+  // D-72. The reviewed row passes, the unreviewed row still passes, and the
+  // empty row is refused by a message that names it — not by any error at all,
+  // which a mutation could satisfy by making every field required.
+  const reviewed = { ...good, review: { tier: "keystone", tokens: 173651, toolUses: 67 } };
+  const reviewedErrors = returnErrors(kitRoot, reviewed);
+  if (reviewedErrors.length) {
+    errors.push("a return carrying its review cost should pass: " + reviewedErrors.join(", "));
+  }
+  const emptyRow = returnErrors(kitRoot, { ...good, review: {} }).join("; ");
+  if (!/empty row/.test(emptyRow)) {
+    errors.push("an empty review row was not refused by name: " + (emptyRow || "no error at all"));
+  }
 
   // The store: a row survives, a re-record is refused, spend sums rows.
   const dir = mkdtempSync(join(tmpdir(), "seat-return-"));
@@ -895,6 +1013,31 @@ function selfTest() {
     if (loadStore(cliDir).rows.length !== 1) {
       errors.push("the CLI's refusal changed the row count: " + loadStore(cliDir).rows.length);
     }
+
+    // D-72 through the entry point the control plane actually types: a return
+    // carrying its review cost is stored with it, so the CLI's own path is what
+    // the check above describes (D-59).
+    const reviewPath = join(cliDir, "review.json");
+    writeFileSync(
+      reviewPath,
+      JSON.stringify(
+        { ...good, lane: "F54", review: { tier: "keystone", tokens: 173651, toolUses: 67 } },
+        null,
+        2,
+      ) + NL,
+    );
+    const reviewed = drive(reviewPath);
+    if (reviewed.status !== 0) {
+      errors.push(
+        "the CLI refused a return carrying its review cost: " + (reviewed.stderr || reviewed.stdout).trim(),
+      );
+    }
+    const all = loadStore(cliDir).rows;
+    if (all.length !== 2) errors.push("the CLI stored " + all.length + " rows, expected 2");
+    const last = all.length ? all[all.length - 1] : null;
+    if (!last || !last.review || last.review.toolUses !== 67 || last.review.tier !== "keystone") {
+      errors.push("the CLI did not store the review row: " + JSON.stringify(last && last.review));
+    }
   } finally {
     rmSync(cliDir, { recursive: true, force: true });
   }
@@ -979,6 +1122,90 @@ function selfTest() {
     rmSync(dir6, { recursive: true, force: true });
   }
 
+  // D-72, P5/P6. The review row reaches the store, survives a round trip and is
+  // read back by spend. A store row that dropped it would leave the reviewer's
+  // cost exactly where it was before this lane: nowhere the session outlives.
+  const dir7 = mkdtempSync(join(tmpdir(), "seat-return-review-"));
+  try {
+    const withReview = {
+      ...good,
+      lane: "F54",
+      review: { tier: "keystone", tokens: 173651, toolUses: 67 },
+    };
+    const out = record(dir7, withReview, project, meterFile);
+    if (!out.ok) errors.push("a return carrying its review cost was refused: " + out.reason);
+    const rows = loadStore(dir7).rows;
+    if (rows.length !== 1) errors.push("the reviewed store holds " + rows.length + " rows");
+    const kept = rows.length ? rows[0].review : null;
+    if (!kept) {
+      errors.push("the store dropped the review row");
+    } else if (kept.tier !== "keystone" || kept.tokens !== 173651 || kept.toolUses !== 67) {
+      errors.push("the store did not keep the review numbers: " + JSON.stringify(kept));
+    }
+    const report = spendReport(dir7);
+    if (!/reviewed rows 1 {2}reviewer tokens 173651 {2}tool uses 67/.test(report)) {
+      errors.push("spend did not read the review back:\n" + report);
+    }
+    // A lane's review cost is part of what was done, so it is part of the key:
+    // the same lane at a different cost is a second row, not a re-record.
+    const cheaper = { ...withReview, review: { tier: "keystone", tokens: 100, toolUses: 3 } };
+    if (!record(dir7, cheaper, project, meterFile).ok) {
+      errors.push("a second review cost on one lane was refused as a duplicate");
+    }
+    if (loadStore(dir7).rows.length !== 2) {
+      errors.push("the review cost did not key the row: " + loadStore(dir7).rows.length + " rows");
+    }
+    // The row that ships is the shape the gate reads: a stored row whose review
+    // is present but empty is a named refusal here too, never a pass (P6).
+    const shape = mkdtempSync(join(tmpdir(), "seat-return-review-shape-"));
+    try {
+      const copy = join(shape, STORE);
+      mkdirSync(dirname(copy), { recursive: true });
+      const data = loadStore(dir7);
+      writeFileSync(copy, JSON.stringify(data, null, 2) + NL);
+      if (storeErrors(shape).length) {
+        errors.push("a faithful copy of a store with reviews failed: " + storeErrors(shape).join("; "));
+      }
+      data.rows[0].review = {};
+      writeFileSync(copy, JSON.stringify(data, null, 2) + NL);
+      const bent = storeErrors(shape).join("; ");
+      if (!/empty row/.test(bent)) {
+        errors.push("a stored row with an empty review passed: " + (bent || "no error at all"));
+      }
+    } finally {
+      rmSync(shape, { recursive: true, force: true });
+    }
+  } finally {
+    rmSync(dir7, { recursive: true, force: true });
+  }
+
+  // P7. The entry guard. Importing an export must not run the CLI: without the
+  // guard, the import ran the dispatch above with no command in argv, printed
+  // the usage line to stderr and called process.exit(1) before the importer's
+  // own statement ran. F51 did this for envelopeCheck.mjs and this is the same
+  // drive: a child that imports rather than runs, and prints its own line.
+  const importDir = mkdtempSync(join(tmpdir(), "seat-return-import-"));
+  try {
+    const importer = join(importDir, "importer.mjs");
+    const href = pathToFileURL(fileURLToPath(import.meta.url)).href;
+    writeFileSync(
+      importer,
+      [
+        "import { returnErrors } from " + JSON.stringify(href) + ";",
+        'process.stdout.write("import ok " + typeof returnErrors + String.fromCharCode(10));',
+      ].join(NL) + NL,
+    );
+    const child = spawnSync(process.execPath, [importer], { encoding: "utf8" });
+    if (child.status !== 0) {
+      errors.push("importing an export ran the CLI and exited " + child.status + ": " + (child.stderr || "").trim());
+    }
+    if (!/import ok function/.test(child.stdout || "")) {
+      errors.push("the importer did not reach its own code: " + JSON.stringify(child.stdout));
+    }
+  } finally {
+    rmSync(importDir, { recursive: true, force: true });
+  }
+
   rmSync(meterDir, { recursive: true, force: true });
 
   if (errors.length) fail("seatReturn self-test failed", errors);
@@ -986,67 +1213,77 @@ function selfTest() {
   process.exit(0);
 }
 
-const cmd = process.argv[2];
+// The CLI runs only when this file is the process entry point. An import must
+// be free of side effects: without this test, importing ANY export ran the
+// dispatch below, found no command in argv, printed the usage line and called
+// process.exit(1), killing the importing script before its own code ran (P7).
+// The test is on the entry file name, which is the guard packet.mjs, route.mjs,
+// alumni.mjs and envelopeCheck.mjs in this directory carry.
+const isEntry = /seatReturn\.mjs$/.test(process.argv[1] || "");
 
-if (cmd === "--self-test") selfTest();
+if (isEntry) {
+  const cmd = process.argv[2];
 
-if (cmd === "--template") {
-  process.stdout.write(TEMPLATE);
-  process.exit(0);
-}
+  if (cmd === "--self-test") selfTest();
 
-if (cmd === "--check-contract") {
-  const errors = [...schemaErrors(kitRoot), ...storeErrors(kitRoot)];
-  if (errors.length) fail("seat-return contract failed", errors);
-  console.log("seat-return contract ok");
-  process.exit(0);
-}
+  if (cmd === "--template") {
+    process.stdout.write(TEMPLATE);
+    process.exit(0);
+  }
 
-if (cmd === "spend") {
-  process.stdout.write(spendReport(storeRoot()));
-  process.exit(0);
-}
+  if (cmd === "--check-contract") {
+    const errors = [...schemaErrors(kitRoot), ...storeErrors(kitRoot)];
+    if (errors.length) fail("seat-return contract failed", errors);
+    console.log("seat-return contract ok");
+    process.exit(0);
+  }
 
-if (cmd === "meter") {
-  const out = readMeter(usageRecordPath(), process.argv[3]);
-  if (!out.ok) {
-    console.log("meter: " + out.reason);
+  if (cmd === "spend") {
+    process.stdout.write(spendReport(storeRoot()));
+    process.exit(0);
+  }
+
+  if (cmd === "meter") {
+    const out = readMeter(usageRecordPath(), process.argv[3]);
+    if (!out.ok) {
+      console.log("meter: " + out.reason);
+      process.exit(1);
+    }
+    process.stdout.write(out.lines.join(NL) + NL);
+    process.exit(0);
+  }
+
+  if (!cmd || cmd.startsWith("-")) {
+    console.error(
+      "usage: node factory/tools/seatReturn.mjs <return.json> [--record --project <path>] | spend | meter <project-path> | --template | --check-contract | --self-test",
+    );
     process.exit(1);
   }
-  process.stdout.write(out.lines.join(NL) + NL);
+
+  if (!existsSync(cmd)) fail("return failed", [cmd + " not found"]);
+  let row;
+  try {
+    row = JSON.parse(readFileSync(cmd, "utf8"));
+  } catch (err) {
+    fail("return failed", [String(err.message || err)]);
+  }
+  const found = returnErrors(kitRoot, row);
+  if (found.length) fail("return failed", found);
+  console.log("return ok  " + row.lane + "  " + row.runtime + "  " + row.model);
+
+  // A return that fails validation is never recorded: the check is above.
+  if (process.argv.includes("--record")) {
+    // The project is not optional. A return is recorded only against the meter
+    // row of the project its lane ran in, and guessing that path would defeat
+    // the check it is there to make (T69).
+    const at = process.argv.indexOf("--project");
+    const project = at > -1 ? process.argv[at + 1] : null;
+    if (!project || project.startsWith("--")) {
+      fail("record refused", ["--record needs --project <path>; a model nobody measured is not stored"]);
+    }
+    const out = record(storeRoot(), row, project);
+    if (!out.ok) fail("record refused", [out.reason + (out.key ? ": " + out.key : "")]);
+    console.log("recorded " + out.key + "  rows " + out.rows + "  meter says " + out.meterModel);
+  }
   process.exit(0);
 }
-
-if (!cmd || cmd.startsWith("-")) {
-  console.error(
-    "usage: node factory/tools/seatReturn.mjs <return.json> [--record --project <path>] | spend | meter <project-path> | --template | --check-contract | --self-test",
-  );
-  process.exit(1);
-}
-
-if (!existsSync(cmd)) fail("return failed", [cmd + " not found"]);
-let row;
-try {
-  row = JSON.parse(readFileSync(cmd, "utf8"));
-} catch (err) {
-  fail("return failed", [String(err.message || err)]);
-}
-const found = returnErrors(kitRoot, row);
-if (found.length) fail("return failed", found);
-console.log("return ok  " + row.lane + "  " + row.runtime + "  " + row.model);
-
-// A return that fails validation is never recorded: the check is above.
-if (process.argv.includes("--record")) {
-  // The project is not optional. A return is recorded only against the meter
-  // row of the project its lane ran in, and guessing that path would defeat
-  // the check it is there to make (T69).
-  const at = process.argv.indexOf("--project");
-  const project = at > -1 ? process.argv[at + 1] : null;
-  if (!project || project.startsWith("--")) {
-    fail("record refused", ["--record needs --project <path>; a model nobody measured is not stored"]);
-  }
-  const out = record(storeRoot(), row, project);
-  if (!out.ok) fail("record refused", [out.reason + (out.key ? ": " + out.key : "")]);
-  console.log("recorded " + out.key + "  rows " + out.rows + "  meter says " + out.meterModel);
-}
-process.exit(0);

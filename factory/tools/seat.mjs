@@ -20,8 +20,16 @@
 //   node factory/tools/seat.mjs worktree --lane F4 --base <sha>
 //   node factory/tools/seat.mjs disjoint <LANE> <LANE>
 //   node factory/tools/seat.mjs census
+//   node factory/tools/seat.mjs store [--store <path>]
 //
 // Does not call a model. Does not read API keys. The recipe is the launch.
+//
+// The recipe is the launch, so it names EVERYTHING that reaches the seat, not
+// only the packet: the harness also injects the memory store, which lives
+// outside git, in no packet, under no size budget and in no gate, so nothing
+// in this repository can tell a successor it is there (D-72). The launch says
+// so and points at `store`, which reads the store in the same act as it prints
+// it (T04) and names an absent store as a zero rather than staying silent (P2).
 //
 // A recipe hands the packet over on stdin, never as one argv string: a
 // cap-sized packet is over the Windows command-line limit and the harness
@@ -34,7 +42,7 @@
 // scheduler file, and takes its lister as an argument so a fixture can drive
 // it. Either command accepts `--root <tree>`.
 
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -47,24 +55,115 @@ import { HOSTED_IDS, hostedModel, droppedIds, droppedAudit, catalogIds } from ".
 const kitRoot = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const NL = String.fromCharCode(10);
 
-// `--root <tree>` points a command at a tree other than this one; that is how
-// a fixture drives a proof. Parsed out before dispatch, so either order works
-// and a caller that gets the usage branch cannot tell a typo from a failure.
+// ---- the store: what reaches a seat from outside the repository (D-72) ----
+//
+// The harness injects the memory store ahead of the packet. It is in no
+// packet, under no size budget and in no gate, so nothing in this repository
+// can tell a successor it is there; the launch names it instead. The numbers
+// below are read from the store in the same act as they are printed (T04),
+// never carried: a hardcoded count agrees with itself and with nothing on the
+// disk. Nothing here reads, copies or prints the CONTENT of a store file —
+// name, size and count only.
+//
+// The baseline is a STATED number, not a threshold. It is what the store held
+// when D-72 ruled, re-read on 2026-09-23. Printing the total beside it makes
+// drift visible to the next successor and buys nothing else: this command
+// always exits 0, and its own line says it is a report rather than implying a
+// check that is not there (T82, P4). An absent store is a named zero, because
+// the absent case is the one that runs on every machine that is not this one
+// (F49, P2).
+const STORE_BASELINE = { bytes: 7292, files: 5, at: "2026-09-23", decision: "D-72" };
+
+// Windows keeps the home directory in USERPROFILE and the bash family keeps it
+// in HOME; a machine with neither has no store, which is the named zero below
+// rather than a crash.
+export function memoryStorePath() {
+  const home =
+    process.platform === "win32"
+      ? process.env.USERPROFILE || process.env.HOME
+      : process.env.HOME || process.env.USERPROFILE;
+  return home ? join(home, ".qwen", "memories") : null;
+}
+
+// A deterministic walk, so two runs over one store print the same lines in the
+// same order. An unreadable entry counts at zero rather than throwing: a
+// launch must not fail on a machine whose store it cannot read.
+function walkStore(dir, rel = "", out = []) {
+  let entries;
+  try {
+    entries = readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const e of entries.slice().sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
+    const full = join(dir, e.name);
+    const name = rel ? rel + "/" + e.name : e.name;
+    if (e.isDirectory()) walkStore(full, name, out);
+    else {
+      let size = 0;
+      try {
+        size = statSync(full).size;
+      } catch {
+        size = 0;
+      }
+      out.push({ rel: name, size });
+    }
+  }
+  return out;
+}
+
+function signed(n) {
+  return (n >= 0 ? "+" : "") + n;
+}
+
+export function storeReport(dir) {
+  const out = ["store: " + (dir || "(none - no home directory; set USERPROFILE or HOME)")];
+  let files = [];
+  if (dir && existsSync(dir)) {
+    files = walkStore(dir);
+    const bytes = files.reduce((a, f) => a + f.size, 0);
+    out.push("  files " + files.length + "  bytes " + bytes);
+    for (const f of files) out.push("  " + f.rel + " " + f.size);
+    if (!files.length) out.push("  empty - looked and found none");
+  } else {
+    out.push("  absent - looked and found none (0 files, 0 bytes)");
+  }
+  const bytes = files.reduce((a, f) => a + f.size, 0);
+  out.push(
+    "  baseline " + STORE_BASELINE.bytes + " bytes over " + STORE_BASELINE.files + " files (" +
+      STORE_BASELINE.decision + ", " + STORE_BASELINE.at + ") - drift " +
+      signed(bytes - STORE_BASELINE.bytes) + " bytes, " + signed(files.length - STORE_BASELINE.files) +
+      " files; reported, not gated",
+  );
+  return out;
+}
+
+// `--root <tree>` points a command at a tree other than this one, and
+// `--store <path>` points the store report at a store other than this
+// machine's; that is how a fixture drives a proof. Parsed out before dispatch,
+// so either order works and a caller that gets the usage branch cannot tell a
+// typo from a failure.
 function parseArgs(argv) {
   const rest = [];
   let root = kitRoot;
+  let store = null;
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--root" && argv[i + 1]) {
       root = resolve(argv[i + 1]);
       i++;
       continue;
     }
+    if (argv[i] === "--store" && argv[i + 1]) {
+      store = resolve(argv[i + 1]);
+      i++;
+      continue;
+    }
     rest.push(argv[i]);
   }
-  return { root, rest };
+  return { root, rest, store };
 }
 
-const { root, rest } = parseArgs(process.argv.slice(2));
+const { root, rest, store } = parseArgs(process.argv.slice(2));
 
 const writerModel = JSON.parse(readFileSync(join(kitRoot, "factory", "project.json"), "utf8")).writerModel;
 
@@ -91,13 +190,33 @@ function dashscopeBaseOf(tree) {
 }
 const dashscopeBase = dashscopeBaseOf(root);
 
+// The launch names everything that reaches the seat, not only the packet. The
+// harness also injects the memory store, and that part is invisible from here:
+// outside git, in no packet, under no size budget, in no gate. So the launch
+// names it and points at the command that measures it. The command is named
+// rather than the numbers, because a number copied into the recipe would be
+// carried rather than read (T04), and the store reaches the seat before the
+// packet does, so these lines come first.
+function storeStdin() {
+  return [
+    "# Before the packet: the harness also injects the memory store, at",
+    "# ~/.qwen/memories. It is outside git, in no packet, under no size budget and",
+    "# in no gate, so nothing in this repository can tell a successor it is there",
+    "# (D-72). Run this and read what it prints — the path, the file count, the",
+    "# total bytes and each file with its size, read from the store in the same",
+    "# act, and a named zero when a machine has no store.",
+    "#   node factory/tools/seat.mjs store",
+  ].join(NL);
+}
+
 // The reading path is the packet, handed to the seat on stdin. A cap-sized
 // packet as one argv string is over the Windows command-line limit, and the
 // shell dies with "Argument list too long" before the harness runs (T72).
 // One function so every recipe carries the same carrier, and the self-test
 // renders the recipe instead of trusting this text.
-function packetStdin(harness) {
+function launchStdin(harness) {
   return [
+    storeStdin(),
     "# Reading path is the packet, handed over on stdin, never as one argv",
     "# string. An argv form is over the Windows command-line limit and the",
     "# harness never runs (T72).",
@@ -138,7 +257,7 @@ export OPENAI_API_KEY="\${OPENAI_API_KEY:-\${DASHSCOPE_API_KEY}}"
 # auto, yolo) are read off "qwen --help" on this machine. The documented
 # default requires approval for file edits or shell commands, and a print-mode
 # seat has no terminal to approve at.
-${packetStdin("qwen --auth-type openai --model <id> --approval-mode yolo -p -")}
+${launchStdin("qwen --auth-type openai --model <id> --approval-mode yolo -p -")}
 # Print-mode. Poll long jobs in the foreground.
 `,
   aider: (m) => `# Writer seat — Aider. Git-native. OpenAI-compat.
@@ -155,7 +274,7 @@ ${packetStdin("qwen --auth-type openai --model <id> --approval-mode yolo -p -")}
 #   export OPENAI_API_KEY="\${DEEPSEEK_API_KEY}"
 #   aider --model deepseek/deepseek-chat
 #
-${packetStdin("aider --model openai/" + m)}
+${launchStdin("aider --model openai/" + m)}
 ${UNVERIFIED_APPROVAL}
 # Print-mode. Worktree only.
 `,
@@ -164,7 +283,7 @@ ${UNVERIFIED_APPROVAL}
 
 #   opencode run --model <the project.json writerModel>
 #
-${packetStdin("opencode run --model <the project.json writerModel>")}
+${launchStdin("opencode run --model <the project.json writerModel>")}
 ${UNVERIFIED_APPROVAL}
 # Worktree only. Print-mode.
 `,
@@ -212,7 +331,7 @@ ${UNVERIFIED_APPROVAL}
 # 5. writer pushes the branch only
 # 6. Grok reviews in a fresh session, lands, restamps
 #
-${packetStdin("<writer harness>")}
+${launchStdin("<writer harness>")}
 ${UNVERIFIED_APPROVAL}
 # Prefix: the packet is the byte-stable prefix. Paste cache hits.
 `,
@@ -229,7 +348,7 @@ ${UNVERIFIED_APPROVAL}
 # Do not remap this Grok session onto DeepSeek or Qwen.
 # Do not add a GitHub Action until the secret exists.
 #
-${packetStdin("aider --model deepseek/deepseek-chat")}
+${launchStdin("aider --model deepseek/deepseek-chat")}
 ${UNVERIFIED_APPROVAL}
 # Prefix: the packet. Set x-grok-conv-id only on Grok API. Paste cache hits.
 `,
@@ -241,7 +360,7 @@ ${UNVERIFIED_APPROVAL}
 #   node factory/tools/hands.mjs isolate --lane <ID> --base <sha>
 #   node factory/tools/hands.mjs recipe
 #
-${packetStdin("<writer harness>")}
+${launchStdin("<writer harness>")}
 ${UNVERIFIED_APPROVAL}
 # Writer pushes the branch only. Grok reviews and lands.
 `,
@@ -266,7 +385,7 @@ ${UNVERIFIED_APPROVAL}
 #    aider --model deepseek/deepseek-chat
 # 7. Writer pushes the branch only. Grok reviews and lands.
 #
-${packetStdin("aider --model deepseek/deepseek-chat")}
+${launchStdin("aider --model deepseek/deepseek-chat")}
 ${UNVERIFIED_APPROVAL}
 # Prefix is the packet. Paste cache hits.
 `,
@@ -284,7 +403,7 @@ ${UNVERIFIED_APPROVAL}
 #    $env:OPENAI_API_KEY=[Environment]::GetEnvironmentVariable("DASHSCOPE_API_KEY","User")
 #    qwen --auth-type openai --model ${m}
 #
-${packetStdin("qwen --auth-type openai --model " + m + " --approval-mode yolo")}
+${launchStdin("qwen --auth-type openai --model " + m + " --approval-mode yolo")}
 # 5. Writer pushes the branch only. Grok reviews and lands.
 `,
   "cloud-dashscope": (m) => `# No Claude Code. Autobuild PC is off. Token is DashScope.
@@ -295,7 +414,7 @@ ${packetStdin("qwen --auth-type openai --model " + m + " --approval-mode yolo")}
 #    OPENAI_BASE_URL=${dashscopeBase}
 #    qwen --auth-type openai --model ${m}
 #
-${packetStdin("qwen --auth-type openai --model " + m + " --approval-mode yolo")}
+${launchStdin("qwen --auth-type openai --model " + m + " --approval-mode yolo")}
 # 4. Writer pushes the branch only. Grok reviews and lands.
 # Do not add a GitHub Action until the secret exists.
 `,
@@ -453,6 +572,16 @@ if (cmd === "list") {
   console.log("worktree --lane <id> --base <sha>");
   console.log("disjoint <LANE> <LANE>");
   console.log("census [--lister <command>]");
+  console.log("store [--store <path>]");
+  process.exit(0);
+}
+
+if (cmd === "store") {
+  // Reads the store in the same act as it prints it (T04), names an absent one
+  // as a zero (P2), and always exits 0: the drift line is a report, not a gate
+  // (T82, P4). `--store` points it at a store other than this machine's, which
+  // is how a fixture drives a proof on a machine whose store it must not read.
+  process.stdout.write(storeReport(store || memoryStorePath()).join(NL) + NL);
   process.exit(0);
 }
 
@@ -678,6 +807,25 @@ if (cmd === "--self-test") {
   want("aider carrier", carrierLine("aider"), "#   aider --model openai/" + hosted + " < packet.txt");
   ok("the live hosted id reaches no rendered recipe", Object.values(rendered).some((t) => t.includes(hosted)));
 
+  // P1/P3 (D-72) — the launch names the context that reaches a seat from
+  // OUTSIDE this repository. The memory store is injected ahead of the packet
+  // and is in no packet, under no budget and in no gate, so the launch is the
+  // only place a successor can learn it is there. The launch names the command
+  // that measures it; the numbers live in that command, read from the store in
+  // the same act as they are printed (T04), because a number copied into the
+  // recipe would be carried and a copied count agrees with itself and with
+  // nothing on the disk. Every recipe that hands a seat a packet carries it,
+  // read off the RENDERED text (D-59).
+  const storeLine = (id) => linesOf(rendered[id]).find((l) => /\bseat\.mjs store\b/.test(l)) || "";
+  const storeless = named.filter((id) => !storeLine(id));
+  ok(
+    "a launch hands over a packet and never names the memory store that also reaches the seat",
+    storeless.length === 0,
+    storeless,
+  );
+  ok("no rendered recipe names packet.mjs, so the store rule proves nothing", named.length >= 1);
+  want("qwen-code store line", storeLine("qwen-code"), "#   node factory/tools/seat.mjs store");
+
   // P2 — no dropped id survives in a RENDERED recipe (D-59), and the list
   // examined is factory/writer-paths.json's own, read here rather than written
   // out again (T29, T75). An empty list fails: a scan of nothing cannot be
@@ -766,6 +914,8 @@ if (cmd === "--self-test") {
   const fixture = mkdtempSync(join(tmpdir(), "grok-f37-seat-"));
   const bare = mkdtempSync(join(tmpdir(), "grok-f37-bare-"));
   const baseTree = mkdtempSync(join(tmpdir(), "grok-f52-seat-base-"));
+  const storeA = mkdtempSync(join(tmpdir(), "grok-f54-store-a-"));
+  const storeB = mkdtempSync(join(tmpdir(), "grok-f54-store-b-"));
   const runSeat = (args, tree) => spawnSync(process.execPath, [self, ...args, "--root", tree], { encoding: "utf8" });
   try {
     mkdirSync(join(fixture, "factory"), { recursive: true });
@@ -976,10 +1126,82 @@ if (cmd === "--self-test") {
         [r.stdout],
       );
     }
+
+    // P1/P3 — the store report reads the store in the same act as it prints it
+    // (T04). Two fixtures with different contents, driven through the CLI a
+    // person runs: one hardcoded count cannot answer both (D-59). Nothing here
+    // reads, copies or prints a file's CONTENT — name, size and count only.
+    writeFileSync(join(storeA, "alpha.md"), "x".repeat(120));
+    writeFileSync(join(storeA, "beta.md"), "y".repeat(7));
+    mkdirSync(join(storeA, "nested"), { recursive: true });
+    writeFileSync(join(storeA, "nested", "gamma.md"), "z".repeat(5));
+    writeFileSync(join(storeB, "only.md"), "q".repeat(41));
+    const a = runSeat(["store", "--store", storeA], fixture);
+    ok("store exited " + a.status, a.status === 0, [a.stderr]);
+    const aOut = a.stdout || "";
+    ok("the store report did not name the store's path", aOut.includes(storeA), [aOut]);
+    ok("the store report did not read the store's count and bytes", /files 3\b/.test(aOut) && /bytes 132\b/.test(aOut), [aOut]);
+    ok(
+      "the store report did not name each file with its size",
+      /alpha\.md 120\b/.test(aOut) && /beta\.md 7\b/.test(aOut) && /nested\/gamma\.md 5\b/.test(aOut),
+      [aOut],
+    );
+    ok("the store report printed the CONTENTS of a store file", !aOut.includes("xxx"), [aOut]);
+    const b = runSeat(["store", "--store", storeB], fixture);
+    ok("store exited " + b.status, b.status === 0, [b.stderr]);
+    const bOut = b.stdout || "";
+    ok("a second store printed the first store's numbers", /files 1\b/.test(bOut) && /bytes 41\b/.test(bOut), [bOut]);
+    ok("a second store reprinted the first store's file", !bOut.includes("alpha.md"), [bOut]);
+    ok("the store report printed the CONTENTS of a store file", !bOut.includes("qqq"), [bOut]);
+
+    // P2 — an absent store is a NAMED zero, not silence. A silent pass cannot
+    // be told from a check that never ran (F49), and the absent case is the one
+    // that runs on every machine that is not this one.
+    const missing = runSeat(["store", "--store", join(fixture, "no-such-store")], fixture);
+    ok("an absent store exited " + missing.status, missing.status === 0, [missing.stderr]);
+    ok("an absent store was silent", /looked and found none/.test(missing.stdout || ""), [missing.stdout]);
+    ok("an absent store did not report a zero", /\(0 files, 0 bytes\)/.test(missing.stdout || ""), [missing.stdout]);
+    // A machine with no home directory at all: no crash, and a named zero. The
+    // case is driven in-process against the two functions the command calls,
+    // because a child on Windows gets USERPROFILE handed back by the platform
+    // whatever the env block says — a child fixture would measure the OS, not
+    // this code. The functions called are the exported ones the gate's file
+    // ships, not a copy (D-59).
+    const keptEnv = {};
+    for (const k of ["USERPROFILE", "HOME", "HOMEDRIVE", "HOMEPATH"]) {
+      keptEnv[k] = process.env[k];
+      delete process.env[k];
+    }
+    try {
+      want("no home directory names no store", memoryStorePath(), null);
+      const nullStore = storeReport(memoryStorePath()).join(NL);
+      ok(
+        "a machine with no home directory was silent about the store",
+        /no home directory/.test(nullStore) && /looked and found none/.test(nullStore),
+        [nullStore],
+      );
+      ok("a machine with no home directory did not report a zero", /\(0 files, 0 bytes\)/.test(nullStore), [nullStore]);
+    } finally {
+      for (const [k, v] of Object.entries(keptEnv)) if (v !== undefined) process.env[k] = v;
+    }
+
+    // P4 — growth is visible and visibility is all it buys. The fixture store
+    // is 7160 bytes and two files under the baseline, the command still exits
+    // 0, and its own line says the number is a report rather than implying a
+    // check that is not there (T82).
+    ok("a store far under the baseline failed the command", a.status === 0, [a.stderr]);
+    ok(
+      "the report did not print the total against the stated baseline",
+      /baseline 7292 bytes over 5 files/.test(aOut) && /drift -7160 bytes, -2 files/.test(aOut),
+      [aOut],
+    );
+    ok("the drift line does not say it is a report and not a gate", /reported, not gated/.test(aOut), [aOut]);
   } finally {
     rmSync(fixture, { recursive: true, force: true });
     rmSync(bare, { recursive: true, force: true });
     rmSync(baseTree, { recursive: true, force: true });
+    rmSync(storeA, { recursive: true, force: true });
+    rmSync(storeB, { recursive: true, force: true });
   }
 
   if (failed.length) {
@@ -991,5 +1213,5 @@ if (cmd === "--self-test") {
   process.exit(0);
 }
 
-console.error("usage: node factory/tools/seat.mjs list|recipe|worktree|disjoint|census|--self-test");
+console.error("usage: node factory/tools/seat.mjs list|recipe|worktree|disjoint|census|store|--self-test");
 process.exit(1);
