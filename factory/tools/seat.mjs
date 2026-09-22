@@ -39,6 +39,10 @@ import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+// The hosted map, the dropped list and the dropped-id scan are route.mjs's,
+// imported rather than copied (T29, T75, D-67). route.mjs's commands are
+// behind an entry guard, so importing it runs no CLI and probes no network.
+import { HOSTED_IDS, hostedModel, droppedIds, droppedAudit, catalogIds } from "./route.mjs";
 
 const kitRoot = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const NL = String.fromCharCode(10);
@@ -64,16 +68,28 @@ const { root, rest } = parseArgs(process.argv.slice(2));
 
 const writerModel = JSON.parse(readFileSync(join(kitRoot, "factory", "project.json"), "utf8")).writerModel;
 
-// Native catalog ids are not DashScope API ids. Hosted recipes print the map.
-const HOSTED = {
-  "qwen3-coder": "qwen3-coder-plus",
-  "deepseek-flash": "deepseek-v4.1-flash",
-  "deepseek-v4-pro": "deepseek-v4-pro-0813",
-};
-function hostedModel(id) {
-  return HOSTED[id] || id;
-}
+// Native catalog ids are not DashScope API ids. The map is route.mjs's, the
+// one copy in this kit, and this file reads it instead of keeping a second
+// (T29, T75). Hosted recipes print the map's answer for the live pick.
 const hosted = hostedModel(writerModel);
+
+// The DashScope base is factory/writer-paths.json bases.dashscope, read from
+// the tree this file was pointed at, never copied into a recipe (T75). The
+// `--root` tree supplies it so a fixture can render a recipe against its own
+// spec: a hardcode renders the same text as a read in the tree this kit ships
+// in, so the only way to tell them apart is to change the file and look again.
+function dashscopeBaseOf(tree) {
+  for (const t of [tree, kitRoot]) {
+    try {
+      const bases = JSON.parse(readFileSync(join(t, "factory", "writer-paths.json"), "utf8")).bases;
+      if (bases && bases.dashscope) return String(bases.dashscope);
+    } catch {
+      // fall through to the next tree
+    }
+  }
+  return "";
+}
+const dashscopeBase = dashscopeBaseOf(root);
 
 // The reading path is the packet, handed to the seat on stdin. A cap-sized
 // packet as one argv string is over the Windows command-line limit, and the
@@ -104,20 +120,17 @@ const RECIPES = {
   "qwen-code": (m) => `# Writer seat — Qwen Code.
 # Control plane stays Grok (or Claude desktop). Do not remap the CP session.
 
-export OPENAI_BASE_URL="\${OPENAI_BASE_URL:-http://127.0.0.1:11434/v1}"
-export OPENAI_API_KEY="\${OPENAI_API_KEY:-local}"
+export OPENAI_BASE_URL="\${OPENAI_BASE_URL:-${dashscopeBase}}"
+export OPENAI_API_KEY="\${OPENAI_API_KEY:-\${DASHSCOPE_API_KEY}}"
 
-# Local:
-#   ollama pull qwen3-coder
-#   qwen --auth-type openai --model qwen3-coder
-#
-# Hosted instead:
+# Hosted on DashScope. The base is factory/writer-paths.json bases.dashscope,
+# read here and never copied into this recipe (T75).
 # Linux/Mac:
-#   export OPENAI_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+#   export OPENAI_BASE_URL="${dashscopeBase}"
 #   export OPENAI_API_KEY="\${DASHSCOPE_API_KEY}"
 #   qwen --auth-type openai --model ${m}
 # Windows:
-#   $env:OPENAI_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+#   $env:OPENAI_BASE_URL="${dashscopeBase}"
 #   $env:OPENAI_API_KEY=[Environment]::GetEnvironmentVariable("DASHSCOPE_API_KEY","User")
 #   qwen --auth-type openai --model ${m}
 #
@@ -128,20 +141,21 @@ export OPENAI_API_KEY="\${OPENAI_API_KEY:-local}"
 ${packetStdin("qwen --auth-type openai --model <id> --approval-mode yolo -p -")}
 # Print-mode. Poll long jobs in the foreground.
 `,
-  aider: `# Writer seat — Aider. Git-native. OpenAI-compat.
+  aider: (m) => `# Writer seat — Aider. Git-native. OpenAI-compat.
 # Control plane stays Grok. Do not remap the CP session.
 
-# Local Qwen:
-#   export OPENAI_API_BASE="http://127.0.0.1:11434/v1"
-#   export OPENAI_API_KEY="local"
-#   aider --model ollama/qwen3-coder
+# DashScope hosted. The base is factory/writer-paths.json bases.dashscope, read
+# here and never copied into this recipe (T75).
+#   export OPENAI_API_BASE="${dashscopeBase}"
+#   export OPENAI_API_KEY="\${DASHSCOPE_API_KEY}"
+#   aider --model openai/${m}
 #
-# DeepSeek:
+# DeepSeek native:
 #   export OPENAI_API_BASE="https://api.deepseek.com/v1"
 #   export OPENAI_API_KEY="\${DEEPSEEK_API_KEY}"
 #   aider --model deepseek/deepseek-chat
 #
-${packetStdin("aider --model ollama/qwen3-coder")}
+${packetStdin("aider --model openai/" + m)}
 ${UNVERIFIED_APPROVAL}
 # Print-mode. Worktree only.
 `,
@@ -263,10 +277,10 @@ ${UNVERIFIED_APPROVAL}
 # 3. node factory/tools/hands.mjs apply-topology pc-dashscope
 # 4. isolate, then:
 # Linux/Mac:
-#    OPENAI_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+#    OPENAI_BASE_URL=${dashscopeBase}
 #    qwen --auth-type openai --model ${m}
 # Windows:
-#    $env:OPENAI_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+#    $env:OPENAI_BASE_URL="${dashscopeBase}"
 #    $env:OPENAI_API_KEY=[Environment]::GetEnvironmentVariable("DASHSCOPE_API_KEY","User")
 #    qwen --auth-type openai --model ${m}
 #
@@ -278,7 +292,7 @@ ${packetStdin("qwen --auth-type openai --model " + m + " --approval-mode yolo")}
 # 1. Place DASHSCOPE_API_KEY as a Codespaces secret once.
 # 2. node factory/tools/hands.mjs apply-topology cloud-dashscope
 # 3. isolate prints gh codespace create. Recipe is qwen-code hosted.
-#    OPENAI_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+#    OPENAI_BASE_URL=${dashscopeBase}
 #    qwen --auth-type openai --model ${m}
 #
 ${packetStdin("qwen --auth-type openai --model " + m + " --approval-mode yolo")}
@@ -608,11 +622,25 @@ if (cmd === "--self-test") {
     if (!cond) failed.push(label + (detail && detail.filter(Boolean).length ? ": " + detail.filter(Boolean).join(" ") : ""));
   }
 
-  // The hosted map, unmoved from F36's step.
+  // P5 — this file holds no model map of its own. `hosted` is route.mjs's
+  // exported map read through the live pick, so an edit to route's map alone
+  // moves this value with no edit here, and a local copy would only agree with
+  // route's by hand until the first change to either (T29, T75, D-67).
+  // route.mjs's commands are behind an entry guard, so this import runs no CLI.
   want("flash", hostedModel("deepseek-flash"), "deepseek-v4.1-flash");
-  want("pro", hostedModel("deepseek-v4-pro"), "deepseek-v4-pro-0813");
-  want("plus", hostedModel("qwen3-coder"), "qwen3-coder-plus");
   want("passthrough", hostedModel("deepseek-v4.1-flash"), "deepseek-v4.1-flash");
+  want("hosted-is-not-route-s-map-for-the-live-pick", hosted, HOSTED_IDS[writerModel] || writerModel);
+  const catalog = catalogIds();
+  ok(
+    "route's hosted map names an id the catalog does not offer",
+    Object.values(HOSTED_IDS).every((v) => catalog.includes(v)),
+    Object.values(HOSTED_IDS).filter((v) => !catalog.includes(v)),
+  );
+  ok(
+    "a dropped id is back in route's hosted map",
+    Object.keys(HOSTED_IDS).every((k) => catalog.includes(k)),
+    Object.keys(HOSTED_IDS).filter((k) => !catalog.includes(k)),
+  );
 
   // Everything below reads a RENDERED recipe, never the source text that
   // produced it. An assertion compared against the code that wrote it agrees
@@ -645,8 +673,41 @@ if (cmd === "--self-test") {
   ok("a recipe hands the packet over as an argv substitution", argvForms.length === 0, argvForms);
   ok("a recipe names packet.mjs and prints no stdin carrier", carrierless.length === 0, carrierless);
   want("qwen-code carrier", carrierLine("qwen-code"), "#   qwen --auth-type openai --model <id> --approval-mode yolo -p - < packet.txt");
-  want("aider carrier", carrierLine("aider"), "#   aider --model ollama/qwen3-coder < packet.txt");
+  // The aider carrier moves WITH the recipe: it is the live pick read through
+  // route's map, so a dropped id put back into the recipe reds this line (P2).
+  want("aider carrier", carrierLine("aider"), "#   aider --model openai/" + hosted + " < packet.txt");
   ok("the live hosted id reaches no rendered recipe", Object.values(rendered).some((t) => t.includes(hosted)));
+
+  // P2 — no dropped id survives in a RENDERED recipe (D-59), and the list
+  // examined is factory/writer-paths.json's own, read here rather than written
+  // out again (T29, T75). An empty list fails: a scan of nothing cannot be
+  // told from a scan that never ran (F49).
+  const dropped = droppedIds();
+  want("the-dropped-list-is-empty-so-the-recipe-scan-proves-nothing", dropped.length > 0, true);
+  const recipeAudit = droppedAudit(
+    Object.keys(rendered).map((id) => ({ label: "recipe " + id, text: rendered[id] })),
+    dropped,
+  );
+  want("a-rendered-recipe-carries-a-dropped-id", recipeAudit.status, "clean");
+  if (recipeAudit.status !== "clean") for (const line of recipeAudit.lines) failed.push("  " + line);
+
+  // P6 — no recipe hardcodes the DashScope base. Every dashscope URL a
+  // RENDERED recipe carries is factory/writer-paths.json bases.dashscope, read
+  // from the tree this file was pointed at (T75). A hardcode of that same URL
+  // renders identical text here, so the seam case below changes that file and
+  // renders the recipes again.
+  const urlPattern = /https?:\/\/[^\s"'{}()<>\\]+/g;
+  const strayBase = [];
+  let baseHits = 0;
+  for (const [id, text] of Object.entries(rendered)) {
+    for (const url of text.match(urlPattern) || []) {
+      if (!/dashscope|aliyuncs/i.test(url)) continue;
+      baseHits++;
+      if (url !== dashscopeBase) strayBase.push(id + " carries " + url);
+    }
+  }
+  ok("a rendered recipe carries a dashscope base that is not the spec's", strayBase.length === 0, strayBase);
+  ok("no rendered recipe carries a dashscope base, so this rule proves nothing", baseHits >= 5);
 
   // Item 5 — a print-mode recipe names a VERIFIED approval mode, or says that
   // harness's option was not verified here. A print-mode seat has no terminal
@@ -704,6 +765,7 @@ if (cmd === "--self-test") {
   const self = fileURLToPath(import.meta.url);
   const fixture = mkdtempSync(join(tmpdir(), "grok-f37-seat-"));
   const bare = mkdtempSync(join(tmpdir(), "grok-f37-bare-"));
+  const baseTree = mkdtempSync(join(tmpdir(), "grok-f52-seat-base-"));
   const runSeat = (args, tree) => spawnSync(process.execPath, [self, ...args, "--root", tree], { encoding: "utf8" });
   try {
     mkdirSync(join(fixture, "factory"), { recursive: true });
@@ -887,9 +949,37 @@ if (cmd === "--self-test") {
     writeFileSync(emptyLister, "process.stdout.write('');" + NL);
     const cenEmpty = runSeat(["census", "--lister", '"' + process.execPath + '" "' + emptyLister + '"'], fixture);
     ok("an empty process listing reported a seat", (cenEmpty.stdout || "").includes("0 running writer seat(s)"), [cenEmpty.stdout]);
+
+    // P6's second direction — a tree that owns a DIFFERENT bases.dashscope.
+    // Every rendered recipe must follow it, and none may still carry this
+    // kit's URL. A hardcode of the same string renders identically in the tree
+    // this file ships in, so this is the only measurement that tells a read
+    // from a copy (T75, D-59). Driven through the recipe verb a caller runs,
+    // on the tree it was pointed at.
+    mkdirSync(join(baseTree, "factory"), { recursive: true });
+    const fixtureBase = "https://zzz-fixture.invalid/compatible-mode/v1";
+    writeFileSync(
+      join(baseTree, "factory", "writer-paths.json"),
+      JSON.stringify({ bases: { dashscope: fixtureBase, native: "https://api.deepseek.com/v1" } }),
+    );
+    for (const id of ["qwen-code", "desktop-qwen", "aider", "pc-dashscope", "cloud-dashscope"]) {
+      const r = runSeat(["recipe", id], baseTree);
+      ok("recipe " + id + " exited " + r.status, r.status === 0, [r.stderr]);
+      ok(
+        "recipe " + id + " did not render its tree's own dashscope base",
+        (r.stdout || "").includes(fixtureBase),
+        [r.stdout],
+      );
+      ok(
+        "recipe " + id + " still carries this kit's dashscope base",
+        !(r.stdout || "").includes(dashscopeBase),
+        [r.stdout],
+      );
+    }
   } finally {
     rmSync(fixture, { recursive: true, force: true });
     rmSync(bare, { recursive: true, force: true });
+    rmSync(baseTree, { recursive: true, force: true });
   }
 
   if (failed.length) {
