@@ -48,6 +48,15 @@
       "whyNotLaw": "T82's own rule - a budget names the object it measured - unclosed in the tool T82's Check sentence names. F46 fixed the LABEL in sizeBudget.mjs and the two tools now agree, which is why it reads green: they agree because both call total(), and both are low by the same 106 bytes. Gate step 17, the seat packet error and every band inherit it. Two readings. One: S21 one level down, closed the same way, by measuring what render emits. Two: the separators are a constant of the part COUNT, not content, so a cap may deliberately name content and the fix is a documented derivation, not a new number - and the prefix must stay byte-stable for the 95 per cent cache hit, so changing what is counted must not change what is emitted. Measure before ruling: whether any lane was ever issued between the two numbers, and whether D-57's 25.3 KB and D-66's 85-bytes-from-red were content or emitted bytes.",
       "status": "open",
       "openedOn": 13
+    },
+    {
+      "id": "S31",
+      "kind": "trap",
+      "claim": "Rule I scopes dated fields to decisions.json rows and board ledger rows - prose is not scanned. F54 put STORE_BASELINE.at in tool SOURCE dated 2026-09-23 when UTC was 2026-09-22, printed on every store run, and 22 of 22 passed.",
+      "object": "factory/tools/kitCheck.mjs",
+      "whyNotLaw": "Two readings the control plane cannot settle from the objects. One: extend rule I to dated fields wherever they live, F41's rule finally applied to its whole surface - the shipped tool prints (D-72, 2026-09-23) while D-72's own at is 2026-09-22, so it cites a row that contradicts it, which is rule H's family and not only a clock error. Two: a dated CONSTANT in source may be the wrong shape rather than an unchecked one. STORE_BASELINE also carries bytes 7292, files 5 and decision D-72, none tied to decisions.json, so the baseline goes stale silently and a renumbered row prints an unresolvable citation; the fix might be to derive it from the row rather than check the copy. Measure before ruling: how many dated or id-bearing constants already sit in factory/tools, and whether a check could read them without a convention that does not yet exist.",
+      "status": "open",
+      "openedOn": 13
     }
   ]
 }
