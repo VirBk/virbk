@@ -122,7 +122,16 @@ function tokensOf(text) {
 
 export function droppedAudit(objects, ids) {
   const list = (Array.isArray(ids) ? ids : []).map(String).filter(Boolean);
-  const surfaces = (Array.isArray(objects) ? objects : []).map((o) => (o && o.label) || "surface");
+  const objs = Array.isArray(objects) ? objects : [];
+  const labelOf = (o) => (o && o.label) || "surface";
+  // F53 correction 1 (C5). A label is not a scan. Counting every object's label
+  // let two of three surfaces carry text: "" while the report still said
+  // "examined 6 id(s) over 3 surface(s)" and passed. A surface counts only when
+  // it CARRIES TEXT; a blank one is held aside, named in the lines, and keeps
+  // the run from being called clean.
+  const carriesText = (o) => typeof (o && o.text) === "string" && o.text.trim().length > 0;
+  const surfaces = objs.filter(carriesText).map(labelOf);
+  const blank = objs.filter((o) => !carriesText(o)).map(labelOf);
   // F53 P3. A count of ids is not a count of surfaces. Reporting "examined six
   // id(s)" while the surface list is empty is a pass that cannot be told from a
   // check that never ran (F49), so an empty surface list FAILS and names itself.
@@ -131,8 +140,12 @@ export function droppedAudit(objects, ids) {
       status: "no-surfaces",
       examined: list.length,
       surfaces,
+      blank,
       lines: [
-        "dropped-audit: examined " + list.length + " id(s) over 0 surface(s) - the surface list is empty, so this check examined nothing",
+        "dropped-audit: examined " + list.length + " id(s) over 0 surface(s) - " +
+          (blank.length
+            ? "every surface arrived with no text (" + blank.join(", ") + "), so this check examined nothing"
+            : "the surface list is empty, so this check examined nothing"),
       ],
     };
   }
@@ -141,19 +154,28 @@ export function droppedAudit(objects, ids) {
       status: "empty",
       examined: 0,
       surfaces,
+      blank,
       lines: [
         "dropped-audit: examined 0 id(s) over " + surfaces.length + " surface(s) - the dropped list is empty, so this check examined nothing",
       ],
     };
   }
   const lines = [];
-  for (const obj of objects) {
+  for (const obj of objs) {
     const seen = new Set(tokensOf(obj && obj.text));
     for (const id of list) {
-      if (seen.has(id)) lines.push((obj.label || "surface") + " carries dropped id " + id);
+      if (seen.has(id)) lines.push(labelOf(obj) + " carries dropped id " + id);
     }
   }
-  return { status: lines.length ? "dirty" : "clean", examined: list.length, surfaces, lines };
+  if (lines.length) return { status: "dirty", examined: list.length, surfaces, blank, lines };
+  if (blank.length) {
+    lines.push(
+      "dropped-audit: " + blank.length + " surface(s) arrived with no text (" + blank.join(", ") + ") - this check read " +
+        surfaces.length + " of " + objs.length + " surface(s), so the clean it would report is not one it made",
+    );
+    return { status: "empty-surfaces", examined: list.length, surfaces, blank, lines };
+  }
+  return { status: "clean", examined: list.length, surfaces, blank, lines };
 }
 
 // The surfaces a seat or a launcher reads for a model id: the hosted map's two
@@ -479,6 +501,27 @@ if (cmd === "--self-test") {
   want("seam-surfaceless-names-the-empty-surface-list", surfaceless.lines.join(" ").includes("0 surface(s)"), true);
   const prefix = droppedAudit([{ label: "fixture", text: "zzz-fixture-b-plus" }], ["zzz-fixture-b"]);
   want("seam-prefix-is-not-a-hit", prefix.status, "clean");
+  // F53 correction 1 (C5). The count above is taken from the surfaces that
+  // CARRIED TEXT, not from the objects that were passed in. Counting labels is
+  // how two of three surfaces could be blank and the run still report
+  // "examined N id(s) over 3 surface(s)" and pass. Seed a blank surface beside
+  // the clause, not instead of it.
+  const blanked = droppedAudit(
+    [
+      { label: "fixture-one", text: "" },
+      { label: "fixture-two", text: "   " },
+      { label: "fixture-three", text: "zzz-fixture-c" },
+    ],
+    ["zzz-fixture-a"],
+  );
+  want("seam-blank-surfaces-status", blanked.status, "empty-surfaces");
+  want("seam-blank-surfaces-counts-only-the-one-with-text", blanked.surfaces.length, 1);
+  want("seam-blank-surfaces-names-the-empty-one", blanked.lines.join(" ").includes("fixture-one"), true);
+  want("seam-blank-surfaces-names-the-whitespace-one", blanked.lines.join(" ").includes("fixture-two"), true);
+  const allBlank = droppedAudit([{ label: "fixture-blank", text: "  " }], ["zzz-fixture-a"]);
+  want("seam-all-blank-is-no-surfaces", allBlank.status, "no-surfaces");
+  want("seam-all-blank-counts-no-surface", allBlank.surfaces.length, 0);
+  want("seam-all-blank-names-the-blank-label", allBlank.lines.join(" ").includes("fixture-blank"), true);
 
   // P3's wiring half, and P4 at the CLI (F50, D-71): the fixtures drive the
   // exact command the gate runs, on a tree of their own, and read that tree's
@@ -488,14 +531,25 @@ if (cmd === "--self-test") {
   const runRoute = (args, tree) => spawnSync(process.execPath, [self, ...args, "--root", tree], { encoding: "utf8" });
   const trees = [];
   try {
+    const fixtureId = "zzz-fixture-dropped";
+    const fixtureCatalogId = "fixture-catalog-live";
     const mk = (name) => {
       const tree = mkdtempSync(join(tmpdir(), "grok-f52-" + name + "-"));
       trees.push(tree);
       mkdirSync(join(tree, "factory"), { recursive: true });
       writeFileSync(join(tree, "factory", "writer-paths.json"), JSON.stringify(pathsSpec()));
+      // F53 correction 1 (C5). Every surface this check reads has to CARRY TEXT
+      // or the audit refuses to call itself clean, and a tree that copies only
+      // the files it drives names no catalog — a blank surface. So the fixture
+      // writes one, and the clause below is a clean the check actually made.
+      // Before the fix the count came from labels and this tree passed a check
+      // it had not run.
+      writeFileSync(
+        join(tree, "factory", "runtimes.json"),
+        JSON.stringify({ catalog: { writerModel: [{ id: fixtureCatalogId }] } }),
+      );
       return tree;
     };
-    const fixtureId = "zzz-fixture-dropped";
 
     const one = mk("dropped-one");
     const oneSpec = JSON.parse(readFileSync(join(one, "factory", "writer-paths.json"), "utf8"));

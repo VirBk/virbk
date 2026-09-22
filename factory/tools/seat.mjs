@@ -758,17 +758,49 @@ if (cmd === "--self-test") {
   // route.mjs's commands are behind an entry guard, so this import runs no CLI.
   want("flash", hostedModel("deepseek-flash"), "deepseek-v4.1-flash");
   want("passthrough", hostedModel("deepseek-v4.1-flash"), "deepseek-v4.1-flash");
-  // F53 P2. The clause here compared hostedModel(writerModel) with
-  // HOSTED_IDS[writerModel] — both sides read out of route.mjs, so it checked
-  // route against route and a copy of the map re-grown inside this file would
-  // have passed it; only a move in route's own map could red it (T75, T48).
-  // What has to be true is that this file keeps no map: read this file's own
-  // source and refuse any key:value pair the router already owns.
+  // F53 P2/C1. The clause sits here again, BESIDE the scan that P2 swapped for
+  // it. It compares the value the live pick was bound to with route's own map
+  // read a second time, so a local map this file grew and pointed the pick at
+  // reds the moment that map diverges from route's (T75, D-67). What it cannot
+  // see is a local copy that still agrees by hand: a byte-identical copy passes
+  // this clause and drifts only at the next change to either. That is the case
+  // the scan below is for, and neither check contains the other.
+  want("hosted-is-not-route-s-map-for-the-live-pick", hosted, HOSTED_IDS[writerModel] || writerModel);
+  // F53 P2/C2/C3. The scan: this file keeps no pair route already owns. Read
+  // this file's own source and refuse any `<native id>: <hosted id>` pair the
+  // router's map holds — the copy the clause above passes, because its values
+  // still agree.
+  //
+  // LIMIT, named the way T77 names the one its check leaves uncovered: this
+  // matches ONE spelling — a double-quoted key, a bare colon, a double-quoted
+  // value, on one line. A copy written with single quotes, built through
+  // Object.fromEntries([[k, v]]), or keyed by a computed `[K]: v` is a spelling
+  // the scan does not see, and no source scan closes that race; the run-time
+  // clause above is what keeps those honest. The two ids are escaped before
+  // they become a pattern, because the dot in deepseek-v4.1-flash is otherwise
+  // a wildcard that would match a neighbour id.
+  function regrownKeysIn(source) {
+    const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return Object.entries(HOSTED_IDS)
+      .filter(([k, v]) => new RegExp(escape(JSON.stringify(k)) + "\\s*:\\s*" + escape(JSON.stringify(v))).test(source))
+      .map(([k]) => k);
+  }
   const seatSource = readFileSync(fileURLToPath(import.meta.url), "utf8");
-  const regrown = Object.entries(HOSTED_IDS).filter(([k, v]) =>
-    new RegExp(JSON.stringify(k) + "\\s*:\\s*" + JSON.stringify(v)).test(seatSource),
+  const regrown = regrownKeysIn(seatSource);
+  ok("seat.mjs carries a local copy of route's hosted map", regrown.length === 0, regrown);
+  // C2 — the positive control. A scan that found nothing is a claim about this
+  // file until the matcher is proved to fire on a source that CONTAINS the pair
+  // (F48), so the matcher is driven against one here. The pair is built from
+  // route's map at run time, never typed out: a literal pair in this file would
+  // be exactly the local copy the scan above is right to refuse.
+  const [controlKey, controlValue] = Object.entries(HOSTED_IDS)[0];
+  const controlSource = "const LOCAL = { " + JSON.stringify(controlKey) + ": " + JSON.stringify(controlValue) + " };";
+  const control = regrownKeysIn(controlSource);
+  ok(
+    "the local-map matcher did not fire on a source that carries the pair, so a clean scan proves nothing",
+    control.length === 1 && control[0] === controlKey,
+    [JSON.stringify(control)],
   );
-  ok("seat.mjs carries a local copy of route's hosted map", regrown.length === 0, regrown.map(([k]) => k));
   const catalog = catalogIds();
   ok(
     "route's hosted map names an id the catalog does not offer",
