@@ -99,6 +99,10 @@ const TEMPLATE =
       measured: "GATE PASSED",
       spendUsd: 0,
       cachedTokens: 0,
+      // D-72/T84. What the review cost travels with the return, so the thing a
+      // returner copies shows the row. Omit the whole row when no review ran —
+      // an empty row is a named refusal, not a pass.
+      review: { tier: "<reviewer tier: keystone | strong | same-tier>", tokens: 0, toolUses: 0 },
       note: "",
     },
     null,
@@ -796,6 +800,34 @@ function selfTest() {
   if (!/empty row/.test(emptyRow)) {
     errors.push("an empty review row was not refused by name: " + (emptyRow || "no error at all"));
   }
+  // F53 P5. The row D-72 requires, and T84 checks, must be discoverable in the
+  // thing a returner copies — a field enabled but undiscoverable is the
+  // complaint D-72 answered. Read it through the command a returner runs, not
+  // the constant (D-59), and keep the omission legal: the template carrying it
+  // must not have turned an optional row into a required one.
+  const printed = spawnSync(process.execPath, [fileURLToPath(import.meta.url), "--template"], { encoding: "utf8" });
+  if (printed.status !== 0) {
+    errors.push("--template failed: " + (printed.stderr || "").trim());
+  } else {
+    let emitted = null;
+    try {
+      emitted = JSON.parse(printed.stdout);
+    } catch (e) {
+      errors.push("--template did not emit JSON: " + e.message);
+    }
+    if (emitted) {
+      if (!emitted.review || typeof emitted.review !== "object" || Array.isArray(emitted.review)) {
+        errors.push("the printed template carries no review row, so D-72's row is undiscoverable");
+      } else {
+        const missing = REVIEW_FIELDS.filter((f) => !(f in emitted.review));
+        if (missing.length) errors.push("the printed template's review row has no " + missing.join(", "));
+      }
+      const omitted = returnErrors(kitRoot, strip(emitted, ["review"]));
+      if (omitted.length) {
+        errors.push("a return that omits the review row no longer passes: " + omitted.join(", "));
+      }
+    }
+  }
 
   // The store: a row survives, a re-record is refused, spend sums rows.
   const dir = mkdtempSync(join(tmpdir(), "seat-return-"));
@@ -917,6 +949,39 @@ function selfTest() {
   if (!sameModel("deepseek-flash", "deepseek-flash")) errors.push("an id does not fold to itself");
   if (sameModel("deepseek-flash", "deepseek-v4-pro")) errors.push("two different models folded as one");
   if (sameModel("qwen3.7-flash", "qwen3.8-max")) errors.push("two different models folded as one");
+
+  // F53 P1. sameModel is pinned above, but the fold that SHIPS is the find()
+  // inside record(): nothing drove it with ids the router cannot place, so a
+  // fold that agreed on two strangers could be restored with every clause above
+  // still green (T13, D-59, D-69). Drive record() itself — a fixture calling
+  // sameModel again would restate the defect. The meter answers with one
+  // unrecognised id; the return claims that same id (folds to itself, accepted)
+  // and then a different one (must be refused, naming both).
+  const strangerDir = mkdtempSync(join(tmpdir(), "seat-return-stranger-"));
+  try {
+    const strangerMeter = join(strangerDir, "usage_record.jsonl");
+    writeFileSync(
+      strangerMeter,
+      JSON.stringify({
+        sessionId: "stranger",
+        timestamp: 10,
+        project,
+        models: { "zzz-unknown-a": counts(1, 1, 1, 0) },
+      }) + NL,
+    );
+    const alike = record(strangerDir, { ...good, lane: "F53", model: "zzz-unknown-a" }, project, strangerMeter);
+    if (!alike.ok) {
+      errors.push("record() refused a return whose unrecognised id the meter itself recorded: " + alike.reason);
+    }
+    const near = record(strangerDir, { ...good, lane: "F53", model: "zzz-unknown-b" }, project, strangerMeter);
+    if (near.ok) {
+      errors.push("record() folded two unrecognised ids into one model");
+    } else if (!near.reason.includes("zzz-unknown-b") || !near.reason.includes("zzz-unknown-a")) {
+      errors.push("record()'s refusal of two strangers did not name both ids: " + near.reason);
+    }
+  } finally {
+    rmSync(strangerDir, { recursive: true, force: true });
+  }
 
   // T69, both halves. The return claims a model; the meter answers with the
   // id that actually answered; and a project the meter has no row for is a

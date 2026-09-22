@@ -122,21 +122,38 @@ function tokensOf(text) {
 
 export function droppedAudit(objects, ids) {
   const list = (Array.isArray(ids) ? ids : []).map(String).filter(Boolean);
+  const surfaces = (Array.isArray(objects) ? objects : []).map((o) => (o && o.label) || "surface");
+  // F53 P3. A count of ids is not a count of surfaces. Reporting "examined six
+  // id(s)" while the surface list is empty is a pass that cannot be told from a
+  // check that never ran (F49), so an empty surface list FAILS and names itself.
+  if (!surfaces.length) {
+    return {
+      status: "no-surfaces",
+      examined: list.length,
+      surfaces,
+      lines: [
+        "dropped-audit: examined " + list.length + " id(s) over 0 surface(s) - the surface list is empty, so this check examined nothing",
+      ],
+    };
+  }
   if (!list.length) {
     return {
       status: "empty",
       examined: 0,
-      lines: ["dropped-audit: examined 0 id(s) - the dropped list is empty, so this check examined nothing"],
+      surfaces,
+      lines: [
+        "dropped-audit: examined 0 id(s) over " + surfaces.length + " surface(s) - the dropped list is empty, so this check examined nothing",
+      ],
     };
   }
   const lines = [];
-  for (const obj of objects || []) {
+  for (const obj of objects) {
     const seen = new Set(tokensOf(obj && obj.text));
     for (const id of list) {
       if (seen.has(id)) lines.push((obj.label || "surface") + " carries dropped id " + id);
     }
   }
-  return { status: lines.length ? "dirty" : "clean", examined: list.length, lines };
+  return { status: lines.length ? "dirty" : "clean", examined: list.length, surfaces, lines };
 }
 
 // The surfaces a seat or a launcher reads for a model id: the hosted map's two
@@ -322,7 +339,10 @@ if (cmd === "probe") {
 // it examined. A dropped list that is empty is a failure, not a pass.
 if (cmd === "check-dropped") {
   const audit = droppedAudit(shippedSurfaces(root), droppedIds(root));
-  console.log("examined " + audit.examined + " id(s)");
+  console.log(
+    "examined " + audit.examined + " id(s) over " + audit.surfaces.length + " surface(s)" +
+      (audit.surfaces.length ? " (" + audit.surfaces.join(", ") + ")" : ""),
+  );
   if (audit.status !== "clean") {
     for (const line of audit.lines) console.error(line);
     process.exit(1);
@@ -358,6 +378,7 @@ if (cmd === "--self-test") {
   const dropped = droppedIds();
   want("the-dropped-list-is-empty-so-the-scan-proves-nothing", dropped.length > 0, true);
   const shipped = droppedAudit(shippedSurfaces(), dropped);
+  want("the-shipped-surface-list-is-empty-so-the-scan-proves-nothing", shipped.surfaces.length > 0, true);
   want("the-shipped-surface-is-clean", shipped.status, "clean");
   if (shipped.status !== "clean") for (const line of shipped.lines) failed.push("  " + line);
 
@@ -437,13 +458,25 @@ if (cmd === "--self-test") {
   const clean = droppedAudit([{ label: "fixture", text: "aider --model deepseek/deepseek-chat" }], ["zzz-fixture-a"]);
   want("seam-clean-status", clean.status, "clean");
   want("seam-clean-examined", clean.examined, 1);
+  // F53 P3. The count above is ids; the check also carries the surface list it
+  // actually scanned, so a report of "examined N id(s)" can be told from a
+  // check that never ran (F49).
+  want("seam-clean-surfaces", clean.surfaces.length, 1);
   const dirty = droppedAudit([{ label: "fixture", text: "aider --model ollama/zzz-fixture-b" }], ["zzz-fixture-b"]);
   want("seam-dirty-status", dirty.status, "dirty");
   want("seam-dirty-names-the-id", dirty.lines.join(" ").includes("zzz-fixture-b"), true);
+  want("seam-dirty-surfaces", dirty.surfaces.length, 1);
   const empty = droppedAudit([{ label: "fixture", text: "anything" }], []);
   want("seam-empty-status", empty.status, "empty");
   want("seam-empty-examined", empty.examined, 0);
   want("seam-empty-names-that-it-examined-nothing", empty.lines.join(" ").includes("examined nothing"), true);
+  // F53 P3. An empty surface list is its own failure, named: a check that read
+  // no object still counted its ids, so a caller that reports "examined 1 id(s)"
+  // cannot mistake it for a scan that ran (F49).
+  const surfaceless = droppedAudit([], ["zzz-fixture-a"]);
+  want("seam-surfaceless-status", surfaceless.status, "no-surfaces");
+  want("seam-surfaceless-still-counts-the-ids", surfaceless.examined, 1);
+  want("seam-surfaceless-names-the-empty-surface-list", surfaceless.lines.join(" ").includes("0 surface(s)"), true);
   const prefix = droppedAudit([{ label: "fixture", text: "zzz-fixture-b-plus" }], ["zzz-fixture-b"]);
   want("seam-prefix-is-not-a-hit", prefix.status, "clean");
 

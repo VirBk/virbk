@@ -758,7 +758,17 @@ if (cmd === "--self-test") {
   // route.mjs's commands are behind an entry guard, so this import runs no CLI.
   want("flash", hostedModel("deepseek-flash"), "deepseek-v4.1-flash");
   want("passthrough", hostedModel("deepseek-v4.1-flash"), "deepseek-v4.1-flash");
-  want("hosted-is-not-route-s-map-for-the-live-pick", hosted, HOSTED_IDS[writerModel] || writerModel);
+  // F53 P2. The clause here compared hostedModel(writerModel) with
+  // HOSTED_IDS[writerModel] — both sides read out of route.mjs, so it checked
+  // route against route and a copy of the map re-grown inside this file would
+  // have passed it; only a move in route's own map could red it (T75, T48).
+  // What has to be true is that this file keeps no map: read this file's own
+  // source and refuse any key:value pair the router already owns.
+  const seatSource = readFileSync(fileURLToPath(import.meta.url), "utf8");
+  const regrown = Object.entries(HOSTED_IDS).filter(([k, v]) =>
+    new RegExp(JSON.stringify(k) + "\\s*:\\s*" + JSON.stringify(v)).test(seatSource),
+  );
+  ok("seat.mjs carries a local copy of route's hosted map", regrown.length === 0, regrown.map(([k]) => k));
   const catalog = catalogIds();
   ok(
     "route's hosted map names an id the catalog does not offer",
@@ -806,6 +816,19 @@ if (cmd === "--self-test") {
   // route's map, so a dropped id put back into the recipe reds this line (P2).
   want("aider carrier", carrierLine("aider"), "#   aider --model openai/" + hosted + " < packet.txt");
   ok("the live hosted id reaches no rendered recipe", Object.values(rendered).some((t) => t.includes(hosted)));
+
+  // F53 P4. Both arms of the T48 map, driven through the object that ships.
+  // Only flash and passthrough were exercised, so the pro row could move in
+  // route.mjs with this step green, and the live pick never selects pro, so
+  // nothing else here reaches it (T48, D-59). Render the pro pick exactly as
+  // the live pick renders `hosted` and read the carrier a launch would get.
+  const proHosted = hostedModel("deepseek-v4-pro");
+  want("pro-hosted", proHosted, "deepseek-v4-pro-0813");
+  ok(
+    "the pro arm never reaches a rendered recipe",
+    RECIPES["aider"](proHosted).includes("#   aider --model openai/deepseek-v4-pro-0813 < packet.txt"),
+    [RECIPES["aider"](proHosted)],
+  );
 
   // P1/P3 (D-72) — the launch names the context that reaches a seat from
   // OUTSIDE this repository. The memory store is injected ahead of the packet
