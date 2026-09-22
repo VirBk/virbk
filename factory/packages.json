@@ -269,6 +269,16 @@
       "id": "F53",
       "title": "A check names the surfaces it scanned, and a fold is proved where it is consumed",
       "status": "queued"
+    },
+    {
+      "id": "F54",
+      "title": "What reaches a seat, and what a seat costs, are both in the record (D-72)",
+      "status": "issued"
+    },
+    {
+      "id": "F55",
+      "title": "Decisions rotate like the ledger does, before the file has no room for a ruling",
+      "status": "queued"
     }
   ]
 }
