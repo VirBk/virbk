@@ -76,10 +76,14 @@ export function providerId(model) {
   ).providerModel;
 }
 
-// Symmetric because both sides land on the same canonical form. An id the
-// table does not list passes through unchanged and agrees only with itself.
+// Symmetric: both sides land on the same canonical form, so the order does not
+// matter. An id the table does not list has no canonical form — D-71 makes the
+// router refuse it with a null — so it agrees with itself by string and with
+// nothing else. Two strangers are never folded into one model.
 export function sameModel(a, b) {
-  return providerId(a) === providerId(b);
+  if (String(a) === String(b)) return true;
+  const left = providerId(a);
+  return left !== null && left === providerId(b);
 }
 
 const TEMPLATE =
@@ -779,11 +783,12 @@ function selfTest() {
   // One model is sold under two names, and the router owns the pairs (T48,
   // T75). The relation lives in factory/tools/route.mjs; what is written here
   // is the expectation, so that a comparison by raw string — which would call
-  // every one of these three a disagreement — fails this test.
+  // every one of these two a disagreement — fails this test. Only a live pair
+  // belongs here: D-68 drops both ids of the qwen3-coder pair, so that row
+  // passed on null === null and proved nothing (T13).
   const pairs = [
     ["deepseek-flash", "deepseek-v4.1-flash"],
     ["deepseek-v4-pro", "deepseek-v4-pro-0813"],
-    ["qwen3-coder", "qwen3-coder-plus"],
   ];
   for (const [a, b] of pairs) {
     if (a === b) errors.push("a pair is not a pair: " + a);

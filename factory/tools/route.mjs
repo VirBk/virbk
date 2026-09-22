@@ -104,8 +104,20 @@ export function droppedIds(tree = root) {
 // never ran (F49). An id is compared as a whole token, so a dropped id that is
 // a prefix of a live one is not reported inside it.
 const ID_SEPARATORS = /[^A-Za-z0-9._-]+/;
+const TRAILING_PUNCTUATION = /[._-]+$/;
+// A token keeps `.` `_` `-` inside it, so a dropped id glued to punctuation —
+// `qwen3-coder.` at the end of a sentence — is a different token and the scan
+// would miss it. Each token is therefore offered a second time with trailing
+// punctuation trimmed; the untrimmed token is kept, so a dropped id that is a
+// prefix of a live one is still not reported inside it.
 function tokensOf(text) {
-  return String(text == null ? "" : text).split(ID_SEPARATORS).filter(Boolean);
+  const raw = String(text == null ? "" : text).split(ID_SEPARATORS).filter(Boolean);
+  const out = new Set(raw);
+  for (const token of raw) {
+    const trimmed = token.replace(TRAILING_PUNCTUATION, "");
+    if (trimmed) out.add(trimmed);
+  }
+  return [...out];
 }
 
 export function droppedAudit(objects, ids) {
