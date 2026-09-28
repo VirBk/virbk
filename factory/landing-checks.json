@@ -89,6 +89,10 @@
     {
       "name": "Corrected envelopes authorise their own force",
       "run": "node factory/tools/envelopeCheck.mjs --self-test && node factory/tools/envelopeCheck.mjs"
+    },
+    {
+      "name": "Round card obeys the correction cap",
+      "run": "node factory/orchestrator.mjs --self-test"
     }
   ]
 }

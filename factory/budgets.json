@@ -55,6 +55,10 @@
     {
       "path": "factory/OPERATING_MODEL.md",
       "capKb": 16
+    },
+    {
+      "path": "factory/HANDOFF_PROTOCOL.md",
+      "capKb": 8
     }
   ],
   "globs": [
@@ -69,6 +73,10 @@
     {
       "pattern": "docs/sparks/*.md",
       "capKb": 48
+    },
+    {
+      "pattern": "factory/roles/*.md",
+      "capKb": 4
     }
   ],
   "context": {

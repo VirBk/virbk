@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "factory/round.schema.json",
+  "title": "Round card",
+  "description": "Control-plane scratch for one open lane. Not an envelope. The envelope is factory/templates/ENVELOPE.md. Caps are not fields: sweep 1, keystone 2, records 0, from AGENTS.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "lane",
+    "tier",
+    "keystone",
+    "ownerChallenge",
+    "challengeDone",
+    "correctionsUsed",
+    "state",
+    "verdict"
+  ],
+  "properties": {
+    "lane": { "type": "string", "minLength": 1 },
+    "tier": { "enum": ["sweep", "keystone", "records"] },
+    "keystone": {
+      "enum": ["named", "absent"],
+      "description": "named only when tier is keystone and the lane is on the board's closed list. Otherwise absent."
+    },
+    "ownerChallenge": { "type": "boolean" },
+    "challengeDone": { "type": "boolean" },
+    "correctionsUsed": { "type": "integer", "minimum": 0 },
+    "state": {
+      "enum": [
+        "awaiting_writer",
+        "awaiting_review",
+        "awaiting_correction",
+        "awaiting_challenge",
+        "ready_to_land",
+        "landed",
+        "split"
+      ]
+    },
+    "verdict": {
+      "enum": ["APPROVED", "CHANGES REQUESTED", null]
+    }
+  }
+}
