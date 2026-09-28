@@ -118,5 +118,6 @@ The session is a fuse and every model rots if it stays (T25, T27). A writer that
 | Launch recipes | `factory/tools/seat.mjs`. The control plane launches. |
 | Session fuse | `factory/sessions.json` |
 | Control-plane derivation | `factory/CONTROL_PLANE.md` |
+| Role prompts (not a handoff) | `factory/roles/` |
 
 The rest of the index — lineage, drops, help, intakes, contracts, console, concerns, sparks, the rubric, how to copy, the per-tool map — is in `factory/OPERATING_MODEL.md`. Every other document is history or reference until the owner moves it.

@@ -17,6 +17,8 @@ An envelope is the only start. A writer self-checks. A reviewer who is not the a
 - Challenger: named keystone, owner word, leads not verdicts. Never Fable.
 - Owner / project manager: money, names, live effects, gates, release, and the picks in `factory/project.json`.
 
+Prompts for a fresh session, which lose where they disagree with this list: `factory/roles/`. The round card that enforces the caps is `factory/HANDOFF_PROTOCOL.md`. Neither is a handoff, and a packet does not include them.
+
 ## Why Grok is the parent
 
 Otto and Virbos paid once. Distilling them once is not a factory. A factory is a loop: copy, run, return, absorb, copy again.
@@ -170,5 +172,6 @@ AGENTS section 9 carries the rows a seat or an issuing control plane reaches for
 | Alumni measurement, check pack | `factory/tools/alumni.mjs` |
 | Every gate step and tool | `factory/landing-checks.json` |
 | Versioned interfaces | `contracts/` |
+| Role prompts, round card (not a handoff) | `factory/roles/`, `factory/HANDOFF_PROTOCOL.md` |
 
 Every other document is history or reference until the owner moves it.
